@@ -183,7 +183,7 @@ table _Measures
 		displayFolder: 5 Prices
 
 	/// Value-weighted difference between contract price and base price.
-	measure 'Price vs Base %' = DIVIDE ( [Value With Base Price], [Base Price Total] ) - 1
+	measure 'Price vs Base %' = IF ( NOT ISBLANK ( [Base Price Total] ), DIVIDE ( [Value With Base Price], [Base Price Total] ) - 1 )
 		formatString: +0.0%;-0.0%;0.0%
 		displayFolder: 5 Prices
 
@@ -204,7 +204,7 @@ table _Measures
 		formatString: \€#,0;-\€#,0;\€0
 		displayFolder: 5 Prices
 
-	measure 'Final vs Signed %' = DIVIDE ( [Effective Price Total], [Value of Closed Contracts] ) - 1
+	measure 'Final vs Signed %' = IF ( NOT ISBLANK ( [Effective Price Total] ), DIVIDE ( [Effective Price Total], [Value of Closed Contracts] ) - 1 )
 		formatString: +0.0%;-0.0%;0.0%
 		displayFolder: 5 Prices
 
