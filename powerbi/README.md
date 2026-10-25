@@ -53,13 +53,13 @@ relationship in the model.
 
 ## Measures
 
-All measures are in `_Measures` (43, in display folders). No measure shares a name with a column, ignoring
+All measures are in `_Measures` (44, in display folders). No measure shares a name with a column, ignoring
 case: Power BI names are case-insensitive, so for example the count is *Contract Count*, not *Contracts*,
 because three tables have a `contracts` column.
 
 | Folder | Measures |
 | --- | --- |
-| 1 Spend | Contract Value, Contract Count, Average Contract Value, Value Share of Selection, Contract Value PY, Contract Value YoY %, December Value % |
+| 1 Spend | Contract Value, Contract Count, Average Contract Value, Value Share of Selection, Contract Share of Selection, Contract Value PY, Contract Value YoY %, December Value % |
 | 2 Competition | Direct Award Contracts %, Direct Award Value %, Open Tender Contracts %, Open Tender Value %, Contracts With Bidder List, Single Bid Contracts, Single Bid %, Average Bidders |
 | 3 Value limits | GS Direct Award Limit 20k Below / Above, GS Prior Consultation Limit 75k Below / Above, Works Direct Award Limit 30k Below / Above, Works Prior Consultation Limit 150k Below / Above, Contracts in Band |
 | 4 Suppliers | Supplier Value, Supplier Contract Count, Supplier Value Share, Supplier Rank, Top 10 Named Supplier Share, Withheld Supplier Value %, Contract Count by Supplier, Contract Value by Supplier Filter, Division HHI, Division Top 5 Share |

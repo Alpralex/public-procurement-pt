@@ -27,6 +27,10 @@ createOrReplace
 			formatString: 0.0%
 			displayFolder: 1 Spend
 
+		measure 'Contract Share of Selection' = DIVIDE ( [Contract Count], CALCULATE ( [Contract Count], ALLSELECTED () ) )
+			formatString: 0.0%
+			displayFolder: 1 Spend
+
 		measure 'Contract Value PY' = CALCULATE ( [Contract Value], SAMEPERIODLASTYEAR ( dim_date[date_day] ) )
 			formatString: \€#,0;-\€#,0;\€0
 			displayFolder: 1 Spend

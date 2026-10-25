@@ -20,6 +20,11 @@ table _Measures
 		formatString: 0.0%
 		displayFolder: 1 Spend
 
+	/// Share of the contracts shown in the visual: the count twin of Value Share of Selection.
+	measure 'Contract Share of Selection' = DIVIDE ( [Contract Count], CALCULATE ( [Contract Count], ALLSELECTED () ) )
+		formatString: 0.0%
+		displayFolder: 1 Spend
+
 	measure 'Contract Value PY' = CALCULATE ( [Contract Value], SAMEPERIODLASTYEAR ( dim_date[date_day] ) )
 		formatString: \€#,0;-\€#,0;\€0
 		displayFolder: 1 Spend
