@@ -1,5 +1,5 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "4057417b06fb3a2359d4",
   "position": {
     "x": 648,
@@ -28,26 +28,8 @@
               },
               "queryRef": "dim_entity.entity_type",
               "nativeQueryRef": "entity_type",
+              "active": true,
               "displayName": "Authority type"
-            }
-          ]
-        },
-        "Y": {
-          "projections": [
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "_Measures"
-                    }
-                  },
-                  "Property": "Contract Value"
-                }
-              },
-              "queryRef": "_Measures.Contract Value",
-              "nativeQueryRef": "Contract Value",
-              "displayName": "Contract value"
             }
           ]
         },
@@ -67,6 +49,25 @@
               "queryRef": "_Measures.Value Share of Selection",
               "nativeQueryRef": "Value Share of Selection",
               "displayName": "Share of value"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Contract Value"
+                }
+              },
+              "queryRef": "_Measures.Contract Value",
+              "nativeQueryRef": "Contract Value",
+              "displayName": "Contract value"
             }
           ]
         }

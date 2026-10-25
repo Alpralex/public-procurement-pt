@@ -1,20 +1,24 @@
 /// Largest named suppliers 2019-2026: top 25 overall and top 10 per CPV division.
 table mart_top_suppliers
+	lineageTag: 48446386-d0d2-4926-a365-30a2a8722755
 
 	column rank_scope
 		dataType: string
+		lineageTag: 70bb5873-9cd5-4056-99b8-b67194d02af1
 		summarizeBy: none
 		sourceColumn: rank_scope
 
 	column cpv_division
 		dataType: string
 		isHidden
+		lineageTag: abac5054-9b59-4bd3-8b7e-83c09e5662a7
 		summarizeBy: none
 		sourceColumn: cpv_division
 
 	column supplier_rank
 		dataType: int64
 		formatString: 0
+		lineageTag: d1cdeafb-3d54-4ec4-a457-691c492287bb
 		summarizeBy: none
 		sourceColumn: supplier_rank
 
@@ -22,24 +26,28 @@ table mart_top_suppliers
 		dataType: int64
 		isHidden
 		formatString: 0
+		lineageTag: 6eccd51b-849d-4cf3-9bc7-e46a45964bf6
 		summarizeBy: none
 		sourceColumn: supplier_id
 
 	column allocated_value
 		dataType: double
 		formatString: \€#,0;-\€#,0;\€0
+		lineageTag: cfa1dfee-2aef-4f5e-9817-a825732adcf4
 		summarizeBy: none
 		sourceColumn: allocated_value
 
 	column contracts
 		dataType: int64
 		formatString: #,0
+		lineageTag: cefe8bdd-32a0-41d1-9aab-4ae7b5584f9e
 		summarizeBy: none
 		sourceColumn: contracts
 
 	column share_of_scope
 		dataType: double
 		formatString: 0.00%
+		lineageTag: 61f1533d-bf3f-4510-a780-ea1395748aa6
 		summarizeBy: none
 		sourceColumn: share_of_scope
 
@@ -50,3 +58,4 @@ table mart_top_suppliers
 					Source = Parquet.Document ( File.Contents ( DataFolder & "mart_top_suppliers.parquet" ) )
 				in
 					Source
+

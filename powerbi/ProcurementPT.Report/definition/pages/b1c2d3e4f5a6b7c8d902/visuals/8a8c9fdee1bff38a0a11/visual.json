@@ -1,5 +1,5 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "8a8c9fdee1bff38a0a11",
   "position": {
     "x": 16,
@@ -28,6 +28,7 @@
               },
               "queryRef": "dim_procedure.procedure_group",
               "nativeQueryRef": "procedure_group",
+              "active": true,
               "displayName": "Procedure"
             }
           ]

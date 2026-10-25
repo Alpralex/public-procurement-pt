@@ -1,5 +1,5 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "261d51dde40310afafa9",
   "position": {
     "x": 648,
@@ -28,6 +28,7 @@
               },
               "queryRef": "dim_region.region",
               "nativeQueryRef": "region",
+              "active": true,
               "displayName": "District or region"
             }
           ]

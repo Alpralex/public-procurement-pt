@@ -1,14 +1,17 @@
 /// Contract types in English and the family used for the legal value limits.
 table dim_contract_type
+	lineageTag: 97c5a513-ac8f-4afd-85d9-2cc033d3ce73
 
 	column contract_type
 		dataType: string
 		isKey
+		lineageTag: db73cfa2-238b-401a-b5ba-f65d50a6ee3b
 		summarizeBy: none
 		sourceColumn: contract_type
 
 	column threshold_family
 		dataType: string
+		lineageTag: ac60ab1a-0a64-4164-9cbb-1cd97db748ff
 		summarizeBy: none
 		sourceColumn: threshold_family
 
@@ -19,3 +22,4 @@ table dim_contract_type
 					Source = Parquet.Document ( File.Contents ( DataFolder & "dim_contract_type.parquet" ) )
 				in
 					Source
+

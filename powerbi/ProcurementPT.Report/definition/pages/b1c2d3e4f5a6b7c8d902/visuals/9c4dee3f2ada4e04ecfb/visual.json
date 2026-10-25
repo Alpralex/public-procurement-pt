@@ -1,5 +1,5 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "9c4dee3f2ada4e04ecfb",
   "position": {
     "x": 648,
@@ -28,26 +28,8 @@
               },
               "queryRef": "dim_date.year_number",
               "nativeQueryRef": "year_number",
+              "active": true,
               "displayName": "Year"
-            }
-          ]
-        },
-        "Y": {
-          "projections": [
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "_Measures"
-                    }
-                  },
-                  "Property": "Single Bid %"
-                }
-              },
-              "queryRef": "_Measures.Single Bid %",
-              "nativeQueryRef": "Single Bid %",
-              "displayName": "Single-bid share"
             }
           ]
         },
@@ -67,6 +49,25 @@
               "queryRef": "dim_procedure.procedure_group",
               "nativeQueryRef": "procedure_group",
               "displayName": "Procedure"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Single Bid %"
+                }
+              },
+              "queryRef": "_Measures.Single Bid %",
+              "nativeQueryRef": "Single Bid %",
+              "displayName": "Single-bid share"
             }
           ]
         }

@@ -1,10 +1,12 @@
 /// One row per contract. contract_value = contract price in EUR excl. VAT. base_price_comparable only for single-contract procedures with a plausible ratio; effective_price_closed only for closed contracts.
 table fct_contracts
+	lineageTag: c32dc8dd-4742-440e-9cf4-843f42745e6a
 
 	column contract_id
 		dataType: int64
 		isHidden
 		formatString: 0
+		lineageTag: f04665ac-37ee-4f93-af2a-6393768e2b1c
 		summarizeBy: none
 		sourceColumn: contract_id
 
@@ -12,6 +14,7 @@ table fct_contracts
 		dataType: dateTime
 		isHidden
 		formatString: yyyy-mm-dd
+		lineageTag: 9d702457-646f-4085-a9b0-fee7fb96e828
 		summarizeBy: none
 		sourceColumn: contract_date
 
@@ -19,12 +22,14 @@ table fct_contracts
 		dataType: int64
 		isHidden
 		formatString: 0
+		lineageTag: f4191a8f-c48d-4e4c-ba46-20daa51e7861
 		summarizeBy: none
 		sourceColumn: entity_id
 
 	column cpv_division
 		dataType: string
 		isHidden
+		lineageTag: f7e6fc4b-250d-48a9-8b0b-22d65a885d4a
 		summarizeBy: none
 		sourceColumn: cpv_division
 
@@ -32,18 +37,21 @@ table fct_contracts
 		dataType: int64
 		isHidden
 		formatString: 0
+		lineageTag: 6ed8c56d-8a14-4f50-8634-eec4f57587f4
 		summarizeBy: none
 		sourceColumn: procedure_key
 
 	column contract_type
 		dataType: string
 		isHidden
+		lineageTag: a5e5bdc2-d9c9-4e0a-b651-62fe1f1f5d07
 		summarizeBy: none
 		sourceColumn: contract_type
 
 	column region_key
 		dataType: string
 		isHidden
+		lineageTag: 695f2fb5-d06e-43ff-bb2c-c74ed983685b
 		summarizeBy: none
 		sourceColumn: region_key
 
@@ -51,6 +59,7 @@ table fct_contracts
 		dataType: double
 		isHidden
 		formatString: \€#,0;-\€#,0;\€0
+		lineageTag: 78c678db-3da2-4f18-b6c3-ff3886eaee62
 		summarizeBy: sum
 		sourceColumn: contract_value
 
@@ -58,6 +67,7 @@ table fct_contracts
 		dataType: double
 		isHidden
 		formatString: \€#,0;-\€#,0;\€0
+		lineageTag: 7051dfd6-871c-4c13-a6f3-1b7323e16b70
 		summarizeBy: sum
 		sourceColumn: base_price_comparable
 
@@ -65,6 +75,7 @@ table fct_contracts
 		dataType: double
 		isHidden
 		formatString: \€#,0;-\€#,0;\€0
+		lineageTag: e1857e02-e24a-4da5-bfdf-3986dd35ed2a
 		summarizeBy: sum
 		sourceColumn: effective_price_closed
 
@@ -72,6 +83,7 @@ table fct_contracts
 		dataType: int64
 		isHidden
 		formatString: 0
+		lineageTag: 32191355-c573-4aa8-807d-31722531019d
 		summarizeBy: none
 		sourceColumn: bidders_count
 
@@ -82,3 +94,4 @@ table fct_contracts
 					Source = Parquet.Document ( File.Contents ( DataFolder & "fct_contracts.parquet" ) )
 				in
 					Source
+

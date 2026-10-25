@@ -1,62 +1,73 @@
 /// Top-supplier shares and HHI per CPV division, for 2019-2026 and per year (period).
 table mart_supplier_concentration
+	lineageTag: 3c90c155-5473-4568-84e7-4800c81b5067
 
 	column period
 		dataType: string
+		lineageTag: 9b436829-3be2-46a0-a7d3-babac9563a0b
 		summarizeBy: none
 		sourceColumn: period
 
 	column cpv_division
 		dataType: string
 		isHidden
+		lineageTag: 790be482-b96c-48d2-a469-3bfaa212e712
 		summarizeBy: none
 		sourceColumn: cpv_division
 
 	column supplier_value
 		dataType: double
 		formatString: \€#,0;-\€#,0;\€0
+		lineageTag: f766b825-ca9c-460d-9ab8-6b53727efd5e
 		summarizeBy: none
 		sourceColumn: supplier_value
 
 	column suppliers
 		dataType: int64
 		formatString: #,0
+		lineageTag: 9f9d6ed6-48d7-4bb7-b69b-565b5c60d45f
 		summarizeBy: none
 		sourceColumn: suppliers
 
 	column top1_share
 		dataType: double
 		formatString: 0.0%
+		lineageTag: 445c19ae-f418-43a3-bc2a-b5f20aa92964
 		summarizeBy: none
 		sourceColumn: top1_share
 
 	column top5_share
 		dataType: double
 		formatString: 0.0%
+		lineageTag: 80ed4029-9296-4a02-9957-7d6ab3c195dc
 		summarizeBy: none
 		sourceColumn: top5_share
 
 	column top10_share
 		dataType: double
 		formatString: 0.0%
+		lineageTag: f4864bad-8f67-47d0-a86c-b051f8826b84
 		summarizeBy: none
 		sourceColumn: top10_share
 
 	column hhi
 		dataType: double
 		formatString: #,0
+		lineageTag: 2faa037d-8bf2-49d6-b48a-2e12194d8762
 		summarizeBy: none
 		sourceColumn: hhi
 
 	column withheld_share
 		dataType: double
 		formatString: 0.0%
+		lineageTag: 20679226-0932-4a30-9444-92ea7b5702f5
 		summarizeBy: none
 		sourceColumn: withheld_share
 
 	column sme_flag_share_2024_on
 		dataType: double
 		formatString: 0.0%
+		lineageTag: 68281163-1acb-48bf-b8b7-257371cbe48b
 		summarizeBy: none
 		sourceColumn: sme_flag_share_2024_on
 
@@ -67,3 +78,4 @@ table mart_supplier_concentration
 					Source = Parquet.Document ( File.Contents ( DataFolder & "mart_supplier_concentration.parquet" ) )
 				in
 					Source
+

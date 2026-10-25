@@ -37,3 +37,4 @@ relationship mart_supplier_concentration_cpv
 relationship mart_top_suppliers_supplier
 	fromColumn: mart_top_suppliers.supplier_id
 	toColumn: dim_supplier.supplier_id
+

@@ -1,20 +1,24 @@
 /// District or autonomous region of execution, plus Multiple, Unspecified, Abroad and Not reported.
 table dim_region
+	lineageTag: 4c269dc2-ce28-4247-ab92-cb39b86ee789
 
 	column region_key
 		dataType: string
 		isKey
+		lineageTag: e2ad9cd5-8b1f-41c1-9a59-1c0860ed85cc
 		summarizeBy: none
 		sourceColumn: region_key
 
 	column region
 		dataType: string
+		lineageTag: 0db08111-3cd0-4cc1-8b21-9e1450c3da54
 		summarizeBy: none
-		sortByColumn: sort_order
 		sourceColumn: region
+		sortByColumn: sort_order
 
 	column region_group
 		dataType: string
+		lineageTag: b1358fb6-b1cd-4a64-9310-754164b7d8d3
 		summarizeBy: none
 		sourceColumn: region_group
 
@@ -22,6 +26,7 @@ table dim_region
 		dataType: int64
 		isHidden
 		formatString: 0
+		lineageTag: 1269ac10-5ebb-4394-99d2-e3fae5e6c63b
 		summarizeBy: none
 		sourceColumn: sort_order
 
@@ -32,3 +37,4 @@ table dim_region
 					Source = Parquet.Document ( File.Contents ( DataFolder & "dim_region.parquet" ) )
 				in
 					Source
+

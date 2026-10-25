@@ -1,5 +1,5 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "8553648bb02823fe49c7",
   "position": {
     "x": 16,
@@ -28,6 +28,7 @@
               },
               "queryRef": "dim_date.year_number",
               "nativeQueryRef": "year_number",
+              "active": true,
               "displayName": "Year"
             }
           ]
