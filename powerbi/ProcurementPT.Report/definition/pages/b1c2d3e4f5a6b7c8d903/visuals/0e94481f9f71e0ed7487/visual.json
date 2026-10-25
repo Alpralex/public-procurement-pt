@@ -3,11 +3,11 @@
   "name": "0e94481f9f71e0ed7487",
   "position": {
     "x": 16,
-    "y": 528,
-    "z": 11000,
-    "height": 176,
+    "y": 496,
+    "z": 13000,
+    "height": 208,
     "width": 1248,
-    "tabOrder": 11000
+    "tabOrder": 13000
   },
   "visual": {
     "visualType": "tableEx",
@@ -148,7 +148,7 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "10D"
+                  "Value": "9D"
                 }
               }
             }
@@ -161,7 +161,7 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "10D"
+                  "Value": "9D"
                 }
               }
             }
@@ -256,14 +256,7 @@
             "show": {
               "expr": {
                 "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "text": {
-              "expr": {
-                "Literal": {
-                  "Value": "'Describes where contract values sit, not why'"
+                  "Value": "false"
                 }
               }
             }

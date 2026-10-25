@@ -11,7 +11,7 @@
       "type": "SharedResources"
     },
     "customTheme": {
-      "name": "ProcurementPT-76d8af05.json",
+      "name": "ProcurementPT-9963c8e9.json",
       "reportVersionAtImport": {
         "visual": "2.11.0",
         "report": "3.4.0",
@@ -37,8 +37,8 @@
       "type": "RegisteredResources",
       "items": [
         {
-          "name": "ProcurementPT-76d8af05.json",
-          "path": "ProcurementPT-76d8af05.json",
+          "name": "ProcurementPT-9963c8e9.json",
+          "path": "ProcurementPT-9963c8e9.json",
           "type": "CustomTheme"
         }
       ]

@@ -5,7 +5,7 @@
     "x": 648,
     "y": 112,
     "z": 2000,
-    "height": 296,
+    "height": 256,
     "width": 616,
     "tabOrder": 2000
   },
@@ -197,7 +197,7 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "8D"
+                  "Value": "9D"
                 }
               }
             },
@@ -222,7 +222,14 @@
             "axisType": {
               "expr": {
                 "Literal": {
-                  "Value": "'Categorical'"
+                  "Value": "'Scalar'"
+                }
+              }
+            },
+            "labelDisplayUnits": {
+              "expr": {
+                "Literal": {
+                  "Value": "1000D"
                 }
               }
             }
@@ -279,6 +286,13 @@
                       "Value": "'#ECEFF2'"
                     }
                   }
+                }
+              }
+            },
+            "labelDisplayUnits": {
+              "expr": {
+                "Literal": {
+                  "Value": "1000D"
                 }
               }
             }
@@ -380,7 +394,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'EUR 1,000 bands to 199,000. Orange: the band just below a limit. To 30 September 2026'"
+                  "Value": "'Contracts (thousands) per EUR 1,000 band. Orange: the band just below a limit. To 30 September 2026'"
                 }
               }
             }

@@ -332,7 +332,7 @@ function buyingPage() {
 function limitsPage() {
   const p = PAGE_IDS.limits;
   z = 0;
-  const histogram = (key, x, family, maxBand, limits, title, alt) => container(p, key, { x, y: 112, w: 616, h: 296 }, {
+  const histogram = (key, x, family, maxBand, limits, title, alt) => container(p, key, { x, y: 112, w: 616, h: 256 }, {
     visualType: "clusteredColumnChart",
     query: {
       queryState: {
@@ -347,11 +347,11 @@ function limitsPage() {
         ...limits.map((b) => ({ properties: { fill: fill(C.orange) }, selector: scopeOf(F.band, `${b}L`) })),
       ],
       labels: [{ properties: { show: bool(false) } }],
-      categoryAxis: [{ properties: { ...axisOn, axisType: str("Categorical"), fontSize: num(8) } }],
-      valueAxis: [{ properties: { ...axisOn, gridlineShow: bool(true), gridlineColor: fill(C.grid) } }],
+      categoryAxis: [{ properties: { ...axisOn, axisType: str("Scalar"), fontSize: num(9), labelDisplayUnits: num(1000) } }],
+      valueAxis: [{ properties: { ...axisOn, gridlineShow: bool(true), gridlineColor: fill(C.grid), labelDisplayUnits: num(1000) } }],
       legend: [{ properties: { show: bool(false) } }],
     },
-    visualContainerObjects: chartVcos(title, alt, `EUR 1,000 bands to ${maxBand.toLocaleString("en")}. Orange: the band just below a limit. To 30 September 2026`),
+    visualContainerObjects: chartVcos(title, alt, `Contracts (thousands) per EUR 1,000 band. Orange: the band just below a limit. To 30 September 2026`),
   }, {
     filterConfig: {
       filters: [
@@ -367,30 +367,33 @@ function limitsPage() {
     "Public works: contracts by value (limits €30,000 and €150,000)",
     "Column chart of public works contracts in EUR 1,000 value bands from 1,000 to 199,000; the bands just below the 30,000 and 150,000 limits are orange.");
   const limitCards = [
-    ["GS Direct Award Limit 20k Below", "Goods €19–20k"], ["GS Direct Award Limit 20k Above", "Goods €20–21k"],
-    ["GS Prior Consultation Limit 75k Below", "Goods €74–75k"], ["GS Prior Consultation Limit 75k Above", "Goods €75–76k"],
-    ["Works Direct Award Limit 30k Below", "Works €29–30k"], ["Works Direct Award Limit 30k Above", "Works €30–31k"],
-    ["Works Prior Consultation Limit 150k Below", "Works €149–150k"], ["Works Prior Consultation Limit 150k Above", "Works €150–151k"],
-  ].map(([m, label], i) => card(p, `card_limit_${i}`, { x: 16 + i * 157, y: 424, w: 145, h: 88 }, meas(m), label, {
-    units: "1", alt: `Contracts with a value from ${label.split(" ")[1]}.`,
+    ["GS Direct Award Limit 20k Below", "€19–20k"], ["GS Direct Award Limit 20k Above", "€20–21k"],
+    ["GS Prior Consultation Limit 75k Below", "€74–75k"], ["GS Prior Consultation Limit 75k Above", "€75–76k"],
+    ["Works Direct Award Limit 30k Below", "€29–30k"], ["Works Direct Award Limit 30k Above", "€30–31k"],
+    ["Works Prior Consultation Limit 150k Below", "€149–150k"], ["Works Prior Consultation Limit 150k Above", "€150–151k"],
+  ].map(([m, label], i) => card(p, `card_limit_${i}`, { x: 16 + i * 157, y: 400, w: 145, h: 80 }, meas(m), label, {
+    units: "1", alt: `${i < 4 ? "Goods and services" : "Public works"} contracts with a value from ${label}.`,
   }));
-  const summary = table(p, "table_threshold_summary", { x: 16, y: 528, w: 1248, h: 176 }, [
+  const familyLabel = (key, x, text) => textbox(p, key, { x, y: 376, w: 616, h: 20 }, text,
+    { fontFamily: "Segoe UI Semibold", fontSize: "12px", color: C.text });
+  const families = [familyLabel("label_goods", 16, "Goods and services: contracts just below and above each limit"), familyLabel("label_works", 644, "Public works: contracts just below and above each limit")];
+  const summary = table(p, "table_threshold_summary", { x: 16, y: 496, w: 1248, h: 208 }, [
     [F.th("threshold_family"), "Contract family"], [F.th("procedure_limit"), "Procedure up to the limit"], [F.th("threshold_eur"), "Limit (EUR)"],
     [F.th("contracts_just_below"), "Contracts €1,000 below"], [F.th("contracts_just_above"), "Contracts €1,000 above"], [F.th("neighbour_bin_avg"), "Average of nearby bands"],
   ], "The legal limits and the contracts next to them", "Table of each legal value limit with the contracts in the EUR 1,000 band below and above it and the average of the nearby bands.",
-  "Describes where contract values sit, not why", { sort: F.th("threshold_eur"), direction: "Ascending" });
+  null, { sort: F.th("threshold_eur"), direction: "Ascending", fontSize: 9 });
   return {
     name: p, displayName: "Values near the limits",
-    visuals: [...header(p, "Contract values near the legal limits", "Below each limit a simpler procedure is allowed; contracts cluster just under it"),
-      ...slicers(p), gs, works, ...limitCards, summary],
+    visuals: [...header(p, "Contract values near the legal limits", "Below each limit a simpler procedure is allowed. This shows where values sit, not why"),
+      ...slicers(p), gs, works, ...families, ...limitCards, summary],
   };
 }
 
 function suppliersPage() {
   const p = PAGE_IDS.suppliers;
   z = 0;
-  const top = table(p, "table_top_suppliers", { x: 16, y: 112, w: 736, h: 592 }, [
-    [meas("Supplier Rank"), "Rank"], [F.supplier, "Supplier"], [meas("Supplier Value"), "Value"],
+  const top = table(p, "table_top_suppliers", { x: 16, y: 112, w: 640, h: 592 }, [
+    [F.supplier, "Supplier"], [meas("Supplier Value"), "Value"],
     [meas("Supplier Value Share"), "Share"], [meas("Contract Count by Supplier"), "Contracts"],
   ], "Top 25 named suppliers by allocated value",
   "Table of the 25 named suppliers with the highest allocated contract value, with rank, value, share of all supplier value and number of contracts. Individuals are never named.",
@@ -398,7 +401,7 @@ function suppliersPage() {
     sort: meas("Supplier Value"), fontSize: 9,
     filters: [inFilter(p, "named_only", F.withheld, ["false"]), topN(p, "top25", F.supplier, meas("Supplier Value"), 25)],
   });
-  const conc = container(p, "matrix_concentration", { x: 768, y: 112, w: 496, h: 440 }, {
+  const conc = container(p, "matrix_concentration", { x: 672, y: 112, w: 592, h: 440 }, {
     visualType: "pivotTable",
     query: {
       queryState: {
@@ -422,8 +425,8 @@ function suppliersPage() {
       "Matrix of CPV divisions with allocated value, the share of the ten largest named suppliers, the Herfindahl-Hirschman index and the share of the five largest suppliers.",
       "Value in EUR millions. HHI and top 5 for 2019–2026"),
   });
-  const withheld = card(p, "card_withheld", { x: 768, y: 568, w: 496, h: 136 }, meas("Withheld Supplier Value %"),
-    "Value to suppliers whose name is withheld (individuals, foreign awardees)", {
+  const withheld = card(p, "card_withheld", { x: 672, y: 568, w: 592, h: 136 }, meas("Withheld Supplier Value %"),
+    "Value to withheld names (individuals, foreign awardees)", {
       alt: "Share of supplier value going to natural persons and awardees without a Portuguese NIF, whose names are never shown.",
     });
   return {

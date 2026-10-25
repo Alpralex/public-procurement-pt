@@ -3,9 +3,9 @@
   "name": "891980b286f6b72716f9",
   "position": {
     "x": 330,
-    "y": 424,
+    "y": 400,
     "z": 5000,
-    "height": 88,
+    "height": 80,
     "width": 145,
     "tabOrder": 5000
   },
@@ -70,7 +70,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Goods €74–75k'"
+                  "Value": "'€74–75k'"
                 }
               }
             },
@@ -183,7 +183,7 @@
             "altText": {
               "expr": {
                 "Literal": {
-                  "Value": "'Contracts with a value from €74–75k.'"
+                  "Value": "'Goods and services contracts with a value from €74–75k.'"
                 }
               }
             }

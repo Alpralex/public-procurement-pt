@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
   "name": "ffc2c82d821ab6d578c5",
   "position": {
-    "x": 768,
+    "x": 672,
     "y": 568,
     "z": 3000,
     "height": 136,
-    "width": 496,
+    "width": 592,
     "tabOrder": 3000
   },
   "visual": {
@@ -63,7 +63,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Value to suppliers whose name is withheld (individuals, foreign awardees)'"
+                  "Value": "'Value to withheld names (individuals, foreign awardees)'"
                 }
               }
             },

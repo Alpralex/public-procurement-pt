@@ -4,10 +4,10 @@
   "position": {
     "x": 16,
     "y": 58,
-    "z": 13000,
+    "z": 15000,
     "height": 40,
     "width": 520,
-    "tabOrder": 13000
+    "tabOrder": 15000
   },
   "visual": {
     "visualType": "textbox",
@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Below each limit a simpler procedure is allowed; contracts cluster just under it",
+                    "value": "Below each limit a simpler procedure is allowed. This shows where values sit, not why",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "13px",

@@ -3,9 +3,9 @@
   "name": "a198778c0e6eb7e524fd",
   "position": {
     "x": 958,
-    "y": 424,
+    "y": 400,
     "z": 9000,
-    "height": 88,
+    "height": 80,
     "width": 145,
     "tabOrder": 9000
   },
@@ -70,7 +70,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Works €149–150k'"
+                  "Value": "'€149–150k'"
                 }
               }
             },
@@ -183,7 +183,7 @@
             "altText": {
               "expr": {
                 "Literal": {
-                  "Value": "'Contracts with a value from €149–150k.'"
+                  "Value": "'Public works contracts with a value from €149–150k.'"
                 }
               }
             }
