@@ -1,5 +1,7 @@
 # Portuguese public procurement in Power BI
 
+**Live report (Publish to web):** https://app.powerbi.com/view?r=eyJrIjoiZDliMmM5ZDAtOTRjYS00M2ZmLWJjNmMtNmJkZjAwNjU1NjEzIiwidCI6IjY2MDMwOWU1LWI1YWEtNDQzNS1iMDU2LTJhYmViOGZmNDZjNyJ9
+
 The procurement spend model as a Power BI project (PBIP). The semantic model is written in TMDL, so every
 table, relationship and DAX measure is readable in Git. The data are the Parquet files that
 `scripts/export.py` writes to `powerbi/data/` (the same files the Qlik app loads, 24.3 MB in all).
