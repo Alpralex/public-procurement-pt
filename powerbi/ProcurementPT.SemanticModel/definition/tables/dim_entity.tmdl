@@ -1,0 +1,52 @@
+/// Contracting authorities (adjudicante), latest name, rule-based entity type.
+table dim_entity
+
+	column entity_id
+		dataType: int64
+		isHidden
+		isKey
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: entity_id
+
+	column entity_nif
+		dataType: string
+		summarizeBy: none
+		sourceColumn: entity_nif
+
+	column entity_name
+		dataType: string
+		summarizeBy: none
+		sourceColumn: entity_name
+
+	column entity_type
+		dataType: string
+		summarizeBy: none
+		sourceColumn: entity_type
+
+	column contracts
+		dataType: int64
+		isHidden
+		formatString: #,0
+		summarizeBy: none
+		sourceColumn: contracts
+
+	column first_year
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: first_year
+
+	column last_year
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: last_year
+
+	partition dim_entity = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document ( File.Contents ( DataFolder & "dim_entity.parquet" ) )
+				in
+					Source

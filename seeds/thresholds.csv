@@ -1,0 +1,10 @@
+threshold_id,threshold_family,procedure_limit,threshold_eur,limit_rule,valid_from,valid_to,in_analysis,legal_source
+GS-SIMPLE,Goods and services,Simplified direct award,5000,not above,2018-01-01,2026-09-30,true,"CCP art. 128 n.1 (DL 18/2008 as revised by DL 111-B/2017): simplified direct award for goods and services up to and including EUR 5,000"
+GS-DIRECT,Goods and services,Direct award,20000,below,2018-01-01,2026-09-30,true,"CCP art. 20 n.1 d) (DL 111-B/2017): direct award for goods and services below EUR 20,000"
+GS-PRIOR,Goods and services,Prior consultation,75000,below,2018-01-01,2026-09-30,true,"CCP art. 20 n.1 c) (DL 111-B/2017): prior consultation for goods and services below EUR 75,000"
+WK-DIRECT,Public works,Direct award,30000,below,2018-01-01,2026-09-30,true,"CCP art. 19 d) (DL 111-B/2017): direct award for public works below EUR 30,000"
+WK-PRIOR,Public works,Prior consultation,150000,below,2018-01-01,2026-09-30,true,"CCP art. 19 c) (DL 111-B/2017): prior consultation for public works below EUR 150,000"
+GS-DIRECT-2026,Goods and services,Direct award,75000,below,2026-10-01,,false,"DL 177/2026 of 4 September 2026, in force 1 October 2026, for procedures started from that date"
+GS-PRIOR-2026,Goods and services,Prior consultation,130000,below,2026-10-01,,false,"DL 177/2026, in force 1 October 2026"
+WK-DIRECT-2026,Public works,Direct award,150000,below,2026-10-01,,false,"DL 177/2026, in force 1 October 2026"
+WK-PRIOR-2026,Public works,Prior consultation,1000000,below,2026-10-01,,false,"DL 177/2026, in force 1 October 2026"

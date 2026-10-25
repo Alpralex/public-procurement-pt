@@ -1,0 +1,881 @@
+createOrReplace
+
+	/// Folder that holds the Parquet files, with a trailing backslash. Change it in Transform data > Manage parameters.
+	expression DataFolder = "C:\\public-procurement-pt\\powerbi\\data\\" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+
+		annotation PBI_ResultType = Text
+
+	/// Holds every measure. The single column is hidden so Power BI shows the table as a measure table.
+	table _Measures
+
+		/// Contract price (precoContratual) in EUR excluding VAT.
+		measure 'Contract Value' = SUM ( fct_contracts[contract_value] )
+			formatString: \€#,0;-\€#,0;\€0
+			displayFolder: 1 Spend
+
+		/// Contracts (one row per idcontrato after deduplication).
+		measure 'Contract Count' = COUNTROWS ( fct_contracts )
+			formatString: #,0
+			displayFolder: 1 Spend
+
+		measure 'Average Contract Value' = DIVIDE ( [Contract Value], [Contract Count] )
+			formatString: \€#,0;-\€#,0;\€0
+			displayFolder: 1 Spend
+
+		/// Share of the value shown in the visual: use with a category on rows.
+		measure 'Value Share of Selection' = DIVIDE ( [Contract Value], CALCULATE ( [Contract Value], ALLSELECTED () ) )
+			formatString: 0.0%
+			displayFolder: 1 Spend
+
+		measure 'Contract Value PY' = CALCULATE ( [Contract Value], SAMEPERIODLASTYEAR ( dim_date[date_day] ) )
+			formatString: \€#,0;-\€#,0;\€0
+			displayFolder: 1 Spend
+
+		measure 'Contract Value YoY %' = DIVIDE ( [Contract Value] - [Contract Value PY], [Contract Value PY] )
+			formatString: +0.0%;-0.0%;0.0%
+			displayFolder: 1 Spend
+
+		/// Share of the value dated in December. An even spread is 8.3%. Use complete years (2019-2025).
+		measure 'December Value %' = DIVIDE ( CALCULATE ( [Contract Value], KEEPFILTERS ( dim_date[is_december] = TRUE () ) ), [Contract Value] )
+			formatString: 0.0%
+			displayFolder: 1 Spend
+
+		/// General-regime and simplified direct awards.
+		measure 'Direct Award Contracts %' = DIVIDE ( CALCULATE ( [Contract Count], KEEPFILTERS ( dim_procedure[procedure_group] IN { "Direct award", "Simplified direct award" } ) ), [Contract Count] )
+			formatString: 0.0%
+			displayFolder: 2 Competition
+
+		measure 'Direct Award Value %' = DIVIDE ( CALCULATE ( [Contract Value], KEEPFILTERS ( dim_procedure[procedure_group] IN { "Direct award", "Simplified direct award" } ) ), [Contract Value] )
+			formatString: 0.0%
+			displayFolder: 2 Competition
+
+		measure 'Open Tender Contracts %' = DIVIDE ( CALCULATE ( [Contract Count], KEEPFILTERS ( dim_procedure[procedure_group] = "Open tender" ) ), [Contract Count] )
+			formatString: 0.0%
+			displayFolder: 2 Competition
+
+		measure 'Open Tender Value %' = DIVIDE ( CALCULATE ( [Contract Value], KEEPFILTERS ( dim_procedure[procedure_group] = "Open tender" ) ), [Contract Value] )
+			formatString: 0.0%
+			displayFolder: 2 Competition
+
+		/// Contracts whose procedure lists its bidders (concorrentes).
+		measure 'Contracts With Bidder List' = COUNT ( fct_contracts[bidders_count] )
+			formatString: #,0
+			displayFolder: 2 Competition
+
+		measure 'Single Bid Contracts' = CALCULATE ( [Contract Count], KEEPFILTERS ( fct_contracts[bidders_count] = 1 ) )
+			formatString: #,0
+			displayFolder: 2 Competition
+
+		/// Single-bid contracts over contracts with a bidder list.
+		measure 'Single Bid %' = DIVIDE ( [Single Bid Contracts], [Contracts With Bidder List] )
+			formatString: 0.0%
+			displayFolder: 2 Competition
+
+		measure 'Average Bidders' = AVERAGE ( fct_contracts[bidders_count] )
+			formatString: 0.00
+			displayFolder: 2 Competition
+
+		/// Goods and services: contracts from EUR 19,000 to 19,999.99, dated up to 30 September 2026.
+		measure 'GS Direct Award Limit 20k Below' = CALCULATE ( [Contract Count], KEEPFILTERS ( dim_contract_type[threshold_family] = "Goods and services" ), KEEPFILTERS ( fct_contracts[contract_value] >= 19000 && fct_contracts[contract_value] < 20000 ), KEEPFILTERS ( dim_date[date_day] <= DATE ( 2026, 9, 30 ) ) )
+			formatString: #,0
+			displayFolder: 3 Value limits
+
+		/// Goods and services: contracts from EUR 20,000 to 20,999.99, dated up to 30 September 2026.
+		measure 'GS Direct Award Limit 20k Above' = CALCULATE ( [Contract Count], KEEPFILTERS ( dim_contract_type[threshold_family] = "Goods and services" ), KEEPFILTERS ( fct_contracts[contract_value] >= 20000 && fct_contracts[contract_value] < 21000 ), KEEPFILTERS ( dim_date[date_day] <= DATE ( 2026, 9, 30 ) ) )
+			formatString: #,0
+			displayFolder: 3 Value limits
+
+		/// Goods and services: contracts from EUR 74,000 to 74,999.99, dated up to 30 September 2026.
+		measure 'GS Prior Consultation Limit 75k Below' = CALCULATE ( [Contract Count], KEEPFILTERS ( dim_contract_type[threshold_family] = "Goods and services" ), KEEPFILTERS ( fct_contracts[contract_value] >= 74000 && fct_contracts[contract_value] < 75000 ), KEEPFILTERS ( dim_date[date_day] <= DATE ( 2026, 9, 30 ) ) )
+			formatString: #,0
+			displayFolder: 3 Value limits
+
+		/// Goods and services: contracts from EUR 75,000 to 75,999.99, dated up to 30 September 2026.
+		measure 'GS Prior Consultation Limit 75k Above' = CALCULATE ( [Contract Count], KEEPFILTERS ( dim_contract_type[threshold_family] = "Goods and services" ), KEEPFILTERS ( fct_contracts[contract_value] >= 75000 && fct_contracts[contract_value] < 76000 ), KEEPFILTERS ( dim_date[date_day] <= DATE ( 2026, 9, 30 ) ) )
+			formatString: #,0
+			displayFolder: 3 Value limits
+
+		/// Public works: contracts from EUR 29,000 to 29,999.99, dated up to 30 September 2026.
+		measure 'Works Direct Award Limit 30k Below' = CALCULATE ( [Contract Count], KEEPFILTERS ( dim_contract_type[threshold_family] = "Public works" ), KEEPFILTERS ( fct_contracts[contract_value] >= 29000 && fct_contracts[contract_value] < 30000 ), KEEPFILTERS ( dim_date[date_day] <= DATE ( 2026, 9, 30 ) ) )
+			formatString: #,0
+			displayFolder: 3 Value limits
+
+		/// Public works: contracts from EUR 30,000 to 30,999.99, dated up to 30 September 2026.
+		measure 'Works Direct Award Limit 30k Above' = CALCULATE ( [Contract Count], KEEPFILTERS ( dim_contract_type[threshold_family] = "Public works" ), KEEPFILTERS ( fct_contracts[contract_value] >= 30000 && fct_contracts[contract_value] < 31000 ), KEEPFILTERS ( dim_date[date_day] <= DATE ( 2026, 9, 30 ) ) )
+			formatString: #,0
+			displayFolder: 3 Value limits
+
+		/// Public works: contracts from EUR 149,000 to 149,999.99, dated up to 30 September 2026.
+		measure 'Works Prior Consultation Limit 150k Below' = CALCULATE ( [Contract Count], KEEPFILTERS ( dim_contract_type[threshold_family] = "Public works" ), KEEPFILTERS ( fct_contracts[contract_value] >= 149000 && fct_contracts[contract_value] < 150000 ), KEEPFILTERS ( dim_date[date_day] <= DATE ( 2026, 9, 30 ) ) )
+			formatString: #,0
+			displayFolder: 3 Value limits
+
+		/// Public works: contracts from EUR 150,000 to 150,999.99, dated up to 30 September 2026.
+		measure 'Works Prior Consultation Limit 150k Above' = CALCULATE ( [Contract Count], KEEPFILTERS ( dim_contract_type[threshold_family] = "Public works" ), KEEPFILTERS ( fct_contracts[contract_value] >= 150000 && fct_contracts[contract_value] < 151000 ), KEEPFILTERS ( dim_date[date_day] <= DATE ( 2026, 9, 30 ) ) )
+			formatString: #,0
+			displayFolder: 3 Value limits
+
+		/// Histogram: contracts whose value falls in the EUR 1,000 band of value_band[band_start], dated up to 30 September 2026 (limits changed on 1 October 2026).
+		measure 'Contracts in Band' =
+				VAR _Lo = SELECTEDVALUE ( value_band[band_start] )
+				RETURN
+					IF ( NOT ISBLANK ( _Lo ), CALCULATE ( [Contract Count], KEEPFILTERS ( fct_contracts[contract_value] >= _Lo && fct_contracts[contract_value] < _Lo + 1000 ), KEEPFILTERS ( dim_date[date_day] <= DATE ( 2026, 9, 30 ) ) ) )
+			formatString: #,0
+			displayFolder: 3 Value limits
+
+		/// Contract value allocated to suppliers: a contract with n awardees gives each 1/n.
+		measure 'Supplier Value' = SUMX ( bridge_contract_supplier, bridge_contract_supplier[allocation_share] * RELATED ( fct_contracts[contract_value] ) )
+			formatString: \€#,0;-\€#,0;\€0
+			displayFolder: 4 Suppliers
+
+		measure 'Supplier Contract Count' = DISTINCTCOUNT ( bridge_contract_supplier[contract_id] )
+			formatString: #,0
+			displayFolder: 4 Suppliers
+
+		/// Share of the supplier value of the current filters (CPV, entity, years) across all suppliers.
+		measure 'Supplier Value Share' = DIVIDE ( [Supplier Value], CALCULATE ( [Supplier Value], REMOVEFILTERS ( dim_supplier ) ) )
+			formatString: 0.00%
+			displayFolder: 4 Suppliers
+
+		/// Rank among named suppliers; withheld rows get no rank.
+		measure 'Supplier Rank' = IF ( HASONEVALUE ( dim_supplier[supplier_id] ) && NOT SELECTEDVALUE ( dim_supplier[is_withheld] ), RANKX ( FILTER ( ALLSELECTED ( dim_supplier[supplier_id], dim_supplier[is_withheld] ), dim_supplier[is_withheld] = FALSE () ), [Supplier Value] ) )
+			formatString: 0
+			displayFolder: 4 Suppliers
+
+		/// Value share of the ten largest named suppliers in the current filter context (for example one CPV division).
+		measure 'Top 10 Named Supplier Share' =
+				VAR _Named = CALCULATETABLE ( VALUES ( dim_supplier[supplier_id] ), dim_supplier[is_withheld] = FALSE () )
+				VAR _Top = TOPN ( 10, _Named, [Supplier Value] )
+				RETURN
+					DIVIDE ( SUMX ( _Top, [Supplier Value] ), CALCULATE ( [Supplier Value], REMOVEFILTERS ( dim_supplier ) ) )
+			formatString: 0.0%
+			displayFolder: 4 Suppliers
+
+		/// Value going to withheld awardees (individuals, no Portuguese NIF, not reported).
+		measure 'Withheld Supplier Value %' = DIVIDE ( CALCULATE ( [Supplier Value], dim_supplier[is_withheld] = TRUE () ), CALCULATE ( [Supplier Value], REMOVEFILTERS ( dim_supplier ) ) )
+			formatString: 0.0%
+			displayFolder: 4 Suppliers
+
+		/// Contract Count that also follows supplier selections, through the bridge.
+		measure 'Contract Count by Supplier' = CALCULATE ( [Contract Count], CROSSFILTER ( bridge_contract_supplier[contract_id], fct_contracts[contract_id], BOTH ) )
+			formatString: #,0
+			displayFolder: 4 Suppliers
+
+		/// Full value of the contracts that the selected suppliers took part in (not split).
+		measure 'Contract Value by Supplier Filter' = CALCULATE ( [Contract Value], CROSSFILTER ( bridge_contract_supplier[contract_id], fct_contracts[contract_id], BOTH ) )
+			formatString: \€#,0;-\€#,0;\€0
+			displayFolder: 4 Suppliers
+
+		/// Herfindahl-Hirschman index 2019-2026 from the dbt mart; use with dim_cpv on rows.
+		measure 'Division HHI' = IF ( HASONEVALUE ( dim_cpv[cpv_division] ), CALCULATE ( SUM ( mart_supplier_concentration[hhi] ), KEEPFILTERS ( mart_supplier_concentration[period] = "2019-2026" ) ) )
+			formatString: #,0
+			displayFolder: 4 Suppliers
+
+		measure 'Division Top 5 Share' = IF ( HASONEVALUE ( dim_cpv[cpv_division] ), CALCULATE ( SUM ( mart_supplier_concentration[top5_share] ), KEEPFILTERS ( mart_supplier_concentration[period] = "2019-2026" ) ) )
+			formatString: 0.0%
+			displayFolder: 4 Suppliers
+
+		measure 'Value With Base Price' = CALCULATE ( [Contract Value], KEEPFILTERS ( NOT ISBLANK ( fct_contracts[base_price_comparable] ) ) )
+			formatString: \€#,0;-\€#,0;\€0
+			displayFolder: 5 Prices
+
+		/// Base price of single-contract procedures where contract value / base price is between 0.2 and 5.
+		measure 'Base Price Total' = SUM ( fct_contracts[base_price_comparable] )
+			formatString: \€#,0;-\€#,0;\€0
+			displayFolder: 5 Prices
+
+		/// Value-weighted difference between contract price and base price.
+		measure 'Price vs Base %' = DIVIDE ( [Value With Base Price], [Base Price Total] ) - 1
+			formatString: +0.0%;-0.0%;0.0%
+			displayFolder: 5 Prices
+
+		measure 'At Base Price %' = DIVIDE ( COUNTROWS ( FILTER ( fct_contracts, fct_contracts[contract_value] = fct_contracts[base_price_comparable] ) ), COUNT ( fct_contracts[base_price_comparable] ) )
+			formatString: 0.0%
+			displayFolder: 5 Prices
+
+		measure 'Below Base Price %' = DIVIDE ( COUNTROWS ( FILTER ( fct_contracts, fct_contracts[contract_value] < fct_contracts[base_price_comparable] ) ), COUNT ( fct_contracts[base_price_comparable] ) )
+			formatString: 0.0%
+			displayFolder: 5 Prices
+
+		measure 'Value of Closed Contracts' = CALCULATE ( [Contract Value], KEEPFILTERS ( NOT ISBLANK ( fct_contracts[effective_price_closed] ) ) )
+			formatString: \€#,0;-\€#,0;\€0
+			displayFolder: 5 Prices
+
+		/// Final price (PrecoTotalEfetivo) of closed contracts with a plausible ratio to the contract price.
+		measure 'Effective Price Total' = SUM ( fct_contracts[effective_price_closed] )
+			formatString: \€#,0;-\€#,0;\€0
+			displayFolder: 5 Prices
+
+		measure 'Final vs Signed %' = DIVIDE ( [Effective Price Total], [Value of Closed Contracts] ) - 1
+			formatString: +0.0%;-0.0%;0.0%
+			displayFolder: 5 Prices
+
+		measure 'Ended Above Contract %' = DIVIDE ( COUNTROWS ( FILTER ( fct_contracts, fct_contracts[effective_price_closed] > fct_contracts[contract_value] * 1.0001 ) ), COUNT ( fct_contracts[effective_price_closed] ) )
+			formatString: 0.0%
+			displayFolder: 5 Prices
+
+		column measure_group
+			dataType: string
+			isHidden
+			summarizeBy: none
+			sourceColumn: measure_group
+
+		partition _Measures = m
+			mode: import
+			source =
+					let
+						Source = #table ( type table [measure_group = text], { { "Measures" } } )
+					in
+						Source
+
+	/// Daily calendar 2019-2026, marked as the date table.
+	table dim_date
+		dataCategory: Time
+
+		column date_day
+			dataType: dateTime
+			isKey
+			formatString: yyyy-mm-dd
+			summarizeBy: none
+			sourceColumn: date_day
+
+		column year_number
+			dataType: int64
+			formatString: 0
+			summarizeBy: none
+			sourceColumn: year_number
+
+		column quarter_name
+			dataType: string
+			summarizeBy: none
+			sourceColumn: quarter_name
+
+		column month_number
+			dataType: int64
+			isHidden
+			formatString: 0
+			summarizeBy: none
+			sourceColumn: month_number
+
+		column month_name
+			dataType: string
+			summarizeBy: none
+			sortByColumn: month_number
+			sourceColumn: month_name
+
+		column month_start
+			dataType: dateTime
+			formatString: mmm yyyy
+			summarizeBy: none
+			sourceColumn: month_start
+
+		column is_december
+			dataType: boolean
+			summarizeBy: none
+			sourceColumn: is_december
+
+		partition dim_date = m
+			mode: import
+			source =
+					let
+						Source = Parquet.Document ( File.Contents ( DataFolder & "dim_date.parquet" ) )
+					in
+						Source
+
+	/// Contracting authorities (adjudicante), latest name, rule-based entity type.
+	table dim_entity
+
+		column entity_id
+			dataType: int64
+			isHidden
+			isKey
+			formatString: 0
+			summarizeBy: none
+			sourceColumn: entity_id
+
+		column entity_nif
+			dataType: string
+			summarizeBy: none
+			sourceColumn: entity_nif
+
+		column entity_name
+			dataType: string
+			summarizeBy: none
+			sourceColumn: entity_name
+
+		column entity_type
+			dataType: string
+			summarizeBy: none
+			sourceColumn: entity_type
+
+		column contracts
+			dataType: int64
+			isHidden
+			formatString: #,0
+			summarizeBy: none
+			sourceColumn: contracts
+
+		column first_year
+			dataType: int64
+			formatString: 0
+			summarizeBy: none
+			sourceColumn: first_year
+
+		column last_year
+			dataType: int64
+			formatString: 0
+			summarizeBy: none
+			sourceColumn: last_year
+
+		partition dim_entity = m
+			mode: import
+			source =
+					let
+						Source = Parquet.Document ( File.Contents ( DataFolder & "dim_entity.parquet" ) )
+					in
+						Source
+
+	/// Awardees. Natural persons and suppliers without a Portuguese NIF are collapsed into withheld rows (supplier_id -1 and -2); -3 = awardee not reported.
+	table dim_supplier
+
+		column supplier_id
+			dataType: int64
+			isHidden
+			isKey
+			formatString: 0
+			summarizeBy: none
+			sourceColumn: supplier_id
+
+		column supplier_nif
+			dataType: string
+			summarizeBy: none
+			sourceColumn: supplier_nif
+
+		column supplier_name
+			dataType: string
+			summarizeBy: none
+			sourceColumn: supplier_name
+
+		column supplier_type
+			dataType: string
+			summarizeBy: none
+			sourceColumn: supplier_type
+
+		column is_withheld
+			dataType: boolean
+			summarizeBy: none
+			sourceColumn: is_withheld
+
+		column contracts
+			dataType: int64
+			isHidden
+			formatString: #,0
+			summarizeBy: none
+			sourceColumn: contracts
+
+		partition dim_supplier = m
+			mode: import
+			source =
+					let
+						Source = Parquet.Document ( File.Contents ( DataFolder & "dim_supplier.parquet" ) )
+					in
+						Source
+
+	/// CPV divisions (first two digits of the CPV code).
+	table dim_cpv
+
+		column cpv_division
+			dataType: string
+			isKey
+			summarizeBy: none
+			sourceColumn: cpv_division
+
+		column cpv_division_name
+			dataType: string
+			summarizeBy: none
+			sourceColumn: cpv_division_name
+
+		column cpv_short_name
+			dataType: string
+			summarizeBy: none
+			sourceColumn: cpv_short_name
+
+		column cpv_label
+			dataType: string
+			summarizeBy: none
+			sourceColumn: cpv_label
+
+		partition dim_cpv = m
+			mode: import
+			source =
+					let
+						Source = Parquet.Document ( File.Contents ( DataFolder & "dim_cpv.parquet" ) )
+					in
+						Source
+
+	/// Procedure types as published, with English names and analysis groups.
+	table dim_procedure
+
+		column procedure_key
+			dataType: int64
+			isHidden
+			isKey
+			formatString: 0
+			summarizeBy: none
+			sourceColumn: procedure_key
+
+		column procedure_name_pt
+			dataType: string
+			summarizeBy: none
+			sourceColumn: procedure_name_pt
+
+		column procedure_name_en
+			dataType: string
+			summarizeBy: none
+			sourceColumn: procedure_name_en
+
+		column procedure_group
+			dataType: string
+			summarizeBy: none
+			sortByColumn: group_order
+			sourceColumn: procedure_group
+
+		column group_order
+			dataType: int64
+			isHidden
+			formatString: 0
+			summarizeBy: none
+			sourceColumn: group_order
+
+		column is_competitive
+			dataType: boolean
+			summarizeBy: none
+			sourceColumn: is_competitive
+
+		partition dim_procedure = m
+			mode: import
+			source =
+					let
+						Source = Parquet.Document ( File.Contents ( DataFolder & "dim_procedure.parquet" ) )
+					in
+						Source
+
+	/// District or autonomous region of execution, plus Multiple, Unspecified, Abroad and Not reported.
+	table dim_region
+
+		column region_key
+			dataType: string
+			isKey
+			summarizeBy: none
+			sourceColumn: region_key
+
+		column region
+			dataType: string
+			summarizeBy: none
+			sortByColumn: sort_order
+			sourceColumn: region
+
+		column region_group
+			dataType: string
+			summarizeBy: none
+			sourceColumn: region_group
+
+		column sort_order
+			dataType: int64
+			isHidden
+			formatString: 0
+			summarizeBy: none
+			sourceColumn: sort_order
+
+		partition dim_region = m
+			mode: import
+			source =
+					let
+						Source = Parquet.Document ( File.Contents ( DataFolder & "dim_region.parquet" ) )
+					in
+						Source
+
+	/// Contract types in English and the family used for the legal value limits.
+	table dim_contract_type
+
+		column contract_type
+			dataType: string
+			isKey
+			summarizeBy: none
+			sourceColumn: contract_type
+
+		column threshold_family
+			dataType: string
+			summarizeBy: none
+			sourceColumn: threshold_family
+
+		partition dim_contract_type = m
+			mode: import
+			source =
+					let
+						Source = Parquet.Document ( File.Contents ( DataFolder & "dim_contract_type.parquet" ) )
+					in
+						Source
+
+	/// One row per contract. contract_value = contract price in EUR excl. VAT. base_price_comparable only for single-contract procedures with a plausible ratio; effective_price_closed only for closed contracts.
+	table fct_contracts
+
+		column contract_id
+			dataType: int64
+			isHidden
+			formatString: 0
+			summarizeBy: none
+			sourceColumn: contract_id
+
+		column contract_date
+			dataType: dateTime
+			isHidden
+			formatString: yyyy-mm-dd
+			summarizeBy: none
+			sourceColumn: contract_date
+
+		column entity_id
+			dataType: int64
+			isHidden
+			formatString: 0
+			summarizeBy: none
+			sourceColumn: entity_id
+
+		column cpv_division
+			dataType: string
+			isHidden
+			summarizeBy: none
+			sourceColumn: cpv_division
+
+		column procedure_key
+			dataType: int64
+			isHidden
+			formatString: 0
+			summarizeBy: none
+			sourceColumn: procedure_key
+
+		column contract_type
+			dataType: string
+			isHidden
+			summarizeBy: none
+			sourceColumn: contract_type
+
+		column region_key
+			dataType: string
+			isHidden
+			summarizeBy: none
+			sourceColumn: region_key
+
+		column contract_value
+			dataType: double
+			isHidden
+			formatString: \€#,0;-\€#,0;\€0
+			summarizeBy: sum
+			sourceColumn: contract_value
+
+		column base_price_comparable
+			dataType: double
+			isHidden
+			formatString: \€#,0;-\€#,0;\€0
+			summarizeBy: sum
+			sourceColumn: base_price_comparable
+
+		column effective_price_closed
+			dataType: double
+			isHidden
+			formatString: \€#,0;-\€#,0;\€0
+			summarizeBy: sum
+			sourceColumn: effective_price_closed
+
+		column bidders_count
+			dataType: int64
+			isHidden
+			formatString: 0
+			summarizeBy: none
+			sourceColumn: bidders_count
+
+		partition fct_contracts = m
+			mode: import
+			source =
+					let
+						Source = Parquet.Document ( File.Contents ( DataFolder & "fct_contracts.parquet" ) )
+					in
+						Source
+
+	/// Contract-to-supplier bridge; a contract with n awardees has n rows with allocation_share 1/n.
+	table bridge_contract_supplier
+
+		column contract_id
+			dataType: int64
+			isHidden
+			formatString: 0
+			summarizeBy: none
+			sourceColumn: contract_id
+
+		column supplier_id
+			dataType: int64
+			isHidden
+			formatString: 0
+			summarizeBy: none
+			sourceColumn: supplier_id
+
+		column allocation_share
+			dataType: double
+			isHidden
+			formatString: 0.000
+			summarizeBy: none
+			sourceColumn: allocation_share
+
+		partition bridge_contract_supplier = m
+			mode: import
+			source =
+					let
+						Source = Parquet.Document ( File.Contents ( DataFolder & "bridge_contract_supplier.parquet" ) )
+					in
+						Source
+
+	/// Top-supplier shares and HHI per CPV division, for 2019-2026 and per year (period).
+	table mart_supplier_concentration
+
+		column period
+			dataType: string
+			summarizeBy: none
+			sourceColumn: period
+
+		column cpv_division
+			dataType: string
+			isHidden
+			summarizeBy: none
+			sourceColumn: cpv_division
+
+		column supplier_value
+			dataType: double
+			formatString: \€#,0;-\€#,0;\€0
+			summarizeBy: none
+			sourceColumn: supplier_value
+
+		column suppliers
+			dataType: int64
+			formatString: #,0
+			summarizeBy: none
+			sourceColumn: suppliers
+
+		column top1_share
+			dataType: double
+			formatString: 0.0%
+			summarizeBy: none
+			sourceColumn: top1_share
+
+		column top5_share
+			dataType: double
+			formatString: 0.0%
+			summarizeBy: none
+			sourceColumn: top5_share
+
+		column top10_share
+			dataType: double
+			formatString: 0.0%
+			summarizeBy: none
+			sourceColumn: top10_share
+
+		column hhi
+			dataType: double
+			formatString: #,0
+			summarizeBy: none
+			sourceColumn: hhi
+
+		column withheld_share
+			dataType: double
+			formatString: 0.0%
+			summarizeBy: none
+			sourceColumn: withheld_share
+
+		column sme_flag_share_2024_on
+			dataType: double
+			formatString: 0.0%
+			summarizeBy: none
+			sourceColumn: sme_flag_share_2024_on
+
+		partition mart_supplier_concentration = m
+			mode: import
+			source =
+					let
+						Source = Parquet.Document ( File.Contents ( DataFolder & "mart_supplier_concentration.parquet" ) )
+					in
+						Source
+
+	/// Largest named suppliers 2019-2026: top 25 overall and top 10 per CPV division.
+	table mart_top_suppliers
+
+		column rank_scope
+			dataType: string
+			summarizeBy: none
+			sourceColumn: rank_scope
+
+		column cpv_division
+			dataType: string
+			isHidden
+			summarizeBy: none
+			sourceColumn: cpv_division
+
+		column supplier_rank
+			dataType: int64
+			formatString: 0
+			summarizeBy: none
+			sourceColumn: supplier_rank
+
+		column supplier_id
+			dataType: int64
+			isHidden
+			formatString: 0
+			summarizeBy: none
+			sourceColumn: supplier_id
+
+		column allocated_value
+			dataType: double
+			formatString: \€#,0;-\€#,0;\€0
+			summarizeBy: none
+			sourceColumn: allocated_value
+
+		column contracts
+			dataType: int64
+			formatString: #,0
+			summarizeBy: none
+			sourceColumn: contracts
+
+		column share_of_scope
+			dataType: double
+			formatString: 0.00%
+			summarizeBy: none
+			sourceColumn: share_of_scope
+
+		partition mart_top_suppliers = m
+			mode: import
+			source =
+					let
+						Source = Parquet.Document ( File.Contents ( DataFolder & "mart_top_suppliers.parquet" ) )
+					in
+						Source
+
+	/// Contracts just below and just above each legal limit, 2019 to September 2026.
+	table mart_threshold_summary
+
+		column threshold_id
+			dataType: string
+			summarizeBy: none
+			sourceColumn: threshold_id
+
+		column threshold_family
+			dataType: string
+			summarizeBy: none
+			sourceColumn: threshold_family
+
+		column procedure_limit
+			dataType: string
+			summarizeBy: none
+			sourceColumn: procedure_limit
+
+		column threshold_eur
+			dataType: int64
+			formatString: #,0
+			summarizeBy: none
+			sourceColumn: threshold_eur
+
+		column limit_rule
+			dataType: string
+			summarizeBy: none
+			sourceColumn: limit_rule
+
+		column legal_source
+			dataType: string
+			summarizeBy: none
+			sourceColumn: legal_source
+
+		column contracts_just_below
+			dataType: int64
+			formatString: #,0
+			summarizeBy: none
+			sourceColumn: contracts_just_below
+
+		column contracts_just_above
+			dataType: int64
+			formatString: #,0
+			summarizeBy: none
+			sourceColumn: contracts_just_above
+
+		column neighbour_bin_avg
+			dataType: double
+			formatString: #,0
+			summarizeBy: none
+			sourceColumn: neighbour_bin_avg
+
+		column contracts_within_1_euro_below
+			dataType: int64
+			formatString: #,0
+			summarizeBy: none
+			sourceColumn: contracts_within_1_euro_below
+
+		partition mart_threshold_summary = m
+			mode: import
+			source =
+					let
+						Source = Parquet.Document ( File.Contents ( DataFolder & "mart_threshold_summary.parquet" ) )
+					in
+						Source
+
+	/// EUR 1,000 value bands from 0 to 199,000 for the histogram near the legal limits. Disconnected; read by the measure Contracts in Band.
+	table value_band
+
+		column band_start
+			dataType: int64
+			formatString: \€#,0
+			summarizeBy: none
+			sourceColumn: band_start
+
+		partition value_band = m
+			mode: import
+			source =
+					let
+						Source = Table.FromColumns ( { List.Transform ( {0..199}, each _ * 1000 ) }, type table [band_start = Int64.Type] )
+					in
+						Source
+
+	relationship fct_contracts_date
+		fromColumn: fct_contracts.contract_date
+		toColumn: dim_date.date_day
+
+	relationship fct_contracts_entity
+		fromColumn: fct_contracts.entity_id
+		toColumn: dim_entity.entity_id
+
+	relationship fct_contracts_cpv
+		fromColumn: fct_contracts.cpv_division
+		toColumn: dim_cpv.cpv_division
+
+	relationship fct_contracts_procedure
+		fromColumn: fct_contracts.procedure_key
+		toColumn: dim_procedure.procedure_key
+
+	relationship fct_contracts_region
+		fromColumn: fct_contracts.region_key
+		toColumn: dim_region.region_key
+
+	relationship fct_contracts_contract_type
+		fromColumn: fct_contracts.contract_type
+		toColumn: dim_contract_type.contract_type
+
+	relationship bridge_contract
+		fromColumn: bridge_contract_supplier.contract_id
+		toColumn: fct_contracts.contract_id
+
+	relationship bridge_supplier
+		fromColumn: bridge_contract_supplier.supplier_id
+		toColumn: dim_supplier.supplier_id
+
+	relationship mart_supplier_concentration_cpv
+		fromColumn: mart_supplier_concentration.cpv_division
+		toColumn: dim_cpv.cpv_division
+
+	relationship mart_top_suppliers_supplier
+		fromColumn: mart_top_suppliers.supplier_id
+		toColumn: dim_supplier.supplier_id

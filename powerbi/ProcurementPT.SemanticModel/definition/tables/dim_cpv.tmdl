@@ -1,0 +1,31 @@
+/// CPV divisions (first two digits of the CPV code).
+table dim_cpv
+
+	column cpv_division
+		dataType: string
+		isKey
+		summarizeBy: none
+		sourceColumn: cpv_division
+
+	column cpv_division_name
+		dataType: string
+		summarizeBy: none
+		sourceColumn: cpv_division_name
+
+	column cpv_short_name
+		dataType: string
+		summarizeBy: none
+		sourceColumn: cpv_short_name
+
+	column cpv_label
+		dataType: string
+		summarizeBy: none
+		sourceColumn: cpv_label
+
+	partition dim_cpv = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document ( File.Contents ( DataFolder & "dim_cpv.parquet" ) )
+				in
+					Source

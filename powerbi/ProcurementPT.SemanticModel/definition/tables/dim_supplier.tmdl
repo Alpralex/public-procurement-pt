@@ -1,0 +1,45 @@
+/// Awardees. Natural persons and suppliers without a Portuguese NIF are collapsed into withheld rows (supplier_id -1 and -2); -3 = awardee not reported.
+table dim_supplier
+
+	column supplier_id
+		dataType: int64
+		isHidden
+		isKey
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: supplier_id
+
+	column supplier_nif
+		dataType: string
+		summarizeBy: none
+		sourceColumn: supplier_nif
+
+	column supplier_name
+		dataType: string
+		summarizeBy: none
+		sourceColumn: supplier_name
+
+	column supplier_type
+		dataType: string
+		summarizeBy: none
+		sourceColumn: supplier_type
+
+	column is_withheld
+		dataType: boolean
+		summarizeBy: none
+		sourceColumn: is_withheld
+
+	column contracts
+		dataType: int64
+		isHidden
+		formatString: #,0
+		summarizeBy: none
+		sourceColumn: contracts
+
+	partition dim_supplier = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document ( File.Contents ( DataFolder & "dim_supplier.parquet" ) )
+				in
+					Source

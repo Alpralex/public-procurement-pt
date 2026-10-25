@@ -1,0 +1,84 @@
+/// One row per contract. contract_value = contract price in EUR excl. VAT. base_price_comparable only for single-contract procedures with a plausible ratio; effective_price_closed only for closed contracts.
+table fct_contracts
+
+	column contract_id
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: contract_id
+
+	column contract_date
+		dataType: dateTime
+		isHidden
+		formatString: yyyy-mm-dd
+		summarizeBy: none
+		sourceColumn: contract_date
+
+	column entity_id
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: entity_id
+
+	column cpv_division
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: cpv_division
+
+	column procedure_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: procedure_key
+
+	column contract_type
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: contract_type
+
+	column region_key
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: region_key
+
+	column contract_value
+		dataType: double
+		isHidden
+		formatString: \€#,0;-\€#,0;\€0
+		summarizeBy: sum
+		sourceColumn: contract_value
+
+	column base_price_comparable
+		dataType: double
+		isHidden
+		formatString: \€#,0;-\€#,0;\€0
+		summarizeBy: sum
+		sourceColumn: base_price_comparable
+
+	column effective_price_closed
+		dataType: double
+		isHidden
+		formatString: \€#,0;-\€#,0;\€0
+		summarizeBy: sum
+		sourceColumn: effective_price_closed
+
+	column bidders_count
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: bidders_count
+
+	partition fct_contracts = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document ( File.Contents ( DataFolder & "fct_contracts.parquet" ) )
+				in
+					Source

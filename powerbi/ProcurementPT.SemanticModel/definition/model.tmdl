@@ -1,0 +1,24 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+	annotation PBI_QueryOrder = ["DataFolder","_Measures","dim_date","dim_entity","dim_supplier","dim_cpv","dim_procedure","dim_region","dim_contract_type","fct_contracts","bridge_contract_supplier","mart_supplier_concentration","mart_top_suppliers","mart_threshold_summary","value_band"]
+
+ref table _Measures
+ref table dim_date
+ref table dim_entity
+ref table dim_supplier
+ref table dim_cpv
+ref table dim_procedure
+ref table dim_region
+ref table dim_contract_type
+ref table fct_contracts
+ref table bridge_contract_supplier
+ref table mart_supplier_concentration
+ref table mart_top_suppliers
+ref table mart_threshold_summary
+ref table value_band

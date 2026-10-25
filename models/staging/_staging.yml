@@ -1,0 +1,37 @@
+version: 2
+
+models:
+  - name: stg_contracts
+    description: One row per contract (idcontrato) from the eight yearly Portal BASE files, deduplicated, typed and parsed.
+    columns:
+      - name: contract_id
+        tests: [unique, not_null]
+      - name: contract_date
+        tests: [not_null]
+      - name: source_file_year
+        tests:
+          - accepted_values: {values: [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026], quote: false}
+      - name: contract_date_basis
+        tests:
+          - accepted_values: {values: ['signature', 'closing', 'publication']}
+      - name: entity_key
+        tests: [not_null]
+  - name: stg_contract_awardees
+    description: One row per awardee line of a contract, with the NIF, the awardee class and the (masked) supplier key.
+    tests:
+      - unique_combination: {columns: [contract_id, awardee_seq]}
+    columns:
+      - name: supplier_key
+        tests: [not_null]
+      - name: awardee_class
+        tests:
+          - accepted_values: {values: ['Individual', 'No Portuguese NIF', 'Company', 'Public body', 'Non-resident entity', 'Other legal person']}
+  - name: stg_contract_locations
+    description: District or autonomous region of execution per contract.
+    columns:
+      - name: contract_id
+        tests: [unique, not_null]
+      - name: district_pt
+        tests:
+          - not_null
+          - relationships: {to: ref('districts'), field: district_pt}

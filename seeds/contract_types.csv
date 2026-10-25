@@ -1,0 +1,11 @@
+contract_type_pt,contract_type,threshold_family
+Aquisição de bens móveis,Goods,Goods and services
+Aquisição de serviços,Services,Goods and services
+Locação de bens móveis,Lease of goods,Goods and services
+Empreitadas de obras públicas,Public works,Public works
+Concessão de serviços públicos,Public service concession,Other
+Concessão de obras públicas,Public works concession,Other
+Sociedade,Company formation,Other
+Outros,Other,Other
+Mixed,Mixed (several types),Other
+Not reported,Not reported,Other

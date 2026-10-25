@@ -1,0 +1,53 @@
+/// Daily calendar 2019-2026, marked as the date table.
+table dim_date
+	dataCategory: Time
+
+	column date_day
+		dataType: dateTime
+		isKey
+		formatString: yyyy-mm-dd
+		summarizeBy: none
+		sourceColumn: date_day
+
+	column year_number
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: year_number
+
+	column quarter_name
+		dataType: string
+		summarizeBy: none
+		sourceColumn: quarter_name
+
+	column month_number
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: month_number
+
+	column month_name
+		dataType: string
+		summarizeBy: none
+		sortByColumn: month_number
+		sourceColumn: month_name
+
+	column month_start
+		dataType: dateTime
+		formatString: mmm yyyy
+		summarizeBy: none
+		sourceColumn: month_start
+
+	column is_december
+		dataType: boolean
+		summarizeBy: none
+		sourceColumn: is_december
+
+	partition dim_date = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document ( File.Contents ( DataFolder & "dim_date.parquet" ) )
+				in
+					Source

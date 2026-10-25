@@ -1,0 +1,52 @@
+/// Largest named suppliers 2019-2026: top 25 overall and top 10 per CPV division.
+table mart_top_suppliers
+
+	column rank_scope
+		dataType: string
+		summarizeBy: none
+		sourceColumn: rank_scope
+
+	column cpv_division
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: cpv_division
+
+	column supplier_rank
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: supplier_rank
+
+	column supplier_id
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: supplier_id
+
+	column allocated_value
+		dataType: double
+		formatString: \€#,0;-\€#,0;\€0
+		summarizeBy: none
+		sourceColumn: allocated_value
+
+	column contracts
+		dataType: int64
+		formatString: #,0
+		summarizeBy: none
+		sourceColumn: contracts
+
+	column share_of_scope
+		dataType: double
+		formatString: 0.00%
+		summarizeBy: none
+		sourceColumn: share_of_scope
+
+	partition mart_top_suppliers = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document ( File.Contents ( DataFolder & "mart_top_suppliers.parquet" ) )
+				in
+					Source

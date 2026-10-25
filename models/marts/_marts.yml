@@ -1,0 +1,155 @@
+version: 2
+
+models:
+  - name: dim_entity
+    description: Contracting authorities, keyed by NIF, with the latest name and a rule-based entity type.
+    columns:
+      - name: entity_id
+        tests: [unique, not_null]
+      - name: entity_key
+        tests: [unique, not_null]
+      - name: entity_type
+        tests:
+          - not_null
+          - accepted_values: {values: ['Health', 'Municipality', 'Parish', 'Intermunicipal body', 'Municipal company or service', 'Education and research', 'Regional government (Azores and Madeira)', 'State-owned company', 'Central government', 'Other public-law body']}
+  - name: dim_supplier
+    description: Awardees keyed by NIF. Natural persons and suppliers without a Portuguese NIF are collapsed into two withheld rows with fixed labels.
+    columns:
+      - name: supplier_id
+        tests: [unique, not_null]
+      - name: supplier_key
+        tests: [unique, not_null]
+      - name: supplier_name
+        tests: [not_null]
+      - name: supplier_type
+        tests:
+          - accepted_values: {values: ['Individual', 'No Portuguese NIF', 'Company', 'Public body', 'Non-resident entity', 'Other legal person', 'Not reported']}
+  - name: dim_cpv
+    columns:
+      - name: cpv_division
+        tests: [unique, not_null]
+  - name: dim_procedure
+    columns:
+      - name: procedure_key
+        tests: [unique, not_null]
+      - name: procedure_name_pt
+        tests: [unique, not_null]
+  - name: dim_region
+    columns:
+      - name: region_key
+        tests: [unique, not_null]
+  - name: dim_contract_type
+    columns:
+      - name: contract_type
+        tests: [unique, not_null]
+  - name: dim_date
+    columns:
+      - name: date_day
+        tests: [unique, not_null]
+  - name: fct_contracts
+    description: One row per contract. contract_value = precoContratual in EUR (excl. VAT), NULL for the 72 negative prices.
+    columns:
+      - name: contract_id
+        tests: [unique, not_null]
+      - name: contract_date
+        tests:
+          - not_null
+          - relationships: {to: ref('dim_date'), field: date_day}
+      - name: entity_key
+        tests:
+          - not_null
+          - relationships: {to: ref('dim_entity'), field: entity_key}
+      - name: cpv_division
+        tests:
+          - not_null
+          - relationships: {to: ref('dim_cpv'), field: cpv_division}
+      - name: procedure_key
+        tests:
+          - not_null
+          - relationships: {to: ref('dim_procedure'), field: procedure_key}
+      - name: region_key
+        tests:
+          - not_null
+          - relationships: {to: ref('dim_region'), field: region_key}
+      - name: entity_id
+        tests:
+          - relationships: {to: ref('dim_entity'), field: entity_id}
+      - name: contract_type
+        tests:
+          - accepted_values: {values: ['Goods', 'Services', 'Lease of goods', 'Public works', 'Public service concession', 'Public works concession', 'Company formation', 'Other', 'Mixed (several types)', 'Not reported']}
+          - relationships: {to: ref('dim_contract_type'), field: contract_type}
+      - name: contract_value
+        tests: [non_negative]
+      - name: base_price
+        tests: [non_negative]
+      - name: effective_price
+        tests: [non_negative]
+      - name: bidders_count
+        tests: [non_negative]
+  - name: bridge_contract_supplier
+    description: Contract-to-supplier bridge; value split equally among the awardees of a contract.
+    tests:
+      - unique_combination: {columns: [contract_id, awardee_seq]}
+    columns:
+      - name: contract_id
+        tests:
+          - not_null
+          - relationships: {to: ref('fct_contracts'), field: contract_id}
+      - name: supplier_key
+        tests:
+          - not_null
+          - relationships: {to: ref('dim_supplier'), field: supplier_key}
+      - name: supplier_id
+        tests:
+          - not_null
+          - relationships: {to: ref('dim_supplier'), field: supplier_id}
+      - name: allocated_value
+        tests: [non_negative]
+  - name: mart_spend_summary
+    description: Q1 contracts and value by year, contract type, entity type, CPV division, procedure group and region.
+    tests:
+      - unique_combination: {columns: [contract_year, contract_type, entity_type, cpv_division, procedure_group, region_key]}
+  - name: mart_competition
+    description: Q2 procedure mix and bidder counts.
+    tests:
+      - unique_combination: {columns: [contract_year, procedure_group, contract_type, entity_type]}
+    columns:
+      - name: single_bid_contracts
+        tests: [non_negative]
+  - name: mart_threshold_bunching
+    description: Q3 EUR 1,000 histogram of contract values from 0 to 200,000.
+    tests:
+      - unique_combination: {columns: [threshold_family, contract_year, procedure_group, entity_type, bin_start]}
+  - name: mart_threshold_summary
+    description: Q3 contracts just below and just above each legal limit.
+    columns:
+      - name: threshold_id
+        tests:
+          - unique
+          - relationships: {to: ref('thresholds'), field: threshold_id}
+  - name: mart_supplier_concentration
+    description: Q4 top-supplier shares and HHI per CPV division, 2019-2026 and per year.
+    tests:
+      - unique_combination: {columns: [period, cpv_division]}
+    columns:
+      - name: cpv_division
+        tests:
+          - relationships: {to: ref('dim_cpv'), field: cpv_division}
+      - name: hhi
+        tests: [non_negative]
+  - name: mart_top_suppliers
+    description: Q4 largest named suppliers overall and per CPV division.
+    tests:
+      - unique_combination: {columns: [rank_scope, cpv_division, supplier_rank]}
+    columns:
+      - name: supplier_key
+        tests:
+          - relationships: {to: ref('dim_supplier'), field: supplier_key}
+  - name: mart_price_vs_base
+    description: Q5 contract price vs base price and effective vs contract price.
+    tests:
+      - unique_combination: {columns: [contract_year, procedure_group, contract_type, entity_type]}
+  - name: mart_monthly_spend
+    description: Q5 contracts and value by month.
+    tests:
+      - unique_combination: {columns: [month_start, entity_type, contract_type, procedure_group]}

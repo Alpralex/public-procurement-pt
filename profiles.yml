@@ -1,0 +1,7 @@
+public_procurement:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('PROC_DB_PATH', 'data/procurement.duckdb') }}"
+      threads: 4

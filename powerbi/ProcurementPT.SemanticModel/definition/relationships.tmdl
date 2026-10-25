@@ -1,0 +1,39 @@
+relationship fct_contracts_date
+	fromColumn: fct_contracts.contract_date
+	toColumn: dim_date.date_day
+
+relationship fct_contracts_entity
+	fromColumn: fct_contracts.entity_id
+	toColumn: dim_entity.entity_id
+
+relationship fct_contracts_cpv
+	fromColumn: fct_contracts.cpv_division
+	toColumn: dim_cpv.cpv_division
+
+relationship fct_contracts_procedure
+	fromColumn: fct_contracts.procedure_key
+	toColumn: dim_procedure.procedure_key
+
+relationship fct_contracts_region
+	fromColumn: fct_contracts.region_key
+	toColumn: dim_region.region_key
+
+relationship fct_contracts_contract_type
+	fromColumn: fct_contracts.contract_type
+	toColumn: dim_contract_type.contract_type
+
+relationship bridge_contract
+	fromColumn: bridge_contract_supplier.contract_id
+	toColumn: fct_contracts.contract_id
+
+relationship bridge_supplier
+	fromColumn: bridge_contract_supplier.supplier_id
+	toColumn: dim_supplier.supplier_id
+
+relationship mart_supplier_concentration_cpv
+	fromColumn: mart_supplier_concentration.cpv_division
+	toColumn: dim_cpv.cpv_division
+
+relationship mart_top_suppliers_supplier
+	fromColumn: mart_top_suppliers.supplier_id
+	toColumn: dim_supplier.supplier_id

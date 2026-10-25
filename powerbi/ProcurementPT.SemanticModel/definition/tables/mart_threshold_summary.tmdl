@@ -1,0 +1,65 @@
+/// Contracts just below and just above each legal limit, 2019 to September 2026.
+table mart_threshold_summary
+
+	column threshold_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: threshold_id
+
+	column threshold_family
+		dataType: string
+		summarizeBy: none
+		sourceColumn: threshold_family
+
+	column procedure_limit
+		dataType: string
+		summarizeBy: none
+		sourceColumn: procedure_limit
+
+	column threshold_eur
+		dataType: int64
+		formatString: #,0
+		summarizeBy: none
+		sourceColumn: threshold_eur
+
+	column limit_rule
+		dataType: string
+		summarizeBy: none
+		sourceColumn: limit_rule
+
+	column legal_source
+		dataType: string
+		summarizeBy: none
+		sourceColumn: legal_source
+
+	column contracts_just_below
+		dataType: int64
+		formatString: #,0
+		summarizeBy: none
+		sourceColumn: contracts_just_below
+
+	column contracts_just_above
+		dataType: int64
+		formatString: #,0
+		summarizeBy: none
+		sourceColumn: contracts_just_above
+
+	column neighbour_bin_avg
+		dataType: double
+		formatString: #,0
+		summarizeBy: none
+		sourceColumn: neighbour_bin_avg
+
+	column contracts_within_1_euro_below
+		dataType: int64
+		formatString: #,0
+		summarizeBy: none
+		sourceColumn: contracts_within_1_euro_below
+
+	partition mart_threshold_summary = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document ( File.Contents ( DataFolder & "mart_threshold_summary.parquet" ) )
+				in
+					Source

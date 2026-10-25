@@ -1,0 +1,31 @@
+/// Contract-to-supplier bridge; a contract with n awardees has n rows with allocation_share 1/n.
+table bridge_contract_supplier
+
+	column contract_id
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: contract_id
+
+	column supplier_id
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: supplier_id
+
+	column allocation_share
+		dataType: double
+		isHidden
+		formatString: 0.000
+		summarizeBy: none
+		sourceColumn: allocation_share
+
+	partition bridge_contract_supplier = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document ( File.Contents ( DataFolder & "bridge_contract_supplier.parquet" ) )
+				in
+					Source

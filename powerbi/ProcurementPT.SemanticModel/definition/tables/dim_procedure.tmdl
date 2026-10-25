@@ -1,0 +1,46 @@
+/// Procedure types as published, with English names and analysis groups.
+table dim_procedure
+
+	column procedure_key
+		dataType: int64
+		isHidden
+		isKey
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: procedure_key
+
+	column procedure_name_pt
+		dataType: string
+		summarizeBy: none
+		sourceColumn: procedure_name_pt
+
+	column procedure_name_en
+		dataType: string
+		summarizeBy: none
+		sourceColumn: procedure_name_en
+
+	column procedure_group
+		dataType: string
+		summarizeBy: none
+		sortByColumn: group_order
+		sourceColumn: procedure_group
+
+	column group_order
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: group_order
+
+	column is_competitive
+		dataType: boolean
+		summarizeBy: none
+		sourceColumn: is_competitive
+
+	partition dim_procedure = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document ( File.Contents ( DataFolder & "dim_procedure.parquet" ) )
+				in
+					Source

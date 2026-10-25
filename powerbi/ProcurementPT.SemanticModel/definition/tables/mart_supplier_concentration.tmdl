@@ -1,0 +1,69 @@
+/// Top-supplier shares and HHI per CPV division, for 2019-2026 and per year (period).
+table mart_supplier_concentration
+
+	column period
+		dataType: string
+		summarizeBy: none
+		sourceColumn: period
+
+	column cpv_division
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: cpv_division
+
+	column supplier_value
+		dataType: double
+		formatString: \€#,0;-\€#,0;\€0
+		summarizeBy: none
+		sourceColumn: supplier_value
+
+	column suppliers
+		dataType: int64
+		formatString: #,0
+		summarizeBy: none
+		sourceColumn: suppliers
+
+	column top1_share
+		dataType: double
+		formatString: 0.0%
+		summarizeBy: none
+		sourceColumn: top1_share
+
+	column top5_share
+		dataType: double
+		formatString: 0.0%
+		summarizeBy: none
+		sourceColumn: top5_share
+
+	column top10_share
+		dataType: double
+		formatString: 0.0%
+		summarizeBy: none
+		sourceColumn: top10_share
+
+	column hhi
+		dataType: double
+		formatString: #,0
+		summarizeBy: none
+		sourceColumn: hhi
+
+	column withheld_share
+		dataType: double
+		formatString: 0.0%
+		summarizeBy: none
+		sourceColumn: withheld_share
+
+	column sme_flag_share_2024_on
+		dataType: double
+		formatString: 0.0%
+		summarizeBy: none
+		sourceColumn: sme_flag_share_2024_on
+
+	partition mart_supplier_concentration = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document ( File.Contents ( DataFolder & "mart_supplier_concentration.parquet" ) )
+				in
+					Source

@@ -1,0 +1,34 @@
+/// District or autonomous region of execution, plus Multiple, Unspecified, Abroad and Not reported.
+table dim_region
+
+	column region_key
+		dataType: string
+		isKey
+		summarizeBy: none
+		sourceColumn: region_key
+
+	column region
+		dataType: string
+		summarizeBy: none
+		sortByColumn: sort_order
+		sourceColumn: region
+
+	column region_group
+		dataType: string
+		summarizeBy: none
+		sourceColumn: region_group
+
+	column sort_order
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: sort_order
+
+	partition dim_region = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document ( File.Contents ( DataFolder & "dim_region.parquet" ) )
+				in
+					Source

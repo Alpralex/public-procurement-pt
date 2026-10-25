@@ -1,0 +1,21 @@
+/// Contract types in English and the family used for the legal value limits.
+table dim_contract_type
+
+	column contract_type
+		dataType: string
+		isKey
+		summarizeBy: none
+		sourceColumn: contract_type
+
+	column threshold_family
+		dataType: string
+		summarizeBy: none
+		sourceColumn: threshold_family
+
+	partition dim_contract_type = m
+		mode: import
+		source =
+				let
+					Source = Parquet.Document ( File.Contents ( DataFolder & "dim_contract_type.parquet" ) )
+				in
+					Source

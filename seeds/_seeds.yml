@@ -1,0 +1,44 @@
+version: 2
+
+seeds:
+  - name: cpv_divisions
+    description: CPV 2008 divisions (first two digits of the CPV code) with the official English names and a short label. 00 = CPV not reported.
+    columns:
+      - name: cpv_division
+        tests: [unique, not_null]
+  - name: procedure_types
+    description: Every procedure type that appears in tipoprocedimento, with an English name and an analysis group.
+    columns:
+      - name: procedure_key
+        tests: [unique, not_null]
+      - name: procedure_name_pt
+        tests: [unique, not_null]
+      - name: procedure_group
+        tests:
+          - accepted_values: {values: ['Open tender', 'Restricted or negotiated', 'Framework call-off', 'Prior consultation', 'Direct award', 'Simplified direct award', 'Excluded or exempt', 'Other']}
+  - name: contract_types
+    description: Contract types (tipoContrato) in English. Contracts listing several types are Mixed.
+    columns:
+      - name: contract_type_pt
+        tests: [unique, not_null]
+      - name: threshold_family
+        tests:
+          - accepted_values: {values: ['Goods and services', 'Public works', 'Other']}
+  - name: districts
+    description: Districts and autonomous regions as written in LocalExecucao, plus the derived values Multiple, Unspecified, Abroad and Not reported.
+    columns:
+      - name: district_pt
+        tests: [unique, not_null]
+  - name: entity_type_rules
+    description: Ordered rules that classify contracting entities from their accent-free lower-case name (or NIF). The first matching rule wins; no match is Other public-law body.
+    columns:
+      - name: rule_order
+        tests: [unique, not_null]
+      - name: match_field
+        tests:
+          - accepted_values: {values: ['name', 'nif']}
+  - name: thresholds
+    description: Value limits of the Public Contracts Code (CCP) for direct award and prior consultation, with their legal source and validity.
+    columns:
+      - name: threshold_id
+        tests: [unique, not_null]

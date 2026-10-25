@@ -1,0 +1,197 @@
+///$tab Main
+// Portuguese public procurement 2019 - Oct 2026: Portal BASE contracts (IMPIC, dados.gov.pt open data).
+// Qlik Sense / Qlik Cloud. Upload the Parquet files from ../powerbi/data to the space's DataFiles
+// connection, or change vPath to a folder connection on Qlik Sense Desktop/Enterprise.
+// Reading Parquet needs Qlik Cloud or Qlik Sense Enterprise/Desktop May 2023 or later.
+//
+// Data model: one contract fact, a contract-to-supplier bridge and their dimensions, so a selection on a
+// contracting entity, a supplier or a CPV division filters everything else (entity <-> contract <-> supplier).
+// Privacy: suppliers that are natural persons arrive already collapsed into "Individual (name withheld)".
+SET ThousandSep=',';
+SET DecimalSep='.';
+SET MoneyThousandSep=',';
+SET MoneyDecimalSep='.';
+SET MoneyFormat='€#,##0;-€#,##0';
+SET DateFormat='YYYY-MM-DD';
+SET TimestampFormat='YYYY-MM-DD hh:mm:ss';
+SET MonthNames='Jan;Feb;Mar;Apr;May;Jun;Jul;Aug;Sep;Oct;Nov;Dec';
+SET FirstWeekDay=0;
+SET BrokenWeeks=0;
+SET ReferenceDay=4;
+SET FirstMonthOfYear=1;
+
+LET vPath = 'lib://DataFiles/';
+
+// The value limits of the Public Contracts Code changed on 1 October 2026 (DL 177/2026). Analyses of values
+// near the limits use contracts dated up to 30 September 2026. 2026 is a partial year (to 24 October).
+LET vLimitCutoff  = Num(MakeDate(2026, 9, 30));
+LET vLastFullYear = 2025;
+
+// Parquet DATE columns arrive as Qlik dates; the fallback parses text, in case a source writes ISO strings.
+SET fDate = Date(Floor(If(IsNum($1), $1, Date#($1, 'YYYY-MM-DD'))));
+
+///$tab Dimensions
+Entities:
+LOAD
+    entity_id                           AS EntityID,
+    entity_nif                          AS [Entity NIF],
+    entity_name                         AS Entity,
+    entity_type                         AS [Entity Type]
+FROM [$(vPath)dim_entity.parquet] (parquet);
+
+// supplier_id is the NIF as a number for named suppliers; -1 individuals, -2 no Portuguese NIF, -3 not reported
+Suppliers:
+LOAD
+    supplier_id                         AS SupplierID,
+    supplier_nif                        AS [Supplier NIF],
+    supplier_name                       AS Supplier,
+    supplier_type                       AS [Supplier Type],
+    If(is_withheld, 'Withheld', 'Named') AS [Supplier Visibility]
+FROM [$(vPath)dim_supplier.parquet] (parquet);
+
+CPV:
+LOAD
+    cpv_division                        AS CPVDivision,
+    cpv_label                           AS [CPV Division],
+    cpv_short_name                      AS [CPV Short Name],
+    cpv_division_name                   AS [CPV Official Name]
+FROM [$(vPath)dim_cpv.parquet] (parquet);
+
+Procedures:
+LOAD
+    procedure_key                       AS ProcedureKey,
+    procedure_name_en                   AS Procedure,
+    procedure_name_pt                   AS [Procedure (PT)],
+    Dual(procedure_group, group_order)  AS [Procedure Group],
+    If(is_competitive, 'Competitive', 'Not competitive') AS [Competition Type]
+FROM [$(vPath)dim_procedure.parquet] (parquet);
+
+Regions:
+LOAD
+    region_key                          AS RegionKey,
+    Dual(region, sort_order)            AS Region,
+    region_group                        AS [Region Group]
+FROM [$(vPath)dim_region.parquet] (parquet);
+
+ContractTypes:
+LOAD
+    contract_type                       AS [Contract Type],
+    threshold_family                    AS [Threshold Family]
+FROM [$(vPath)dim_contract_type.parquet] (parquet);
+
+///$tab Facts
+// One row per contract. ContractValue = contract price in EUR without VAT (NULL for the 72 negative prices).
+// BasePrice is filled only where it can be compared with the contract value (single-contract procedure,
+// ratio 0.2-5); EffectivePrice only for closed contracts (ratio 0.2-5). Bidders is NULL where the source lists
+// no bidders. The flags below keep chart expressions free of arithmetic.
+Contracts:
+LOAD
+    contract_id                                         AS ContractID,
+    $(fDate(contract_date))                             AS %Date,
+    entity_id                                           AS EntityID,
+    cpv_division                                        AS CPVDivision,
+    procedure_key                                       AS ProcedureKey,
+    contract_type                                       AS [Contract Type],
+    region_key                                          AS RegionKey,
+    contract_value                                      AS ContractValue,
+    base_price_comparable                               AS BasePrice,
+    effective_price_closed                              AS EffectivePrice,
+    bidders_count                                       AS Bidders,
+    1                                                   AS _Contract,
+    If(Len(Trim(bidders_count)) > 0, 1, 0)              AS _HasBidderList,
+    If(bidders_count = 1, 1, 0)                         AS _SingleBid,
+    If(Len(Trim(base_price_comparable)) > 0, 1, 0)      AS _HasBasePrice,
+    If(Len(Trim(base_price_comparable)) > 0 And contract_value = base_price_comparable, 1, 0) AS _AtBasePrice,
+    If(Len(Trim(base_price_comparable)) > 0 And contract_value < base_price_comparable, 1, 0) AS _BelowBasePrice,
+    If(Len(Trim(effective_price_closed)) > 0, 1, 0)     AS _Closed,
+    If(effective_price_closed > contract_value * 1.0001, 1, 0) AS _EndedAbove,
+    // EUR 1,000 value band for the histogram near the legal limits (values from 0 to 199,999)
+    If(contract_value >= 0 And contract_value < 200000,
+       Dual('€' & Num(Floor(contract_value, 1000) / 1000, '#,##0') & 'k', Floor(contract_value, 1000))) AS [Value Band],
+    // contracts dated up to 30 September 2026, when the 2018-2026 limits applied
+    If(Floor(contract_date) <= $(vLimitCutoff), 1, 0)   AS _LimitPeriod
+FROM [$(vPath)fct_contracts.parquet] (parquet);
+
+///$tab Suppliers bridge
+// A contract can have several awardees (framework agreements, consortia). The bridge has one row per contract
+// and awardee; AllocationShare = 1 / number of awardees, so AllocatedValue splits the contract value equally
+// and adds up to ContractValue for every contract. The value is copied in at load time so that chart sums need
+// no cross-table multiplication.
+ContractValueMap:
+MAPPING LOAD ContractID, ContractValue RESIDENT Contracts;
+
+ContractSupplier:
+LOAD
+    contract_id                                                     AS ContractID,
+    supplier_id                                                     AS SupplierID,
+    allocation_share                                                AS AllocationShare,
+    allocation_share * ApplyMap('ContractValueMap', contract_id, 0) AS AllocatedValue
+FROM [$(vPath)bridge_contract_supplier.parquet] (parquet);
+
+///$tab Calendar
+// Daily master calendar over the contract dates (one contract date per contract).
+TempRange:
+LOAD Min(%Date) AS MinD, Max(%Date) AS MaxD RESIDENT Contracts;
+LET vMinD = Num(MakeDate(Year(Peek('MinD', 0, 'TempRange')), 1, 1));
+LET vMaxD = Num(MakeDate(Year(Peek('MaxD', 0, 'TempRange')), 12, 31));
+DROP TABLE TempRange;
+
+MasterCalendar:
+LOAD
+    Date(d)                                             AS %Date,
+    Year(d)                                             AS Year,
+    'Q' & Ceil(Month(d) / 3)                            AS Quarter,
+    Month(d)                                            AS Month,
+    Date(MonthStart(d), 'MMM YYYY')                     AS YearMonth,
+    // flags for set analysis
+    If(Month(d) = 12, 1, 0)                             AS _December,
+    If(Year(d) <= $(vLastFullYear), 1, 0)               AS _FullYear;
+LOAD $(vMinD) + IterNo() - 1 AS d
+AUTOGENERATE 1 WHILE $(vMinD) + IterNo() - 1 <= $(vMaxD);
+
+///$tab Marts
+// Concentration per CPV division from dbt: withheld individuals count as separate suppliers there, which the
+// app cannot reproduce (their names are not loaded). Linked on CPVDivision only.
+Concentration:
+LOAD
+    cpv_division                        AS CPVDivision,
+    period                              AS [Concentration Period],
+    supplier_value                      AS [Conc Supplier Value],
+    suppliers                           AS [Conc Suppliers],
+    top1_share                          AS [Conc Top 1 Share],
+    top5_share                          AS [Conc Top 5 Share],
+    top10_share                         AS [Conc Top 10 Share],
+    hhi                                 AS [Conc HHI],
+    withheld_share                      AS [Conc Withheld Share],
+    sme_flag_share_2024_on              AS [Conc SME Flag Share 2024+]
+FROM [$(vPath)mart_supplier_concentration.parquet] (parquet);
+
+// Legal limits summary: a standalone table (its fields are renamed so they do not associate).
+LimitSummary:
+LOAD
+    threshold_id                        AS [Limit ID],
+    threshold_family                    AS [Limit Family],
+    procedure_limit                     AS [Limit Procedure],
+    threshold_eur                       AS [Limit EUR],
+    limit_rule                          AS [Limit Rule],
+    legal_source                        AS [Limit Legal Source],
+    contracts_just_below                AS [Limit Contracts Below],
+    contracts_just_above                AS [Limit Contracts Above],
+    neighbour_bin_avg                   AS [Limit Neighbour Avg],
+    contracts_within_1_euro_below       AS [Limit Contracts 1 EUR Below]
+FROM [$(vPath)mart_threshold_summary.parquet] (parquet);
+
+///$tab Variables
+// Master measures are listed in master_items.md; the variables keep the expressions in one place.
+SET vValue          = Sum(ContractValue);
+SET vContracts      = Sum(_Contract);
+SET vDirectN        = Sum({<[Procedure Group]={'Direct award','Simplified direct award'}>} _Contract);
+SET vDirectV        = Sum({<[Procedure Group]={'Direct award','Simplified direct award'}>} ContractValue);
+SET vSingleBidPct   = Sum(_SingleBid) / Sum(_HasBidderList);
+SET vSupplierValue  = Sum(AllocatedValue);
+SET vPriceVsBase    = Sum({<_HasBasePrice={1}>} ContractValue) / Sum(BasePrice) - 1;
+SET vFinalVsSigned  = Sum(EffectivePrice) / Sum({<_Closed={1}>} ContractValue) - 1;
+// Limit windows: vBand(family,from,to) counts contracts of a threshold family with from <= value < to, dated in
+// the limit period. In a chart write a dollar sign before (vBand(Goods and services,19000,20000)), no spaces
+// after the commas.
+SET vBand = Sum({<[Threshold Family]={'$1'}, _LimitPeriod={1}, ContractValue={">=$2<$3"}>} _Contract);

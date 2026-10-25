@@ -1,0 +1,575 @@
+<meta charset="utf-8">
+<title>Portugal Public Procurement</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+/* Layout: a spend-analytics pack for a procurement lead. Findings first, one filter row, then where the money goes, how it was bought, values near the legal limits, supplier concentration and prices. */
+:root {
+  --paper: #f7f8f9;
+  --sheet: #ffffff;
+  --ink: #1b2430;
+  --muted: #5d6876;
+  --rule: #dce0e5;
+  --grid: #eceff2;
+  --signal: #1f5a85;
+  --signal-soft: #e6eef5;
+  --s1: #2a78d6;
+  --s2: #eb6834;
+  --total: #5d6876;
+  --good: #1f7a35;
+  --good-soft: #e3f1e6;
+  --warn: #b25b00;
+  --warn-soft: #fbeedd;
+  --display: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --serif: "IBM Plex Serif", Georgia, serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #121519; --sheet: #181c21; --ink: #e3e7eb; --muted: #97a2ad; --rule: #2a3038; --grid: #20252c;
+    --signal: #86b6da; --signal-soft: #1a2633;
+    --s1: #3987e5; --s2: #d95926; --total: #8a95a1;
+    --good: #5cb873; --good-soft: #17301e; --warn: #e09a4a; --warn-soft: #3a2812;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #121519; --sheet: #181c21; --ink: #e3e7eb; --muted: #97a2ad; --rule: #2a3038; --grid: #20252c;
+  --signal: #86b6da; --signal-soft: #1a2633;
+  --s1: #3987e5; --s2: #d95926; --total: #8a95a1;
+  --good: #5cb873; --good-soft: #17301e; --warn: #e09a4a; --warn-soft: #3a2812;
+  color-scheme: dark;
+}
+body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 1rem; line-height: 1.55; margin: 0; }
+.wrap { max-width: 72rem; margin: 0 auto; padding-block: 2.5rem 4rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 2rem; }
+.wrap > * { min-width: 0; }
+h1, h2, h3 { font-family: var(--display); margin: 0; line-height: 1.15; text-wrap: balance; }
+h1 { font-family: var(--serif); font-size: clamp(1.8rem, 4.2vw, 2.5rem); font-weight: 600; }
+h2 { font-size: 1.05rem; font-weight: 600; }
+p { margin: 0; max-width: 68ch; }
+.label { font-size: 0.88rem; color: var(--muted); }
+.crumb { font-size: 0.9rem; }
+a { color: var(--signal); text-underline-offset: 3px; }
+header { display: grid; gap: 0.75rem; }
+.meta { display: flex; flex-wrap: wrap; gap: 0.35rem 1.25rem; font-size: 0.9rem; color: var(--muted); }
+
+.findings { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: 1rem; }
+.finding { border-top: 1px solid var(--ink); padding-top: 0.75rem; display: grid; gap: 0.35rem; align-content: start; min-width: 0; }
+.finding b { font-weight: 600; font-size: 1rem; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; align-items: center; padding: 0.75rem 0; border-block: 1px solid var(--rule); position: sticky; top: env(safe-area-inset-top, 0px); background: var(--paper); z-index: 5; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--paper); }
+.filters .grp { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; min-width: 0; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--rule); border-radius: 2px; overflow: hidden; }
+.seg button { font-family: var(--body); font-size: 0.88rem; padding: 0.35rem 0.7rem; background: var(--sheet); color: var(--ink); border: 0; border-right: 1px solid var(--rule); cursor: pointer; }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--signal-soft); color: var(--ink); box-shadow: inset 0 -2px 0 var(--signal); }
+select { font-family: var(--body); font-size: 0.88rem; padding: 0.3rem 0.45rem; background: var(--sheet); color: var(--ink); border: 1px solid var(--rule); border-radius: 2px; max-width: 100%; }
+button:focus-visible, a:focus-visible, select:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 1rem; }
+.kpi { background: var(--sheet); border: 1px solid var(--rule); border-radius: 2px; padding: 1rem; display: grid; gap: 0.25rem; min-width: 0; }
+.kpi .v { font-family: var(--serif); font-size: 1.7rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+.kpi .d { font-size: 0.85rem; color: var(--muted); }
+
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 30rem), 1fr)); gap: 1.25rem; }
+.panel { background: var(--sheet); border: 1px solid var(--rule); border-radius: 2px; padding: 1.1rem; display: grid; gap: 0.75rem; align-content: start; min-width: 0; }
+.panel .sub { font-size: 0.9rem; color: var(--muted); }
+.panel-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.5rem 1rem; }
+.chart { position: relative; width: 100%; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart text { font-family: var(--body); font-size: 11px; fill: var(--muted); }
+.chart .lbl { fill: var(--ink); font-weight: 600; }
+.legend { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; font-size: 0.85rem; color: var(--ink); }
+.legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 0.35rem; }
+.legend i.dash { background: repeating-linear-gradient(90deg, var(--muted) 0 5px, transparent 5px 8px) !important; }
+.legend i.sq { width: 10px; height: 10px; border-radius: 2px; }
+
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--paper); font-family: var(--body); font-size: 0.8rem; padding: 0.45rem 0.6rem; border-radius: 3px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); z-index: 3; line-height: 1.45; }
+.tip[hidden] { display: none; }
+
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+th, td { padding: 0.4rem 0.55rem; text-align: right; border-bottom: 1px solid var(--rule); font-variant-numeric: tabular-nums; white-space: nowrap; }
+th { font-size: 0.8rem; font-weight: 600; color: var(--muted); }
+th:first-child, td:first-child { text-align: left; }
+td.name, th.name { white-space: normal; min-width: 10rem; text-align: left; }
+tr.sub td { font-weight: 600; border-top: 1px solid var(--ink); }
+td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); }
+.method { display: grid; gap: 0.5rem; font-size: 0.9rem; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 1rem; }
+.method ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.3rem; max-width: 80ch; }
+.note { font-size: 0.8rem; color: var(--muted); }
+.tag { display: inline-block; font-size: 0.75rem; padding: 0 0.4rem; border: 1px solid var(--rule); border-radius: 2px; color: var(--ink); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<main class="wrap">
+  <header>
+    <p class="crumb"><a href="/">Guilherme Rigonato</a> <span class="label">/ Projects</span></p>
+    <span class="label">Portal BASE (IMPIC) · 1,550,674 contracts · Jan 2019 – Oct 2026 · EUR, excluding VAT</span>
+    <h1>Where does Portugal's public procurement money go, and how is it bought?</h1>
+    <p>A spend-analytics view of every contract published on Portal BASE from 2019 to 24 October 2026: who buys, what they buy, through which procedure, how many bidders took part, how contract values sit around the legal limits for direct award and prior consultation, how concentrated the supplier base is, and how prices compare with the base price.</p>
+    <div class="meta">
+      <span>Open data from dados.gov.pt, downloaded 25 October 2026</span>
+      <span>dbt + DuckDB · 20 models · 100 tests</span>
+      <span>Also in Qlik Sense and Power BI</span>
+    </div>
+  </header>
+
+  <section class="findings" aria-label="Key findings">
+    <div class="finding"><span class="label">Finding 1</span><b>Health and municipalities account for half of the value.</b><p>Of €120.5 billion, health bodies signed €31.3 billion (26.0%) and municipalities €30.1 billion (25.0%). Construction work is the largest category at €35.8 billion (29.7%), then medical and pharmaceutical products at €22.8 billion (18.9%).</p></div>
+    <div class="finding"><span class="label">Finding 2</span><b>Half the contracts are direct awards, but only a sixth of the value.</b><p>Direct awards are 49.8% of contracts and 16.6% of value. Open tenders are 13.7% of contracts and 50.7% of value. Where bidders are listed, 43.4% of prior consultations and 10.2% of open tenders received a single bid.</p></div>
+    <div class="finding"><span class="label">Finding 3</span><b>Contract values cluster just below the legal limits.</b><p>50,519 goods and services contracts sit between €19,000 and €19,999, against 12,290 between €20,000 and €20,999. Just below the €75,000 limit there are 11,401, against 1,782 just above.</p></div>
+    <div class="finding"><span class="label">Finding 4</span><b>Concentration depends on the category.</b><p>The ten largest named suppliers hold 9.7% of the value. Construction work is fragmented (HHI 59), while energy and fuel (top five 64.6%, HHI 1,072) and postal and telecom services (HHI 1,634) are concentrated.</p></div>
+    <div class="finding"><span class="label">Finding 5</span><b>Open tenders come in about 11% under the base price.</b><p>In single-contract open tenders, contract value is 10.9% below the base price. 84.6% of direct awards are signed at exactly the base price. December carries 10.2% of the year's value, against 8.3% for an average month.</p></div>
+  </section>
+
+  <section class="filters" aria-label="Filters">
+    <div class="grp"><span class="label">Years</span>
+      <select id="y-from" aria-label="From year"></select><span class="label">to</span><select id="y-to" aria-label="To year"></select>
+    </div>
+    <div class="grp"><span class="label">Contract type</span>
+      <div class="seg" id="ct-seg">
+        <button data-ct="ALL" aria-pressed="true">All</button>
+        <button data-ct="Goods" aria-pressed="false">Goods</button>
+        <button data-ct="Services" aria-pressed="false">Services</button>
+        <button data-ct="Public works" aria-pressed="false">Works</button>
+        <button data-ct="OTHER" aria-pressed="false">Other</button>
+      </div>
+    </div>
+    <div class="grp"><span class="label">Contracting entity</span><select id="et-sel" aria-label="Contracting entity type"></select></div>
+  </section>
+
+  <section class="kpis" id="kpis" aria-label="Headline figures"></section>
+
+  <section class="panel" aria-labelledby="yr-h">
+    <h2 id="yr-h">Contract value by year</h2>
+    <p class="sub" id="yr-sub"></p>
+    <div class="chart" id="years"></div>
+    <p class="note">The year is the contract signature date, or the closing date for simplified direct awards, which have no written contract. 2026 runs to 24 October.</p>
+  </section>
+
+  <div class="grid2">
+    <section class="panel" aria-labelledby="et-h">
+      <h2 id="et-h">Who buys: value by contracting-entity type</h2>
+      <p class="sub">Types are assigned from entity names with documented rules (see the method).</p>
+      <div class="chart" id="etypes"></div>
+    </section>
+    <section class="panel" aria-labelledby="cpv-h">
+      <h2 id="cpv-h">What is bought: value by CPV division</h2>
+      <p class="sub">The twelve largest divisions of the Common Procurement Vocabulary.</p>
+      <div class="chart" id="cpvs"></div>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="panel" aria-labelledby="pm-h">
+      <h2 id="pm-h">How it is bought: procedure mix</h2>
+      <p class="sub">Share of contracts and share of value by procedure group.</p>
+      <div class="legend"><span><i class="sq" style="background:var(--s1)"></i>Share of contracts</span><span><i class="sq" style="background:var(--s2)"></i>Share of value</span></div>
+      <div class="chart" id="procmix"></div>
+    </section>
+    <section class="panel" aria-labelledby="sb-h">
+      <h2 id="sb-h">Single-bid share by year</h2>
+      <p class="sub">Contracts whose procedure lists exactly one bidder, among those with a bidder list.</p>
+      <div class="legend"><span><i style="background:var(--s1)"></i>Open tender</span><span><i style="background:var(--s2)"></i>Prior consultation</span><span><i class="dash"></i>Framework call-off</span></div>
+      <div class="chart" id="single"></div>
+    </section>
+  </div>
+
+  <section class="panel" aria-labelledby="bn-h">
+    <div class="panel-head">
+      <h2 id="bn-h">Contract values near the legal limits</h2>
+      <div class="seg" id="fam-seg">
+        <button data-fam="0" aria-pressed="true">Goods and services</button>
+        <button data-fam="1" aria-pressed="false">Public works</button>
+      </div>
+    </div>
+    <p class="sub" id="bn-sub"></p>
+    <div class="chart" id="bunching"></div>
+    <div class="tbl-wrap"><table id="thr"></table></div>
+    <p class="note">Limits of the Public Contracts Code in force from 2018 to 30 September 2026: direct award below €20,000 for goods and services and below €30,000 for works; prior consultation below €75,000 and €150,000. Contracts dated after 30 September 2026 are left out because new limits apply from 1 October 2026. The histogram describes where values sit; it does not say why.</p>
+  </section>
+
+  <div class="grid2">
+    <section class="panel" aria-labelledby="cc-h">
+      <h2 id="cc-h">Supplier concentration by CPV division</h2>
+      <p class="sub">2019 – Oct 2026, all entities. Largest divisions by value; HHI from 0 (fragmented) to 10,000 (one supplier).</p>
+      <div class="tbl-wrap"><table id="conc"></table></div>
+      <p class="note">Multi-awardee contracts are split equally among the awardees. Each withheld individual counts as a separate supplier in the shares and the HHI.</p>
+    </section>
+    <section class="panel" aria-labelledby="ts-h">
+      <div class="panel-head">
+        <h2 id="ts-h">Largest suppliers</h2>
+        <select id="sup-sel" aria-label="CPV division for the supplier ranking"></select>
+      </div>
+      <p class="sub">2019 – Oct 2026, all entities. Companies and public bodies only; individuals are never named.</p>
+      <div class="tbl-wrap"><table id="sups"></table></div>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="panel" aria-labelledby="pr-h">
+      <h2 id="pr-h">Contract price against base price</h2>
+      <p class="sub">Value-weighted difference, procedures with a single contract. Shorter bars mean prices closer to the base price.</p>
+      <div class="chart" id="price"></div>
+      <div class="tbl-wrap"><table id="pricet"></table></div>
+    </section>
+    <section class="panel" aria-labelledby="mo-h">
+      <h2 id="mo-h">Value by month of the year</h2>
+      <p class="sub" id="mo-sub"></p>
+      <div class="chart" id="months"></div>
+      <p class="note">An even spread would put 8.3% of the value in each month.</p>
+    </section>
+  </div>
+
+  <section class="panel" aria-labelledby="rg-h">
+    <h2 id="rg-h">Where the work is done</h2>
+    <p class="sub">Value by district or autonomous region of execution. Contracts naming several districts, or Portugal only, are shown apart.</p>
+    <div class="chart" id="regions"></div>
+  </section>
+
+  <section class="method" aria-label="Method">
+    <h2>How it is built</h2>
+    <ul>
+      <li>Source: <i>Contratos Públicos – Portal BASE – IMPIC</i>, yearly files 2019–2026 from dados.gov.pt (open data, dataset 66d72d488ca4b7cb2de28712), downloaded 25 October 2026. 1,555,252 rows; 4,566 contract ids appear twice or more inside the same file and are kept once, leaving 1,550,674 contracts.</li>
+      <li>Values are the contract price (precoContratual), in euros without VAT. 72 negative prices are left out of the sums. Framework agreements themselves usually carry a price of zero; the call-offs under them carry the value.</li>
+      <li>dbt models on DuckDB build a star schema: contracting entity, supplier, CPV division, procedure, region and a daily calendar around one contract fact, plus a contract-to-supplier bridge that splits multi-awardee contracts equally. Tests check keys, relationships, accepted values, reconciliation of contract counts to the raw files, and that no individual's name reaches a supplier table.</li>
+      <li>Entity types come from ordered name rules (for example <i>Município</i> → Municipality, <i>Freguesia</i> → Parish, hospital or <i>saúde</i> → Health, NIF prefix 6 → Central government). The rules are in <span class="tag">seeds/entity_type_rules.csv</span>.</li>
+      <li>Privacy: awardees without a NIF, or with an individual, sole-trader or estate NIF, are reported only as <i>Individual (name withheld)</i>. Awardees without a Portuguese NIF whose name looks like a company's (mostly foreign firms) are reported as <i>No Portuguese NIF (name withheld)</i>.</li>
+      <li>Caveats: bidder lists are missing for most direct awards; the SME flag is filled only from 2024 and inconsistently; base prices of multi-lot procedures cover all lots, so only single-contract procedures are compared, and ratios outside 0.2–5 are treated as entry errors.</li>
+    </ul>
+    <p class="note">Code: <a href="https://github.com/Alpralex/public-procurement-pt">github.com/Alpralex/public-procurement-pt</a></p>
+  </section>
+</main>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var D = {};
+  var state = { y0: 2019, y1: 2026, ct: 'ALL', et: -1, fam: 0, sup: -1 };
+  var CT_MAIN = ['Goods', 'Services', 'Public works'];
+  var GS_TYPES = ['Goods', 'Services', 'Lease of goods'];
+
+  function el(tag, attrs, parent) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+  function txt(parent, x, y, s, attrs) { var t = el('text', Object.assign({ x: x, y: y }, attrs || {}), parent); t.textContent = s; return t; }
+  function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  function niceStep(span, n) { var raw = span / (n || 4), p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p; }
+  var minus = '−';
+  function eur(v) { var a = Math.abs(v), s = v < 0 ? minus : ''; if (a >= 1e9) return s + '€' + (a / 1e9).toFixed(a >= 1e11 ? 1 : 2) + 'bn'; if (a >= 1e6) return s + '€' + (a / 1e6).toFixed(1) + 'M'; if (a >= 1e3) return s + '€' + Math.round(a / 1e3).toLocaleString('en-US') + 'k'; return s + '€' + Math.round(a); }
+  function n0(v) { return Math.round(v).toLocaleString('en-US'); }
+  function share(v, d) { return v == null || !isFinite(v) ? '–' : (v * 100).toFixed(d == null ? 1 : d) + '%'; }
+  function sgn(v) { return v == null || !isFinite(v) ? '–' : (v > 0 ? '+' : v < 0 ? minus : '') + Math.abs(v * 100).toFixed(1) + '%'; }
+
+  function ctName(i) { return D.meta.contract_types[i]; }
+  function inCt(i) { var n = ctName(i); if (state.ct === 'ALL') return true; if (state.ct === 'OTHER') return CT_MAIN.indexOf(n) < 0; return n === state.ct; }
+  function inEt(i) { return state.et < 0 || i === state.et; }
+  function inYr(y) { return y >= state.y0 && y <= state.y1; }
+  function keep(r) { return inYr(r[0]) && inCt(r[1]) && inEt(r[2]); }
+  function yearsLabel() { return state.y0 === state.y1 ? String(state.y0) : state.y0 + '–' + state.y1; }
+  function ctLabel() { return state.ct === 'ALL' ? 'all contract types' : state.ct === 'OTHER' ? 'other contract types' : state.ct.toLowerCase(); }
+  function etLabel() { return state.et < 0 ? 'all contracting entities' : D.meta.entity_types[state.et]; }
+  function scopeLabel() { return yearsLabel() + ' · ' + ctLabel() + ' · ' + etLabel(); }
+  function cw(host) { return Math.max(300, Math.round(host.getBoundingClientRect().width) || 520); }
+  function fit(s, px) { var n = Math.floor(px / 5.9); return s.length <= n ? s : s.slice(0, Math.max(3, n - 1)) + '…'; }
+  function tipFor(host) { var t = document.createElement('div'); t.className = 'tip'; t.hidden = true; host.appendChild(t); return t; }
+  function showTip(tip, svg, W, H, x, y, html) { var b = svg.getBoundingClientRect(); tip.innerHTML = html; tip.style.left = (x / W * b.width) + 'px'; tip.style.top = (y / H * b.height) + 'px'; tip.hidden = false; }
+  function sumBy(rows, keyFn, cols) { var out = {}; rows.forEach(function (r) { var k = keyFn(r), o = out[k] = out[k] || cols.map(function () { return 0; }); cols.forEach(function (c, j) { o[j] += r[c] || 0; }); }); return out; }
+
+  // ---------- horizontal bars: rows [{name, v, tipHtml, label}] ----------
+  function hbars(host, rows, opt) {
+    host.innerHTML = '';
+    opt = opt || {};
+    var W = cw(host), narrow = W < 560, rowH = opt.rowH || 26, m = { t: 4, r: narrow ? 92 : (opt.right || 110), b: 4, l: Math.min(opt.left || 170, Math.round(W * 0.42)) }, H = m.t + m.b + rows.length * rowH;
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': opt.aria || '' }, host);
+    var tip = tipFor(host);
+    var max = Math.max.apply(null, rows.map(function (r) { return r.v; }).concat([1e-9]));
+    var X = function (v) { return m.l + v / max * (W - m.l - m.r); };
+    rows.forEach(function (r, i) {
+      var y = m.t + i * rowH, w = Math.max(1.5, X(r.v) - m.l);
+      txt(svg, m.l - 8, y + rowH / 2 + 4, fit(r.name, m.l - 12), { 'text-anchor': 'end' });
+      el('rect', { x: m.l, y: y + 5, width: w, height: rowH - 10, rx: 2, fill: r.color || css('--s1') }, svg);
+      txt(svg, m.l + w + 6, y + rowH / 2 + 4, r.label, { class: 'lbl' });
+      var hit = el('rect', { x: 0, y: y, width: W, height: rowH, fill: 'transparent' }, svg);
+      hit.addEventListener('pointerenter', function () { showTip(tip, svg, W, H, m.l + w / 2, y + 5, r.tip); });
+      hit.addEventListener('pointerleave', function () { tip.hidden = true; });
+    });
+  }
+
+  // ---------- KPIs ----------
+  function renderKpis() {
+    var comp = D.competition.filter(keep);
+    var n = 0, v = 0, byPg = {};
+    comp.forEach(function (r) { n += r[4]; v += r[5]; var o = byPg[r[3]] = byPg[r[3]] || [0, 0, 0, 0]; o[0] += r[4]; o[1] += r[5]; o[2] += r[6]; o[3] += r[8]; });
+    var pg = D.meta.procedure_groups, iOpen = pg.indexOf('Open tender'), iDA = pg.indexOf('Direct award'), iSDA = pg.indexOf('Simplified direct award'), iCP = pg.indexOf('Prior consultation');
+    function g(i, j) { return byPg[i] ? byPg[i][j] : 0; }
+    var daN = g(iDA, 0) + g(iSDA, 0), daV = g(iDA, 1) + g(iSDA, 1);
+    var pr = D.price.filter(keep), bv = 0, bt = 0, bn = 0;
+    pr.forEach(function (r) { if (r[3] === iOpen) { bv += r[5]; bt += r[6]; bn += r[4]; } });
+    var tiles = [
+      ['Contract value', eur(v), n0(n) + ' contracts'],
+      ['Direct awards', share(n ? daN / n : null), share(v ? daV / v : null) + ' of the value'],
+      ['Open tenders', share(v ? g(iOpen, 1) / v : null), 'of the value · ' + share(n ? g(iOpen, 0) / n : null) + ' of contracts'],
+      ['Single bid, prior consultation', share(g(iCP, 2) ? g(iCP, 3) / g(iCP, 2) : null), 'open tenders ' + share(g(iOpen, 2) ? g(iOpen, 3) / g(iOpen, 2) : null)],
+      ['Open tenders vs base price', bt ? sgn(bv / bt - 1) : '–', 'value-weighted · ' + n0(bn) + ' contracts']
+    ];
+    document.getElementById('kpis').innerHTML = tiles.map(function (x) {
+      return '<div class="kpi"><span class="label">' + x[0] + '</span><span class="v">' + x[1] + '</span><span class="d">' + x[2] + '</span></div>';
+    }).join('');
+  }
+
+  // ---------- by year (vertical bars) ----------
+  function renderYears() {
+    var host = document.getElementById('years'); host.innerHTML = '';
+    document.getElementById('yr-sub').textContent = ctLabel().charAt(0).toUpperCase() + ctLabel().slice(1) + ' · ' + etLabel() + ' · EUR';
+    var by = sumBy(D.cpv.filter(function (r) { return inCt(r[1]) && inEt(r[2]); }), function (r) { return r[0]; }, [4, 5]);
+    var years = [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
+    var W = cw(host), H = 230, m = { t: 22, r: 8, b: 26, l: 56 };
+    var max = Math.max.apply(null, years.map(function (y) { return by[y] ? by[y][1] : 0; }).concat([1]));
+    var st = niceStep(max), top = Math.ceil(max / st) * st;
+    var bw = (W - m.l - m.r) / years.length;
+    var Y = function (v) { return H - m.b - v / top * (H - m.t - m.b); };
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Contract value by year' }, host);
+    var tip = tipFor(host);
+    for (var g = 0; g <= top + 1; g += st) { el('line', { x1: m.l, x2: W - m.r, y1: Y(g), y2: Y(g), stroke: css('--grid') }, svg); txt(svg, m.l - 6, Y(g) + 4, g === 0 ? '€0' : eur(g).replace('.00bn', 'bn'), { 'text-anchor': 'end' }); }
+    years.forEach(function (y, i) {
+      var o = by[y] || [0, 0], x = m.l + i * bw + bw * 0.2, w = bw * 0.6, on = inYr(y);
+      el('rect', { x: x, y: Y(o[1]), width: w, height: Math.max(0, Y(0) - Y(o[1])), rx: 2, fill: on ? css('--s1') : css('--grid') }, svg);
+      if (bw >= 64) txt(svg, x + w / 2, Y(o[1]) - 6, eur(o[1]), { 'text-anchor': 'middle', class: on ? 'lbl' : '' });
+      txt(svg, x + w / 2, H - 8, bw >= 40 ? (y === 2026 ? '2026*' : String(y)) : "'" + String(y).slice(2), { 'text-anchor': 'middle' });
+      var hit = el('rect', { x: m.l + i * bw, y: m.t, width: bw, height: H - m.t - m.b, fill: 'transparent' }, svg);
+      hit.addEventListener('pointerenter', function () { showTip(tip, svg, W, H, x + w / 2, Y(o[1]), y + (y === 2026 ? ' (to 24 Oct)' : '') + '<br>' + eur(o[1]) + '<br>' + n0(o[0]) + ' contracts'); });
+      hit.addEventListener('pointerleave', function () { tip.hidden = true; });
+    });
+  }
+
+  function renderEtypes() {
+    var rows = D.cpv.filter(function (r) { return inYr(r[0]) && inCt(r[1]); });
+    var by = sumBy(rows, function (r) { return r[2]; }, [4, 5]), tot = 0;
+    Object.keys(by).forEach(function (k) { tot += by[k][1]; });
+    var list = Object.keys(by).map(function (k) { var o = by[k]; return { i: +k, name: D.meta.entity_types[k], v: o[1], n: o[0] }; }).sort(function (a, b) { return b.v - a.v; });
+    hbars(document.getElementById('etypes'), list.map(function (r) {
+      return { name: r.name.replace(' (Azores and Madeira)', ' (Azores, Madeira)'), v: r.v, label: eur(r.v) + ' · ' + share(r.v / tot), color: state.et >= 0 && r.i !== state.et ? css('--grid') : css('--s1'),
+        tip: r.name + '<br>' + eur(r.v) + ' (' + share(r.v / tot) + ')<br>' + n0(r.n) + ' contracts' };
+    }), { left: 200, aria: 'Contract value by contracting-entity type' });
+  }
+
+  function renderCpv() {
+    var by = sumBy(D.cpv.filter(keep), function (r) { return r[3]; }, [4, 5]), tot = 0;
+    Object.keys(by).forEach(function (k) { tot += by[k][1]; });
+    var list = Object.keys(by).map(function (k) { var c = D.meta.cpv[k]; return { code: c[0], name: c[1], full: c[2], v: by[k][1], n: by[k][0] }; })
+      .sort(function (a, b) { return b.v - a.v; }).slice(0, 12);
+    hbars(document.getElementById('cpvs'), list.map(function (r) {
+      return { name: r.code + ' ' + r.name, v: r.v, label: eur(r.v) + ' · ' + share(r.v / tot), tip: r.code + ' ' + r.full + '<br>' + eur(r.v) + ' (' + share(r.v / tot) + ')<br>' + n0(r.n) + ' contracts' };
+    }), { left: 220, aria: 'Contract value by CPV division' });
+  }
+
+  // ---------- procedure mix (paired bars) ----------
+  function renderProcMix() {
+    var host = document.getElementById('procmix'); host.innerHTML = '';
+    var by = sumBy(D.competition.filter(keep), function (r) { return r[3]; }, [4, 5]), tn = 0, tv = 0;
+    Object.keys(by).forEach(function (k) { tn += by[k][0]; tv += by[k][1]; });
+    var groups = D.meta.procedure_groups.map(function (g, i) { var o = by[i] || [0, 0]; return { name: g, n: o[0], v: o[1] }; }).filter(function (g) { return g.n > 0 && g.name !== 'Other'; });
+    var W = cw(host), rowH = 40, m = { t: 4, r: 56, b: 4, l: Math.min(170, Math.round(W * 0.4)) }, H = m.t + m.b + groups.length * rowH;
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Share of contracts and value by procedure group' }, host);
+    var tip = tipFor(host);
+    var max = Math.max.apply(null, groups.map(function (g) { return Math.max(g.n / tn, g.v / tv); }).concat([0.01]));
+    var X = function (v) { return m.l + v / max * (W - m.l - m.r); };
+    groups.forEach(function (g, i) {
+      var y = m.t + i * rowH;
+      txt(svg, m.l - 8, y + rowH / 2 + 4, fit(g.name, m.l - 12), { 'text-anchor': 'end' });
+      [[g.n / tn, '--s1', 4], [g.v / tv, '--s2', 20]].forEach(function (b) {
+        var w = Math.max(1.5, X(b[0]) - m.l);
+        el('rect', { x: m.l, y: y + b[2], width: w, height: 14, rx: 2, fill: css(b[1]) }, svg);
+        txt(svg, m.l + w + 5, y + b[2] + 11, share(b[0]), { class: 'lbl' });
+      });
+      var hit = el('rect', { x: 0, y: y, width: W, height: rowH, fill: 'transparent' }, svg);
+      hit.addEventListener('pointerenter', function () { showTip(tip, svg, W, H, m.l + (X(Math.max(g.n / tn, g.v / tv)) - m.l) / 2, y + 4, g.name + '<br>' + n0(g.n) + ' contracts (' + share(g.n / tn) + ')<br>' + eur(g.v) + ' (' + share(g.v / tv) + ')'); });
+      hit.addEventListener('pointerleave', function () { tip.hidden = true; });
+    });
+  }
+
+  // ---------- single-bid share by year (lines) ----------
+  function renderSingle() {
+    var host = document.getElementById('single'); host.innerHTML = '';
+    var pg = D.meta.procedure_groups, years = [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
+    var rows = D.competition.filter(function (r) { return inCt(r[1]) && inEt(r[2]); });
+    var series = [['Open tender', '--s1', null], ['Prior consultation', '--s2', null], ['Framework call-off', '--muted', '5 4']].map(function (s) {
+      var gi = pg.indexOf(s[0]), wb = {}, sb = {};
+      rows.forEach(function (r) { if (r[3] === gi) { wb[r[0]] = (wb[r[0]] || 0) + r[6]; sb[r[0]] = (sb[r[0]] || 0) + r[8]; } });
+      return { name: s[0], color: s[1], dash: s[2], values: years.map(function (y) { return wb[y] >= 30 ? sb[y] / wb[y] : null; }), n: years.map(function (y) { return wb[y] || 0; }) };
+    });
+    var W = cw(host), H = 250, m = { t: 12, r: 16, b: 26, l: 40 };
+    var all = []; series.forEach(function (s) { s.values.forEach(function (v) { if (v != null) all.push(v); }); });
+    var hi = Math.max.apply(null, all.concat([0.1])), st = niceStep(hi), top = Math.ceil(hi / st) * st;
+    var X = function (i) { return m.l + i / (years.length - 1) * (W - m.l - m.r); };
+    var Y = function (v) { return H - m.b - v / top * (H - m.t - m.b); };
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Single-bid share by year' }, host);
+    var tip = tipFor(host);
+    for (var g = 0; g <= top + 1e-9; g += st) { el('line', { x1: m.l, x2: W - m.r, y1: Y(g), y2: Y(g), stroke: css('--grid') }, svg); txt(svg, m.l - 6, Y(g) + 4, Math.round(g * 100) + '%', { 'text-anchor': 'end' }); }
+    years.forEach(function (y, i) { txt(svg, X(i), H - 8, W < 480 ? "'" + String(y).slice(2) : (y === 2026 ? '2026*' : String(y)), { 'text-anchor': 'middle' }); });
+    series.slice().reverse().forEach(function (s) {
+      var d = '', pen = false;
+      s.values.forEach(function (v, i) { if (v == null) { pen = false; return; } d += (pen ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1); pen = true; });
+      var p = el('path', { d: d, fill: 'none', stroke: css(s.color), 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
+      if (s.dash) p.setAttribute('stroke-dasharray', s.dash);
+    });
+    var cross = el('line', { y1: m.t, y2: H - m.b, stroke: css('--muted'), visibility: 'hidden' }, svg);
+    var dots = series.map(function (s) { return el('circle', { r: 4, fill: css(s.color), stroke: css('--sheet'), 'stroke-width': 2, visibility: 'hidden' }, svg); });
+    var hit = el('rect', { x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b, fill: 'transparent' }, svg);
+    hit.addEventListener('pointermove', function (evt) {
+      var b = svg.getBoundingClientRect(), px = (evt.clientX - b.left) / b.width * W;
+      var i = Math.max(0, Math.min(years.length - 1, Math.round((px - m.l) / (W - m.l - m.r) * (years.length - 1))));
+      cross.setAttribute('x1', X(i)); cross.setAttribute('x2', X(i)); cross.setAttribute('visibility', 'visible');
+      var topY = H;
+      dots.forEach(function (d, j) { var v = series[j].values[i]; if (v == null) { d.setAttribute('visibility', 'hidden'); return; } topY = Math.min(topY, Y(v)); d.setAttribute('cx', X(i)); d.setAttribute('cy', Y(v)); d.setAttribute('visibility', 'visible'); });
+      showTip(tip, svg, W, H, X(i), topY, years[i] + series.map(function (s) { return '<br>' + s.name + ': ' + share(s.values[i]) + (s.values[i] == null ? '' : ' of ' + n0(s.n[i])); }).join(''));
+    });
+    hit.addEventListener('pointerleave', function () { cross.setAttribute('visibility', 'hidden'); dots.forEach(function (d) { d.setAttribute('visibility', 'hidden'); }); tip.hidden = true; });
+  }
+
+  // ---------- bunching histogram ----------
+  function renderBunching() {
+    var host = document.getElementById('bunching'); host.innerHTML = '';
+    var fam = state.fam, maxK = fam === 1 ? 200 : 100;
+    var counts = new Array(maxK).fill(0);
+    D.bunching.forEach(function (r) { if (r[0] === fam && inYr(r[1]) && inEt(r[2]) && r[3] < maxK) counts[r[3]] += r[4]; });
+    var thr = fam === 1 ? [[30, 'Direct award limit €30,000'], [150, 'Prior consultation limit €150,000']] : [[20, 'Direct award limit €20,000'], [75, 'Prior consultation limit €75,000']];
+    var tot = counts.reduce(function (a, b) { return a + b; }, 0);
+    document.getElementById('bn-sub').textContent = (fam === 1 ? 'Public works' : 'Goods, services and leases') + ' · ' + yearsLabel() + ' (to Sep 2026) · ' + etLabel() + ' · contracts per €1,000 band, €1,000 to €' + maxK + ',000 · ' + n0(tot) + ' contracts';
+    var W = cw(host), H = 280, m = { t: 34, r: 16, b: 28, l: 56 };
+    var max = Math.max.apply(null, counts.slice(1).concat([1])), st = niceStep(max), top = Math.ceil(max / st) * st;
+    var bw = (W - m.l - m.r) / maxK;
+    var X = function (k) { return m.l + k * bw; }, Y = function (v) { return H - m.b - Math.min(v, top) / top * (H - m.t - m.b); };
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Histogram of contract values with legal limits' }, host);
+    var tip = tipFor(host);
+    for (var g = 0; g <= top + 1; g += st) { el('line', { x1: m.l, x2: W - m.r, y1: Y(g), y2: Y(g), stroke: css('--grid') }, svg); txt(svg, m.l - 6, Y(g) + 4, n0(g), { 'text-anchor': 'end' }); }
+    var tickStep = W < 560 ? (fam === 1 ? 50 : 25) : (fam === 1 ? 25 : 10);
+    for (var t = 0; t <= maxK; t += tickStep) txt(svg, X(t), H - 8, '€' + t + 'k', { 'text-anchor': 'middle' });
+    // the first band (under EUR 1,000) holds many small purchases; it is drawn capped so the rest stays readable
+    counts.forEach(function (c, k) {
+      if (k === 0) return;
+      var below = thr.some(function (x) { return x[0] - 1 === k; });
+      el('rect', { x: X(k) + 0.6, y: Y(c), width: Math.max(0.8, bw - 1.2), height: Math.max(0, Y(0) - Y(c)), rx: bw > 6 ? 1.5 : 0.5, fill: below ? css('--s2') : css('--s1') }, svg);
+    });
+    thr.forEach(function (x, j) {
+      el('line', { x1: X(x[0]), x2: X(x[0]), y1: m.t - 4, y2: H - m.b, stroke: css('--ink'), 'stroke-dasharray': '4 3' }, svg);
+      txt(svg, X(x[0]) + 4, m.t - 18 + (W < 700 ? j * 0 : 0), W < 700 ? '€' + n0(x[0] * 1000) : x[1], { class: 'lbl', 'text-anchor': x[0] > maxK * 0.6 ? 'end' : 'start', dx: x[0] > maxK * 0.6 ? -8 : 0 });
+    });
+    var hit = el('rect', { x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b, fill: 'transparent' }, svg);
+    hit.addEventListener('pointermove', function (evt) {
+      var b = svg.getBoundingClientRect(), px = (evt.clientX - b.left) / b.width * W, k = Math.max(1, Math.min(maxK - 1, Math.floor((px - m.l) / bw)));
+      showTip(tip, svg, W, H, X(k) + bw / 2, Y(counts[k]), '€' + n0(k * 1000) + ' – €' + n0(k * 1000 + 999) + '<br>' + n0(counts[k]) + ' contracts');
+    });
+    hit.addEventListener('pointerleave', function () { tip.hidden = true; });
+    // limits table (whole period, all entities)
+    var rows = D.meta.thresholds.filter(function (r) { return r[4] === 'below' && (fam === 1 ? r[1] === 'Public works' : r[1] === 'Goods and services'); });
+    document.getElementById('thr').innerHTML = '<thead><tr><th>Limit (2019 – Sep 2026, all entities)</th><th>€1,000 below</th><th>€1,000 above</th><th>Avg €1,000 band nearby</th><th>Below vs nearby</th><th>Within €1 below</th></tr></thead><tbody>' +
+      rows.map(function (r) { return '<tr><td>' + r[2] + ' · below €' + n0(r[3]) + '</td><td>' + n0(r[5]) + '</td><td>' + n0(r[6]) + '</td><td>' + n0(r[7]) + '</td><td>' + (r[5] / r[7]).toFixed(1) + '×</td><td>' + n0(r[8]) + '</td></tr>'; }).join('') + '</tbody>';
+  }
+
+  // ---------- concentration and suppliers (whole period) ----------
+  function renderConcentration() {
+    var rows = D.concentration.slice().sort(function (a, b) { return b[1] - a[1]; }).slice(0, 15);
+    document.getElementById('conc').innerHTML = '<thead><tr><th>CPV division</th><th>Value</th><th>Suppliers</th><th>Top 1</th><th>Top 5</th><th>HHI</th></tr></thead><tbody>' +
+      rows.map(function (r) { var c = D.meta.cpv[r[0]]; return '<tr><td class="name">' + c[0] + ' ' + c[1] + '</td><td>' + eur(r[1]) + '</td><td>' + n0(r[2]) + '</td><td>' + share(r[3]) + '</td><td>' + share(r[4]) + '</td><td class="' + (r[6] >= 1000 ? 'neg' : '') + '">' + n0(r[6]) + '</td></tr>'; }).join('') + '</tbody>';
+  }
+  function renderSuppliers() {
+    var rows = D.suppliers.filter(function (r) { return r[0] === state.sup; }).slice(0, state.sup < 0 ? 15 : 5);
+    document.getElementById('sups').innerHTML = '<thead><tr><th>#</th><th class="name">Supplier</th><th>Value</th><th>Contracts</th><th>Share</th></tr></thead><tbody>' +
+      rows.map(function (r) { return '<tr><td>' + r[1] + '</td><td class="name">' + r[2] + '</td><td>' + eur(r[3]) + '</td><td>' + n0(r[4]) + '</td><td>' + share(r[5], 2) + '</td></tr>'; }).join('') + '</tbody>';
+  }
+
+  // ---------- price vs base ----------
+  function renderPrice() {
+    var by = sumBy(D.price.filter(keep), function (r) { return r[3]; }, [4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    var groups = D.meta.procedure_groups.map(function (g, i) { var o = by[i]; return o ? { name: g, bn: o[0], bv: o[1], bt: o[2], below: o[3], at: o[4], cn: o[5], cv: o[6], ce: o[7], cab: o[8] } : null; })
+      .filter(function (g) { return g && g.bn >= 30; });
+    hbars(document.getElementById('price'), groups.map(function (g) {
+      var d = g.bv / g.bt - 1;
+      return { name: g.name, v: Math.max(0, -d), label: sgn(d), tip: g.name + '<br>Contract value ' + sgn(d) + ' vs base price<br>' + n0(g.bn) + ' contracts' };
+    }), { left: 170, aria: 'Contract price against base price by procedure group' });
+    document.getElementById('pricet').innerHTML = '<thead><tr><th>Procedure</th><th>At base</th><th>Below base</th><th>Closed</th><th>Final vs signed</th><th>Ended higher</th></tr></thead><tbody>' +
+      groups.map(function (g) { return '<tr><td>' + g.name + '</td><td>' + share(g.at / g.bn) + '</td><td>' + share(g.below / g.bn) + '</td><td>' + n0(g.cn) + '</td><td>' + (g.cv ? sgn(g.ce / g.cv - 1) : '–') + '</td><td>' + (g.cn ? share(g.cab / g.cn) : '–') + '</td></tr>'; }).join('') + '</tbody>';
+  }
+
+  // ---------- month of year ----------
+  function renderMonths() {
+    var host = document.getElementById('months'); host.innerHTML = '';
+    var y1 = Math.min(state.y1, 2025), y0 = Math.min(state.y0, y1);
+    document.getElementById('mo-sub').textContent = 'Share of each year\'s value by month of the contract date, ' + (y0 === y1 ? y0 : y0 + '–' + y1) + ' (complete years only) · ' + ctLabel() + ' · ' + etLabel() + '.';
+    var mv = new Array(12).fill(0), mn = new Array(12).fill(0), tot = 0;
+    D.monthly.forEach(function (r) { var y = +r[0].slice(0, 4); if (y < y0 || y > y1 || !inCt(r[1]) || !inEt(r[2])) return; var k = +r[0].slice(5) - 1; mv[k] += r[4]; mn[k] += r[3]; tot += r[4]; });
+    var W = cw(host), H = 220, m = { t: 20, r: 8, b: 26, l: 40 };
+    var sh = mv.map(function (v) { return tot ? v / tot : 0; }), max = Math.max.apply(null, sh.concat([0.1])), st = niceStep(max), top = Math.ceil(max / st) * st;
+    var bw = (W - m.l - m.r) / 12, Y = function (v) { return H - m.b - v / top * (H - m.t - m.b); };
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Share of annual value by month' }, host);
+    var tip = tipFor(host);
+    for (var g = 0; g <= top + 1e-9; g += st) { el('line', { x1: m.l, x2: W - m.r, y1: Y(g), y2: Y(g), stroke: css('--grid') }, svg); txt(svg, m.l - 6, Y(g) + 4, Math.round(g * 100) + '%', { 'text-anchor': 'end' }); }
+    el('line', { x1: m.l, x2: W - m.r, y1: Y(1 / 12), y2: Y(1 / 12), stroke: css('--muted'), 'stroke-dasharray': '4 3' }, svg);
+    var names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    sh.forEach(function (s, k) {
+      var x = m.l + k * bw + bw * 0.18, w = bw * 0.64;
+      el('rect', { x: x, y: Y(s), width: w, height: Math.max(0, Y(0) - Y(s)), rx: 2, fill: k === 11 ? css('--s2') : css('--s1') }, svg);
+      if (k === 11 || s === max) txt(svg, x + w / 2, Y(s) - 6, share(s), { 'text-anchor': 'middle', class: 'lbl' });
+      txt(svg, x + w / 2, H - 8, bw < 30 ? names[k].charAt(0) : names[k], { 'text-anchor': 'middle' });
+      var hit = el('rect', { x: m.l + k * bw, y: m.t, width: bw, height: H - m.t - m.b, fill: 'transparent' }, svg);
+      hit.addEventListener('pointerenter', function () { showTip(tip, svg, W, H, x + w / 2, Y(s), names[k] + '<br>' + share(s) + ' of the value<br>' + eur(mv[k]) + ' · ' + n0(mn[k]) + ' contracts'); });
+      hit.addEventListener('pointerleave', function () { tip.hidden = true; });
+    });
+  }
+
+  function renderRegions() {
+    var by = sumBy(D.region.filter(keep), function (r) { return r[3]; }, [4, 5]), tot = 0;
+    Object.keys(by).forEach(function (k) { tot += by[k][1]; });
+    var list = Object.keys(by).map(function (k) { var g = D.meta.regions[k]; return { name: g[1], grp: g[2], v: by[k][1], n: by[k][0] }; }).sort(function (a, b) { return b.v - a.v; });
+    hbars(document.getElementById('regions'), list.map(function (r) {
+      var apart = ['Multiple districts', 'Portugal, district not given', 'Abroad', 'Not reported'].indexOf(r.name) >= 0;
+      return { name: r.name, v: r.v, label: eur(r.v) + ' · ' + share(r.v / tot), color: apart ? css('--total') : css('--s1'), tip: r.name + (apart ? '' : ' · ' + r.grp) + '<br>' + eur(r.v) + ' (' + share(r.v / tot) + ')<br>' + n0(r.n) + ' contracts' };
+    }), { left: 200, rowH: 24, aria: 'Contract value by district' });
+  }
+
+  function render() { renderKpis(); renderYears(); renderEtypes(); renderCpv(); renderProcMix(); renderSingle(); renderBunching(); renderConcentration(); renderSuppliers(); renderPrice(); renderMonths(); renderRegions(); }
+
+  function seg(id, key, num) {
+    document.getElementById(id).addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      state[key] = num ? +b.dataset[key] : b.dataset[key];
+      this.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      if (key === 'ct' && (state.ct === 'Public works' || state.ct === 'Goods' || state.ct === 'Services')) {
+        state.fam = state.ct === 'Public works' ? 1 : 0;
+        document.querySelectorAll('#fam-seg button').forEach(function (x) { x.setAttribute('aria-pressed', String(+x.dataset.fam === state.fam)); });
+      }
+      render();
+    });
+  }
+
+  var names = ['cpv', 'region', 'competition', 'monthly', 'bunching', 'price', 'concentration', 'suppliers', 'meta'];
+  Promise.all(names.map(function (n) { return fetch('data/' + n + '.json').then(function (r) { if (!r.ok) throw new Error(n + ': ' + r.status); return r.json(); }); }))
+    .then(function (res) {
+      names.forEach(function (n, i) { D[n] = res[i]; });
+      var yf = document.getElementById('y-from'), yt = document.getElementById('y-to'), opts = '';
+      for (var y = 2019; y <= 2026; y++) opts += '<option value="' + y + '">' + y + (y === 2026 ? ' (to Oct)' : '') + '</option>';
+      yf.innerHTML = opts; yt.innerHTML = opts; yf.value = '2019'; yt.value = '2026';
+      function years() { var a = +yf.value, b = +yt.value; if (a > b) { if (this === yf) yt.value = a; else yf.value = b; } state.y0 = +yf.value; state.y1 = +yt.value; render(); }
+      yf.addEventListener('change', years); yt.addEventListener('change', years);
+      var es = document.getElementById('et-sel');
+      es.innerHTML = '<option value="-1">All</option>' + D.meta.entity_types.map(function (e, i) { return '<option value="' + i + '">' + e + '</option>'; }).join('');
+      es.addEventListener('change', function () { state.et = +es.value; render(); });
+      var ss = document.getElementById('sup-sel'), divs = {};
+      D.suppliers.forEach(function (r) { if (r[0] >= 0) divs[r[0]] = 1; });
+      var byVal = D.concentration.slice().sort(function (a, b) { return b[1] - a[1]; }).map(function (r) { return r[0]; }).filter(function (i) { return divs[i]; });
+      ss.innerHTML = '<option value="-1">All divisions</option>' + byVal.map(function (i) { var c = D.meta.cpv[i]; return '<option value="' + i + '">' + c[0] + ' ' + c[1] + '</option>'; }).join('');
+      ss.addEventListener('change', function () { state.sup = +ss.value; renderSuppliers(); });
+      seg('ct-seg', 'ct'); seg('fam-seg', 'fam', true);
+      render();
+      var t; window.addEventListener('resize', function () { clearTimeout(t); t = setTimeout(render, 150); });
+      if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
+    })
+    .catch(function (err) { console.error(err); document.getElementById('kpis').innerHTML = '<p>The data files did not load. Reload the page to try again.</p>'; });
+})();
+</script>

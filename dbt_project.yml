@@ -1,0 +1,46 @@
+name: public_procurement
+version: "1.0.0"
+config-version: 2
+profile: public_procurement
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+vars:
+  raw_path: "{{ env_var('PROC_RAW_PATH', 'data/raw') }}"
+  # files cover contracts signed 2019-01-01 to 2026-10-24 (download of 2026-10-25)
+  first_year: 2019
+  last_year: 2026
+
+seeds:
+  public_procurement:
+    cpv_divisions:
+      +column_types:
+        cpv_division: varchar
+    entity_type_rules:
+      +column_types:
+        rule_order: integer
+        pattern: varchar
+    procedure_types:
+      +column_types:
+        procedure_key: integer
+        group_order: integer
+        is_competitive: boolean
+    districts:
+      +column_types:
+        sort_order: integer
+    thresholds:
+      +column_types:
+        threshold_eur: integer
+        valid_from: date
+        valid_to: date
+        in_analysis: boolean
+
+models:
+  public_procurement:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table
