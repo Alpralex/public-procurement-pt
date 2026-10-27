@@ -1,0 +1,33 @@
+# Loads the Power BI semantic model (TMDL) in Tabular Editor 2 and runs the Best Practice Analyzer.
+# A model that fails to load, or a rule of severity 3 (error), fails the check; warnings are annotated only.
+name: Power BI model checks
+
+on:
+  push:
+    paths: ["powerbi/**", "bpa-rules.json", ".github/workflows/model-checks.yml"]
+  pull_request:
+    paths: ["powerbi/**", "bpa-rules.json", ".github/workflows/model-checks.yml"]
+  workflow_dispatch:
+
+jobs:
+  bpa:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        model:
+          - powerbi/ProcurementPT.SemanticModel/definition
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Tabular Editor 2
+        shell: pwsh
+        run: |
+          Invoke-WebRequest https://github.com/TabularEditor/TabularEditor/releases/latest/download/TabularEditor.Portable.zip -OutFile te.zip
+          Expand-Archive te.zip -DestinationPath te
+
+      - name: Best Practice Analyzer
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath te/TabularEditor.exe -ArgumentList "`"${{ matrix.model }}/database.tmdl`" -A bpa-rules.json -G" -NoNewWindow -Wait -PassThru
+          exit $p.ExitCode
