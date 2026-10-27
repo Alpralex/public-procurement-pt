@@ -1,0 +1,268 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "name": "0e94481f9f71e0ed7487",
+  "position": {
+    "x": 16,
+    "y": 496,
+    "z": 13000,
+    "height": 208,
+    "width": 1248,
+    "tabOrder": 13000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "mart_threshold_summary"
+                    }
+                  },
+                  "Property": "threshold_family"
+                }
+              },
+              "queryRef": "mart_threshold_summary.threshold_family",
+              "nativeQueryRef": "threshold_family",
+              "displayName": "Contract family"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "mart_threshold_summary"
+                    }
+                  },
+                  "Property": "procedure_limit"
+                }
+              },
+              "queryRef": "mart_threshold_summary.procedure_limit",
+              "nativeQueryRef": "procedure_limit",
+              "displayName": "Procedure up to the limit"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "mart_threshold_summary"
+                    }
+                  },
+                  "Property": "threshold_eur"
+                }
+              },
+              "queryRef": "mart_threshold_summary.threshold_eur",
+              "nativeQueryRef": "threshold_eur",
+              "displayName": "Limit (EUR)"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "mart_threshold_summary"
+                    }
+                  },
+                  "Property": "contracts_just_below"
+                }
+              },
+              "queryRef": "mart_threshold_summary.contracts_just_below",
+              "nativeQueryRef": "contracts_just_below",
+              "displayName": "Contracts €1,000 below"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "mart_threshold_summary"
+                    }
+                  },
+                  "Property": "contracts_just_above"
+                }
+              },
+              "queryRef": "mart_threshold_summary.contracts_just_above",
+              "nativeQueryRef": "contracts_just_above",
+              "displayName": "Contracts €1,000 above"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "mart_threshold_summary"
+                    }
+                  },
+                  "Property": "neighbour_bin_avg"
+                }
+              },
+              "queryRef": "mart_threshold_summary.neighbour_bin_avg",
+              "nativeQueryRef": "neighbour_bin_avg",
+              "displayName": "Average of nearby bands"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "mart_threshold_summary"
+                  }
+                },
+                "Property": "threshold_eur"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "objects": {
+      "columnHeaders": [
+        {
+          "properties": {
+            "columnAdjustment": {
+              "expr": {
+                "Literal": {
+                  "Value": "'growToFit'"
+                }
+              }
+            },
+            "autoSizeColumnWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "total": [
+        {
+          "properties": {
+            "totals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'The legal limits and the contracts next to them'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Table of each legal value limit with the contracts in the EUR 1,000 band below and above it and the average of the nearby bands.'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "padding": [
+        {
+          "properties": {
+            "top": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
+            },
+            "bottom": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
+            },
+            "left": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
+            },
+            "right": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,112 +1,142 @@
 /// Holds every measure. The single column is hidden so Power BI shows the table as a measure table.
 table _Measures
+	lineageTag: ff58d2d4-730d-4931-8dd4-ff20995ccf20
 
 	/// Contract price (precoContratual) in EUR excluding VAT.
 	measure 'Contract Value' = SUM ( fct_contracts[contract_value] )
 		formatString: \€#,0;-\€#,0;\€0
 		displayFolder: 1 Spend
+		lineageTag: 8970ef98-a301-49da-94c4-d1fd6731e8ac
 
 	/// Contracts (one row per idcontrato after deduplication).
 	measure 'Contract Count' = COUNTROWS ( fct_contracts )
 		formatString: #,0
 		displayFolder: 1 Spend
+		lineageTag: a47a9142-67f0-4d42-97d8-ed5ba1ac3056
 
 	measure 'Average Contract Value' = DIVIDE ( [Contract Value], [Contract Count] )
 		formatString: \€#,0;-\€#,0;\€0
 		displayFolder: 1 Spend
+		lineageTag: 1fab4760-1ac1-4386-9df5-038d822c518f
 
 	/// Share of the value shown in the visual: use with a category on rows.
 	measure 'Value Share of Selection' = DIVIDE ( [Contract Value], CALCULATE ( [Contract Value], ALLSELECTED () ) )
 		formatString: 0.0%
 		displayFolder: 1 Spend
+		lineageTag: 638dfacf-ed26-47af-9685-112a4f34eda5
+
+	/// Share of the contracts shown in the visual: the count twin of Value Share of Selection.
+	measure 'Contract Share of Selection' = DIVIDE ( [Contract Count], CALCULATE ( [Contract Count], ALLSELECTED () ) )
+		formatString: 0.0%
+		displayFolder: 1 Spend
+		lineageTag: 80609120-d052-4bab-bd59-91353431a878
 
 	measure 'Contract Value PY' = CALCULATE ( [Contract Value], SAMEPERIODLASTYEAR ( dim_date[date_day] ) )
 		formatString: \€#,0;-\€#,0;\€0
 		displayFolder: 1 Spend
+		lineageTag: 903bf6b0-b326-47ed-8524-a10f9426d72d
 
 	measure 'Contract Value YoY %' = DIVIDE ( [Contract Value] - [Contract Value PY], [Contract Value PY] )
 		formatString: +0.0%;-0.0%;0.0%
 		displayFolder: 1 Spend
+		lineageTag: baf17431-28c0-4f79-902a-acef3675dbb0
 
 	/// Share of the value dated in December. An even spread is 8.3%. Use complete years (2019-2025).
 	measure 'December Value %' = DIVIDE ( CALCULATE ( [Contract Value], KEEPFILTERS ( dim_date[is_december] = TRUE () ) ), [Contract Value] )
 		formatString: 0.0%
 		displayFolder: 1 Spend
+		lineageTag: a1b06984-756a-4e4a-bde9-ff102bd1d39d
 
 	/// General-regime and simplified direct awards.
 	measure 'Direct Award Contracts %' = DIVIDE ( CALCULATE ( [Contract Count], KEEPFILTERS ( dim_procedure[procedure_group] IN { "Direct award", "Simplified direct award" } ) ), [Contract Count] )
 		formatString: 0.0%
 		displayFolder: 2 Competition
+		lineageTag: 2f85e3f7-b8dc-49cb-970a-a9d40e39d935
 
 	measure 'Direct Award Value %' = DIVIDE ( CALCULATE ( [Contract Value], KEEPFILTERS ( dim_procedure[procedure_group] IN { "Direct award", "Simplified direct award" } ) ), [Contract Value] )
 		formatString: 0.0%
 		displayFolder: 2 Competition
+		lineageTag: 40714f35-4919-4ac0-ae95-a248f57750e7
 
 	measure 'Open Tender Contracts %' = DIVIDE ( CALCULATE ( [Contract Count], KEEPFILTERS ( dim_procedure[procedure_group] = "Open tender" ) ), [Contract Count] )
 		formatString: 0.0%
 		displayFolder: 2 Competition
+		lineageTag: b966351a-3978-44dc-b67d-6b7588430c5e
 
 	measure 'Open Tender Value %' = DIVIDE ( CALCULATE ( [Contract Value], KEEPFILTERS ( dim_procedure[procedure_group] = "Open tender" ) ), [Contract Value] )
 		formatString: 0.0%
 		displayFolder: 2 Competition
+		lineageTag: dc2661e8-4334-4d94-8cfd-5004bcb259db
 
 	/// Contracts whose procedure lists its bidders (concorrentes).
 	measure 'Contracts With Bidder List' = COUNT ( fct_contracts[bidders_count] )
 		formatString: #,0
 		displayFolder: 2 Competition
+		lineageTag: 311e83e3-af41-4308-8564-acb8a35bf57e
 
 	measure 'Single Bid Contracts' = CALCULATE ( [Contract Count], KEEPFILTERS ( fct_contracts[bidders_count] = 1 ) )
 		formatString: #,0
 		displayFolder: 2 Competition
+		lineageTag: 9676ea3c-d222-40b3-b122-8c8fa0c18912
 
 	/// Single-bid contracts over contracts with a bidder list.
 	measure 'Single Bid %' = DIVIDE ( [Single Bid Contracts], [Contracts With Bidder List] )
 		formatString: 0.0%
 		displayFolder: 2 Competition
+		lineageTag: cbd60c45-81ea-4602-af8d-f0de738c2eba
 
 	measure 'Average Bidders' = AVERAGE ( fct_contracts[bidders_count] )
 		formatString: 0.00
 		displayFolder: 2 Competition
+		lineageTag: dd8d8d59-76fc-46b2-9a59-abf6f0e90cb0
 
 	/// Goods and services: contracts from EUR 19,000 to 19,999.99, dated up to 30 September 2026.
 	measure 'GS Direct Award Limit 20k Below' = CALCULATE ( [Contract Count], KEEPFILTERS ( dim_contract_type[threshold_family] = "Goods and services" ), KEEPFILTERS ( fct_contracts[contract_value] >= 19000 && fct_contracts[contract_value] < 20000 ), KEEPFILTERS ( dim_date[date_day] <= DATE ( 2026, 9, 30 ) ) )
 		formatString: #,0
 		displayFolder: 3 Value limits
+		lineageTag: 923b8de1-77da-45bb-beac-0fcbc6b6efd9
 
 	/// Goods and services: contracts from EUR 20,000 to 20,999.99, dated up to 30 September 2026.
 	measure 'GS Direct Award Limit 20k Above' = CALCULATE ( [Contract Count], KEEPFILTERS ( dim_contract_type[threshold_family] = "Goods and services" ), KEEPFILTERS ( fct_contracts[contract_value] >= 20000 && fct_contracts[contract_value] < 21000 ), KEEPFILTERS ( dim_date[date_day] <= DATE ( 2026, 9, 30 ) ) )
 		formatString: #,0
 		displayFolder: 3 Value limits
+		lineageTag: 2b83824e-aa45-4bc6-9f7e-8de3829453aa
 
 	/// Goods and services: contracts from EUR 74,000 to 74,999.99, dated up to 30 September 2026.
 	measure 'GS Prior Consultation Limit 75k Below' = CALCULATE ( [Contract Count], KEEPFILTERS ( dim_contract_type[threshold_family] = "Goods and services" ), KEEPFILTERS ( fct_contracts[contract_value] >= 74000 && fct_contracts[contract_value] < 75000 ), KEEPFILTERS ( dim_date[date_day] <= DATE ( 2026, 9, 30 ) ) )
 		formatString: #,0
 		displayFolder: 3 Value limits
+		lineageTag: 37bf6aa9-0e6a-45e7-beca-51e9753415ce
 
 	/// Goods and services: contracts from EUR 75,000 to 75,999.99, dated up to 30 September 2026.
 	measure 'GS Prior Consultation Limit 75k Above' = CALCULATE ( [Contract Count], KEEPFILTERS ( dim_contract_type[threshold_family] = "Goods and services" ), KEEPFILTERS ( fct_contracts[contract_value] >= 75000 && fct_contracts[contract_value] < 76000 ), KEEPFILTERS ( dim_date[date_day] <= DATE ( 2026, 9, 30 ) ) )
 		formatString: #,0
 		displayFolder: 3 Value limits
+		lineageTag: 22e458bb-249a-44f6-b0eb-885600624eed
 
 	/// Public works: contracts from EUR 29,000 to 29,999.99, dated up to 30 September 2026.
 	measure 'Works Direct Award Limit 30k Below' = CALCULATE ( [Contract Count], KEEPFILTERS ( dim_contract_type[threshold_family] = "Public works" ), KEEPFILTERS ( fct_contracts[contract_value] >= 29000 && fct_contracts[contract_value] < 30000 ), KEEPFILTERS ( dim_date[date_day] <= DATE ( 2026, 9, 30 ) ) )
 		formatString: #,0
 		displayFolder: 3 Value limits
+		lineageTag: c8c5bdf6-73db-4277-8689-94b4ba5676ee
 
 	/// Public works: contracts from EUR 30,000 to 30,999.99, dated up to 30 September 2026.
 	measure 'Works Direct Award Limit 30k Above' = CALCULATE ( [Contract Count], KEEPFILTERS ( dim_contract_type[threshold_family] = "Public works" ), KEEPFILTERS ( fct_contracts[contract_value] >= 30000 && fct_contracts[contract_value] < 31000 ), KEEPFILTERS ( dim_date[date_day] <= DATE ( 2026, 9, 30 ) ) )
 		formatString: #,0
 		displayFolder: 3 Value limits
+		lineageTag: 098b1c51-455d-4bf5-863e-e3ee005e4933
 
 	/// Public works: contracts from EUR 149,000 to 149,999.99, dated up to 30 September 2026.
 	measure 'Works Prior Consultation Limit 150k Below' = CALCULATE ( [Contract Count], KEEPFILTERS ( dim_contract_type[threshold_family] = "Public works" ), KEEPFILTERS ( fct_contracts[contract_value] >= 149000 && fct_contracts[contract_value] < 150000 ), KEEPFILTERS ( dim_date[date_day] <= DATE ( 2026, 9, 30 ) ) )
 		formatString: #,0
 		displayFolder: 3 Value limits
+		lineageTag: 4ed229c4-2c2e-4c5d-a604-207e62ab2b5e
 
 	/// Public works: contracts from EUR 150,000 to 150,999.99, dated up to 30 September 2026.
 	measure 'Works Prior Consultation Limit 150k Above' = CALCULATE ( [Contract Count], KEEPFILTERS ( dim_contract_type[threshold_family] = "Public works" ), KEEPFILTERS ( fct_contracts[contract_value] >= 150000 && fct_contracts[contract_value] < 151000 ), KEEPFILTERS ( dim_date[date_day] <= DATE ( 2026, 9, 30 ) ) )
 		formatString: #,0
 		displayFolder: 3 Value limits
+		lineageTag: 6f08eabb-a63b-4049-8ed4-9b21f21c04a9
 
 	/// Histogram: contracts whose value falls in the EUR 1,000 band of value_band[band_start], dated up to 30 September 2026 (limits changed on 1 October 2026).
 	measure 'Contracts in Band' =
@@ -115,25 +145,30 @@ table _Measures
 				IF ( NOT ISBLANK ( _Lo ), CALCULATE ( [Contract Count], KEEPFILTERS ( fct_contracts[contract_value] >= _Lo && fct_contracts[contract_value] < _Lo + 1000 ), KEEPFILTERS ( dim_date[date_day] <= DATE ( 2026, 9, 30 ) ) ) )
 		formatString: #,0
 		displayFolder: 3 Value limits
+		lineageTag: 32641444-53d4-4816-ab99-260faec436de
 
 	/// Contract value allocated to suppliers: a contract with n awardees gives each 1/n.
 	measure 'Supplier Value' = SUMX ( bridge_contract_supplier, bridge_contract_supplier[allocation_share] * RELATED ( fct_contracts[contract_value] ) )
 		formatString: \€#,0;-\€#,0;\€0
 		displayFolder: 4 Suppliers
+		lineageTag: a8816492-999c-495e-95d5-15c0557e5db5
 
 	measure 'Supplier Contract Count' = DISTINCTCOUNT ( bridge_contract_supplier[contract_id] )
 		formatString: #,0
 		displayFolder: 4 Suppliers
+		lineageTag: 0f1662d4-a211-4668-9205-ac0df03be8d8
 
 	/// Share of the supplier value of the current filters (CPV, entity, years) across all suppliers.
 	measure 'Supplier Value Share' = DIVIDE ( [Supplier Value], CALCULATE ( [Supplier Value], REMOVEFILTERS ( dim_supplier ) ) )
 		formatString: 0.00%
 		displayFolder: 4 Suppliers
+		lineageTag: 647fb3fd-5ca6-44dd-9ed4-38ab6a877888
 
 	/// Rank among named suppliers; withheld rows get no rank.
 	measure 'Supplier Rank' = IF ( HASONEVALUE ( dim_supplier[supplier_id] ) && NOT SELECTEDVALUE ( dim_supplier[is_withheld] ), RANKX ( FILTER ( ALLSELECTED ( dim_supplier[supplier_id], dim_supplier[is_withheld] ), dim_supplier[is_withheld] = FALSE () ), [Supplier Value] ) )
 		formatString: 0
 		displayFolder: 4 Suppliers
+		lineageTag: 5976f6e3-9ddc-4bfa-8111-e2f8dd51bb97
 
 	/// Value share of the ten largest named suppliers in the current filter context (for example one CPV division).
 	measure 'Top 10 Named Supplier Share' =
@@ -143,73 +178,89 @@ table _Measures
 				DIVIDE ( SUMX ( _Top, [Supplier Value] ), CALCULATE ( [Supplier Value], REMOVEFILTERS ( dim_supplier ) ) )
 		formatString: 0.0%
 		displayFolder: 4 Suppliers
+		lineageTag: 16e0fe01-d22f-4c99-9383-470ee3d73722
 
 	/// Value going to withheld awardees (individuals, no Portuguese NIF, not reported).
 	measure 'Withheld Supplier Value %' = DIVIDE ( CALCULATE ( [Supplier Value], dim_supplier[is_withheld] = TRUE () ), CALCULATE ( [Supplier Value], REMOVEFILTERS ( dim_supplier ) ) )
 		formatString: 0.0%
 		displayFolder: 4 Suppliers
+		lineageTag: cb941dc3-9678-46ce-8974-41dbd4db33a6
 
 	/// Contract Count that also follows supplier selections, through the bridge.
 	measure 'Contract Count by Supplier' = CALCULATE ( [Contract Count], CROSSFILTER ( bridge_contract_supplier[contract_id], fct_contracts[contract_id], BOTH ) )
 		formatString: #,0
 		displayFolder: 4 Suppliers
+		lineageTag: a0f0379a-a847-4b06-a224-e86608a065d6
 
 	/// Full value of the contracts that the selected suppliers took part in (not split).
 	measure 'Contract Value by Supplier Filter' = CALCULATE ( [Contract Value], CROSSFILTER ( bridge_contract_supplier[contract_id], fct_contracts[contract_id], BOTH ) )
 		formatString: \€#,0;-\€#,0;\€0
 		displayFolder: 4 Suppliers
+		lineageTag: 688e5aa9-9672-411a-8b06-bbf0a5d674b8
 
 	/// Herfindahl-Hirschman index 2019-2026 from the dbt mart; use with dim_cpv on rows.
 	measure 'Division HHI' = IF ( HASONEVALUE ( dim_cpv[cpv_division] ), CALCULATE ( SUM ( mart_supplier_concentration[hhi] ), KEEPFILTERS ( mart_supplier_concentration[period] = "2019-2026" ) ) )
 		formatString: #,0
 		displayFolder: 4 Suppliers
+		lineageTag: 31007bd2-1b78-4b69-8897-a7f2dac81239
 
 	measure 'Division Top 5 Share' = IF ( HASONEVALUE ( dim_cpv[cpv_division] ), CALCULATE ( SUM ( mart_supplier_concentration[top5_share] ), KEEPFILTERS ( mart_supplier_concentration[period] = "2019-2026" ) ) )
 		formatString: 0.0%
 		displayFolder: 4 Suppliers
+		lineageTag: d0997128-7a4c-4f42-8312-12c7bd1b68dd
 
 	measure 'Value With Base Price' = CALCULATE ( [Contract Value], KEEPFILTERS ( NOT ISBLANK ( fct_contracts[base_price_comparable] ) ) )
 		formatString: \€#,0;-\€#,0;\€0
 		displayFolder: 5 Prices
+		lineageTag: d52a1f77-6227-4100-95ab-c002adadf3be
 
 	/// Base price of single-contract procedures where contract value / base price is between 0.2 and 5.
 	measure 'Base Price Total' = SUM ( fct_contracts[base_price_comparable] )
 		formatString: \€#,0;-\€#,0;\€0
 		displayFolder: 5 Prices
+		lineageTag: fdd1d08a-76fb-4610-a11f-1d5408f11c58
 
 	/// Value-weighted difference between contract price and base price.
-	measure 'Price vs Base %' = DIVIDE ( [Value With Base Price], [Base Price Total] ) - 1
+	measure 'Price vs Base %' = IF ( NOT ISBLANK ( [Base Price Total] ), DIVIDE ( [Value With Base Price], [Base Price Total] ) - 1 )
 		formatString: +0.0%;-0.0%;0.0%
 		displayFolder: 5 Prices
+		lineageTag: 61c689a0-79fe-4f7a-bba5-48ab43891bdf
 
 	measure 'At Base Price %' = DIVIDE ( COUNTROWS ( FILTER ( fct_contracts, fct_contracts[contract_value] = fct_contracts[base_price_comparable] ) ), COUNT ( fct_contracts[base_price_comparable] ) )
 		formatString: 0.0%
 		displayFolder: 5 Prices
+		lineageTag: 55741e76-ca22-4e1c-8a72-2437f8e27f6a
 
 	measure 'Below Base Price %' = DIVIDE ( COUNTROWS ( FILTER ( fct_contracts, fct_contracts[contract_value] < fct_contracts[base_price_comparable] ) ), COUNT ( fct_contracts[base_price_comparable] ) )
 		formatString: 0.0%
 		displayFolder: 5 Prices
+		lineageTag: 1fe8ee84-1443-4c84-a0ad-902ed23cdcc8
 
 	measure 'Value of Closed Contracts' = CALCULATE ( [Contract Value], KEEPFILTERS ( NOT ISBLANK ( fct_contracts[effective_price_closed] ) ) )
 		formatString: \€#,0;-\€#,0;\€0
 		displayFolder: 5 Prices
+		lineageTag: c7ca77de-5a6f-40c4-b0d2-49883a3eae27
 
 	/// Final price (PrecoTotalEfetivo) of closed contracts with a plausible ratio to the contract price.
 	measure 'Effective Price Total' = SUM ( fct_contracts[effective_price_closed] )
 		formatString: \€#,0;-\€#,0;\€0
 		displayFolder: 5 Prices
+		lineageTag: 99bfc243-5ea2-420d-8f34-86247c67d891
 
-	measure 'Final vs Signed %' = DIVIDE ( [Effective Price Total], [Value of Closed Contracts] ) - 1
+	measure 'Final vs Signed %' = IF ( NOT ISBLANK ( [Effective Price Total] ), DIVIDE ( [Effective Price Total], [Value of Closed Contracts] ) - 1 )
 		formatString: +0.0%;-0.0%;0.0%
 		displayFolder: 5 Prices
+		lineageTag: b30a1546-a7b8-47b6-8dac-50948468b7f4
 
 	measure 'Ended Above Contract %' = DIVIDE ( COUNTROWS ( FILTER ( fct_contracts, fct_contracts[effective_price_closed] > fct_contracts[contract_value] * 1.0001 ) ), COUNT ( fct_contracts[effective_price_closed] ) )
 		formatString: 0.0%
 		displayFolder: 5 Prices
+		lineageTag: 4a795520-8954-40e2-8242-383d5c452d7c
 
 	column measure_group
 		dataType: string
 		isHidden
+		lineageTag: fde35245-6472-4b14-a833-423302259d36
 		summarizeBy: none
 		sourceColumn: measure_group
 
@@ -220,3 +271,4 @@ table _Measures
 					Source = #table ( type table [measure_group = text], { { "Measures" } } )
 				in
 					Source
+

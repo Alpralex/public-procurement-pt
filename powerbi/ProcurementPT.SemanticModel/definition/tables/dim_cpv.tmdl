@@ -1,24 +1,29 @@
 /// CPV divisions (first two digits of the CPV code).
 table dim_cpv
+	lineageTag: c1778bcf-ad7e-47e4-b7eb-0db9cf106e84
 
 	column cpv_division
 		dataType: string
 		isKey
+		lineageTag: 83f8e979-2530-4b49-9dd6-5a48fd92d67c
 		summarizeBy: none
 		sourceColumn: cpv_division
 
 	column cpv_division_name
 		dataType: string
+		lineageTag: d98246b4-9786-4d1b-b5d9-d2657a2b4024
 		summarizeBy: none
 		sourceColumn: cpv_division_name
 
 	column cpv_short_name
 		dataType: string
+		lineageTag: fe955a67-20c2-4b1e-8105-f01688f2e942
 		summarizeBy: none
 		sourceColumn: cpv_short_name
 
 	column cpv_label
 		dataType: string
+		lineageTag: ac4b64b0-35fe-4d7f-92bf-e41d3f096679
 		summarizeBy: none
 		sourceColumn: cpv_label
 
@@ -29,3 +34,4 @@ table dim_cpv
 					Source = Parquet.Document ( File.Contents ( DataFolder & "dim_cpv.parquet" ) )
 				in
 					Source
+

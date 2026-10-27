@@ -1,31 +1,37 @@
 /// Awardees. Natural persons and suppliers without a Portuguese NIF are collapsed into withheld rows (supplier_id -1 and -2); -3 = awardee not reported.
 table dim_supplier
+	lineageTag: 2d25d808-c0ff-40d5-8e9b-b28962593ee3
 
 	column supplier_id
 		dataType: int64
 		isHidden
 		isKey
 		formatString: 0
+		lineageTag: 6332a5df-5f9c-41e5-b995-2802c2b8ccae
 		summarizeBy: none
 		sourceColumn: supplier_id
 
 	column supplier_nif
 		dataType: string
+		lineageTag: d9ebf263-ad0b-4ced-9499-fe538cb5a1be
 		summarizeBy: none
 		sourceColumn: supplier_nif
 
 	column supplier_name
 		dataType: string
+		lineageTag: 6344dff7-8dd0-4493-a7e4-163b6b4f43a4
 		summarizeBy: none
 		sourceColumn: supplier_name
 
 	column supplier_type
 		dataType: string
+		lineageTag: 48f6504d-856b-4679-ad47-626092f170b0
 		summarizeBy: none
 		sourceColumn: supplier_type
 
 	column is_withheld
 		dataType: boolean
+		lineageTag: 5cb1929f-8d24-4307-a5a9-6364145a6869
 		summarizeBy: none
 		sourceColumn: is_withheld
 
@@ -33,6 +39,7 @@ table dim_supplier
 		dataType: int64
 		isHidden
 		formatString: #,0
+		lineageTag: 91d4819d-9984-4051-9fbe-983dfa71fd8f
 		summarizeBy: none
 		sourceColumn: contracts
 
@@ -43,3 +50,4 @@ table dim_supplier
 					Source = Parquet.Document ( File.Contents ( DataFolder & "dim_supplier.parquet" ) )
 				in
 					Source
+

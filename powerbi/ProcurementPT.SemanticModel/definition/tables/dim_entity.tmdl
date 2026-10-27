@@ -1,26 +1,31 @@
 /// Contracting authorities (adjudicante), latest name, rule-based entity type.
 table dim_entity
+	lineageTag: e17a134c-86ae-4eae-aedc-1d95091157f6
 
 	column entity_id
 		dataType: int64
 		isHidden
 		isKey
 		formatString: 0
+		lineageTag: 534940ba-de7e-4b5d-8fbd-c0b3974cdb45
 		summarizeBy: none
 		sourceColumn: entity_id
 
 	column entity_nif
 		dataType: string
+		lineageTag: f1834bf1-7006-4394-8981-d11267710cc3
 		summarizeBy: none
 		sourceColumn: entity_nif
 
 	column entity_name
 		dataType: string
+		lineageTag: 07a6db86-43ea-4004-bc98-a52b42938c0c
 		summarizeBy: none
 		sourceColumn: entity_name
 
 	column entity_type
 		dataType: string
+		lineageTag: abf0b45c-a5f6-40bf-9536-9cea054f98c5
 		summarizeBy: none
 		sourceColumn: entity_type
 
@@ -28,18 +33,21 @@ table dim_entity
 		dataType: int64
 		isHidden
 		formatString: #,0
+		lineageTag: 5d028ad1-baa2-478d-b911-216c6174c3ec
 		summarizeBy: none
 		sourceColumn: contracts
 
 	column first_year
 		dataType: int64
 		formatString: 0
+		lineageTag: f807be65-24ad-476a-aa71-174bd53a8753
 		summarizeBy: none
 		sourceColumn: first_year
 
 	column last_year
 		dataType: int64
 		formatString: 0
+		lineageTag: 37def8ca-962b-4dda-b274-0ddd3ee0f333
 		summarizeBy: none
 		sourceColumn: last_year
 
@@ -50,3 +58,4 @@ table dim_entity
 					Source = Parquet.Document ( File.Contents ( DataFolder & "dim_entity.parquet" ) )
 				in
 					Source
+

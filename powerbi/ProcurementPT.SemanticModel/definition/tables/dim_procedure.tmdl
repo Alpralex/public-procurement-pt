@@ -1,39 +1,46 @@
 /// Procedure types as published, with English names and analysis groups.
 table dim_procedure
+	lineageTag: b58c15a6-b1cd-41fd-abdc-354389d420f3
 
 	column procedure_key
 		dataType: int64
 		isHidden
 		isKey
 		formatString: 0
+		lineageTag: 68a6f239-dde0-4dee-8116-0a55a336161a
 		summarizeBy: none
 		sourceColumn: procedure_key
 
 	column procedure_name_pt
 		dataType: string
+		lineageTag: f3e355dd-f8f8-428f-815d-d27913be0446
 		summarizeBy: none
 		sourceColumn: procedure_name_pt
 
 	column procedure_name_en
 		dataType: string
+		lineageTag: 150bf1ca-d5d0-479d-ac0c-990bccddedeb
 		summarizeBy: none
 		sourceColumn: procedure_name_en
 
 	column procedure_group
 		dataType: string
+		lineageTag: aa63d6fe-8944-4bbe-b074-80d25a375a9d
 		summarizeBy: none
-		sortByColumn: group_order
 		sourceColumn: procedure_group
+		sortByColumn: group_order
 
 	column group_order
 		dataType: int64
 		isHidden
 		formatString: 0
+		lineageTag: d3f91e2f-8895-465c-917f-f7a4c37e7eb3
 		summarizeBy: none
 		sourceColumn: group_order
 
 	column is_competitive
 		dataType: boolean
+		lineageTag: b04cfbb6-59e8-484c-82de-63307d343ebc
 		summarizeBy: none
 		sourceColumn: is_competitive
 
@@ -44,3 +51,4 @@ table dim_procedure
 					Source = Parquet.Document ( File.Contents ( DataFolder & "dim_procedure.parquet" ) )
 				in
 					Source
+

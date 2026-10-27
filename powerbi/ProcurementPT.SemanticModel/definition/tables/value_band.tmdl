@@ -1,9 +1,11 @@
 /// EUR 1,000 value bands from 0 to 199,000 for the histogram near the legal limits. Disconnected; read by the measure Contracts in Band.
 table value_band
+	lineageTag: 6c5bb3eb-22cf-4ac0-816f-19becb07fede
 
 	column band_start
 		dataType: int64
 		formatString: \€#,0
+		lineageTag: 65ab53e7-5cd9-4613-8494-add7978d6c4f
 		summarizeBy: none
 		sourceColumn: band_start
 
@@ -14,3 +16,4 @@ table value_band
 					Source = Table.FromColumns ( { List.Transform ( {0..199}, each _ * 1000 ) }, type table [band_start = Int64.Type] )
 				in
 					Source
+

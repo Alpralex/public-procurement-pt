@@ -1,10 +1,12 @@
 /// Contract-to-supplier bridge; a contract with n awardees has n rows with allocation_share 1/n.
 table bridge_contract_supplier
+	lineageTag: 55c65411-6755-4fbd-9342-d399b4c9e5f8
 
 	column contract_id
 		dataType: int64
 		isHidden
 		formatString: 0
+		lineageTag: 27592b5a-519a-48ef-97ab-71969e6e142c
 		summarizeBy: none
 		sourceColumn: contract_id
 
@@ -12,6 +14,7 @@ table bridge_contract_supplier
 		dataType: int64
 		isHidden
 		formatString: 0
+		lineageTag: 7cd8bba3-9026-4d9f-8acb-86ec88016534
 		summarizeBy: none
 		sourceColumn: supplier_id
 
@@ -19,6 +22,7 @@ table bridge_contract_supplier
 		dataType: double
 		isHidden
 		formatString: 0.000
+		lineageTag: 9d34fe78-4410-425d-add6-3477732bd763
 		summarizeBy: none
 		sourceColumn: allocation_share
 
@@ -29,3 +33,4 @@ table bridge_contract_supplier
 					Source = Parquet.Document ( File.Contents ( DataFolder & "bridge_contract_supplier.parquet" ) )
 				in
 					Source
+

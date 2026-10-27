@@ -1,58 +1,69 @@
 /// Contracts just below and just above each legal limit, 2019 to September 2026.
 table mart_threshold_summary
+	lineageTag: e4fa5589-3da5-40ec-959f-f9a1aadd89a9
 
 	column threshold_id
 		dataType: string
+		lineageTag: 613a747a-32d3-46a6-aa9c-fbd888429440
 		summarizeBy: none
 		sourceColumn: threshold_id
 
 	column threshold_family
 		dataType: string
+		lineageTag: 0036377f-53a0-4ef2-98e1-20c7bf18a94f
 		summarizeBy: none
 		sourceColumn: threshold_family
 
 	column procedure_limit
 		dataType: string
+		lineageTag: d0386832-6381-4726-8d7f-009835d2474c
 		summarizeBy: none
 		sourceColumn: procedure_limit
 
 	column threshold_eur
 		dataType: int64
 		formatString: #,0
+		lineageTag: 043ce48a-4010-4bcb-b807-aae9b428286f
 		summarizeBy: none
 		sourceColumn: threshold_eur
 
 	column limit_rule
 		dataType: string
+		lineageTag: d8ec7b82-59a5-42e0-a832-1150dae2f999
 		summarizeBy: none
 		sourceColumn: limit_rule
 
 	column legal_source
 		dataType: string
+		lineageTag: 5133da01-b699-4b78-8214-2611d8412149
 		summarizeBy: none
 		sourceColumn: legal_source
 
 	column contracts_just_below
 		dataType: int64
 		formatString: #,0
+		lineageTag: eeca1e2f-b72f-44f9-bda5-5ba6ccce479e
 		summarizeBy: none
 		sourceColumn: contracts_just_below
 
 	column contracts_just_above
 		dataType: int64
 		formatString: #,0
+		lineageTag: 9d475955-c8fc-409d-9423-6460ea292c80
 		summarizeBy: none
 		sourceColumn: contracts_just_above
 
 	column neighbour_bin_avg
 		dataType: double
 		formatString: #,0
+		lineageTag: 4e54437b-e9ee-4850-9560-d272cd89f009
 		summarizeBy: none
 		sourceColumn: neighbour_bin_avg
 
 	column contracts_within_1_euro_below
 		dataType: int64
 		formatString: #,0
+		lineageTag: 69d35fd2-a930-4756-b837-c6d8e05c693e
 		summarizeBy: none
 		sourceColumn: contracts_within_1_euro_below
 
@@ -63,3 +74,4 @@ table mart_threshold_summary
 					Source = Parquet.Document ( File.Contents ( DataFolder & "mart_threshold_summary.parquet" ) )
 				in
 					Source
+
