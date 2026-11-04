@@ -1,12 +1,16 @@
 # Where does Portugal's public procurement money go, and how is it bought?
 
+[![Dashboard screenshot](https://guilhermerigonato.com/img/procurement.webp)](https://guilhermerigonato.com/public-procurement-pt/)
+
+**Live:** [web dashboard](https://guilhermerigonato.com/public-procurement-pt/) · [Power BI report (publish to web)](https://app.powerbi.com/view?r=eyJrIjoiZDliMmM5ZDAtOTRjYS00M2ZmLWJjNmMtNmJkZjAwNjU1NjEzIiwidCI6IjY2MDMwOWU1LWI1YWEtNDQzNS1iMDU2LTJhYmViOGZmNDZjNyJ9) · [all projects](https://guilhermerigonato.com)
+
 A spend-analytics project on real open data: 1.55 million public contracts published on Portal BASE from
 January 2019 to October 2026, €120.5bn without VAT. It looks at who buys what, how contracts are awarded, where
 contract values sit around the legal limits, how concentrated each category is, and how prices compare with the
 base price. The data are modelled in SQL with dbt on DuckDB and tested. The same marts feed a web dashboard, a
 Qlik Sense app and a Power BI model.
 
-**Live dashboard:** [`web/`](web/) · **Qlik Sense:** [`qlik/`](qlik/) · **Power BI:** [`powerbi/`](powerbi/)
+**Live dashboard:** https://guilhermerigonato.com/public-procurement-pt/ · [`web/`](web/) · **Qlik Sense:** [`qlik/`](qlik/) · **Power BI:** [`powerbi/`](powerbi/)
 **Stack:** Python, SQL, dbt, DuckDB, Qlik Sense (load script, set analysis, associative model), Power BI (PBIP/TMDL, DAX)
 
 This is descriptive spend analysis of published records. The figures show patterns in the data; they say nothing
