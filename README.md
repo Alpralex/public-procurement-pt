@@ -6,8 +6,8 @@ contract values sit around the legal limits, how concentrated each category is, 
 base price. The data are modelled in SQL with dbt on DuckDB and tested. The same marts feed a web dashboard, a
 Qlik Sense app and a Power BI model.
 
-**Live dashboard:** [`web/`](web/) · **Qlik Sense:** [`qlik/`](qlik/) · **Power BI:** [`powerbi/`](powerbi/) · **Python notebook:** [`notebooks/competition_and_price.ipynb`](notebooks/competition_and_price.ipynb)
-**Stack:** Python (pandas, statsmodels, matplotlib), SQL, dbt, DuckDB, Qlik Sense (load script, set analysis, associative model), Power BI (PBIP/TMDL, DAX)
+**Live dashboard:** [`web/`](web/) · **Qlik Sense:** [`qlik/`](qlik/) · **Power BI:** [`powerbi/`](powerbi/) · **Python notebook:** [`notebooks/`](notebooks/competition_and_price.ipynb) ([interactive version](https://guilhermerigonato.com/public-procurement-pt/notebook/))
+**Stack:** Python (pandas, statsmodels, Altair), SQL, dbt, DuckDB, Qlik Sense (load script, set analysis, associative model), Power BI (PBIP/TMDL, DAX)
 
 This is descriptive spend analysis of published records. The figures show patterns in the data; they say nothing
 about whether any entity or supplier acted wrongly.
