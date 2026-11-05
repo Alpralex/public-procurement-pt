@@ -104,6 +104,12 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
 .method ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.3rem; max-width: 80ch; }
 .note { font-size: 0.8rem; color: var(--muted); }
 .tag { display: inline-block; font-size: 0.75rem; padding: 0 0.4rem; border: 1px solid var(--rule); border-radius: 2px; color: var(--ink); }
+.xf { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; font-size: 0.85rem; color: var(--muted); margin: -0.25rem 0 0.75rem; }
+.xf button { font: inherit; font-size: 0.8rem; padding: 0.1rem 0.5rem; border: 1px solid var(--rule); border-radius: 999px; background: var(--signal-soft); color: var(--ink); cursor: pointer; }
+.xf button:hover { border-color: var(--ink); }
+.chart svg rect.hit-x { cursor: pointer; }
+.chart svg rect.hit-x:focus { outline: none; }
+.chart svg rect.hit-x:focus-visible { stroke: var(--signal); stroke-width: 2; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
@@ -144,6 +150,7 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
     <div class="grp"><span class="label">Contracting entity</span><select id="et-sel" aria-label="Contracting entity type"></select></div>
   </section>
 
+  <p class="xf" id="xf" aria-live="polite"></p>
   <section class="kpis" id="kpis" aria-label="Headline figures"></section>
 
   <section class="panel" aria-labelledby="yr-h">
@@ -251,7 +258,7 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
 (function () {
   var NS = 'http://www.w3.org/2000/svg';
   var D = {};
-  var state = { y0: 2019, y1: 2026, ct: 'ALL', et: -1, fam: 0, sup: -1 };
+  var state = { y0: 2019, y1: 2026, ct: 'ALL', et: -1, fam: 0, sup: -1, cpv: -1, pg: -1 };
   var CT_MAIN = ['Goods', 'Services', 'Public works'];
   var GS_TYPES = ['Goods', 'Services', 'Lease of goods'];
 
@@ -269,6 +276,14 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
   function inCt(i) { var n = ctName(i); if (state.ct === 'ALL') return true; if (state.ct === 'OTHER') return CT_MAIN.indexOf(n) < 0; return n === state.ct; }
   function inEt(i) { return state.et < 0 || i === state.et; }
   function inYr(y) { return y >= state.y0 && y <= state.y1; }
+  function inCpv(c) { return state.cpv < 0 || c === state.cpv; }
+  // A click target over a mark: pointer and keyboard (Enter / Space) both run fn
+  function clickable(hit, fn, label) {
+    hit.setAttribute('class', 'hit-x'); hit.setAttribute('tabindex', '0'); hit.setAttribute('role', 'button');
+    if (label) hit.setAttribute('aria-label', label);
+    hit.addEventListener('click', fn);
+    hit.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } });
+  }
   function keep(r) { return inYr(r[0]) && inCt(r[1]) && inEt(r[2]); }
   function yearsLabel() { return state.y0 === state.y1 ? String(state.y0) : state.y0 + '–' + state.y1; }
   function ctLabel() { return state.ct === 'ALL' ? 'all contract types' : state.ct === 'OTHER' ? 'other contract types' : state.ct.toLowerCase(); }
@@ -297,6 +312,7 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
       var hit = el('rect', { x: 0, y: y, width: W, height: rowH, fill: 'transparent' }, svg);
       hit.addEventListener('pointerenter', function () { showTip(tip, svg, W, H, m.l + w / 2, y + 5, r.tip); });
       hit.addEventListener('pointerleave', function () { tip.hidden = true; });
+      if (opt.onClick) clickable(hit, function () { tip.hidden = true; opt.onClick(r); }, 'Filter by ' + r.name);
     });
   }
 
@@ -326,7 +342,7 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
   function renderYears() {
     var host = document.getElementById('years'); host.innerHTML = '';
     document.getElementById('yr-sub').textContent = ctLabel().charAt(0).toUpperCase() + ctLabel().slice(1) + ' · ' + etLabel() + ' · EUR';
-    var by = sumBy(D.cpv.filter(function (r) { return inCt(r[1]) && inEt(r[2]); }), function (r) { return r[0]; }, [4, 5]);
+    var by = sumBy(D.cpv.filter(function (r) { return inCt(r[1]) && inEt(r[2]) && inCpv(r[3]); }), function (r) { return r[0]; }, [4, 5]);
     var years = [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
     var W = cw(host), H = 230, m = { t: 22, r: 8, b: 26, l: 56 };
     var max = Math.max.apply(null, years.map(function (y) { return by[y] ? by[y][1] : 0; }).concat([1]));
@@ -344,28 +360,30 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
       var hit = el('rect', { x: m.l + i * bw, y: m.t, width: bw, height: H - m.t - m.b, fill: 'transparent' }, svg);
       hit.addEventListener('pointerenter', function () { showTip(tip, svg, W, H, x + w / 2, Y(o[1]), y + (y === 2026 ? ' (to 24 Oct)' : '') + '<br>' + eur(o[1]) + '<br>' + n0(o[0]) + ' contracts'); });
       hit.addEventListener('pointerleave', function () { tip.hidden = true; });
+      clickable(hit, function () { tip.hidden = true; pickYear(y); }, 'Filter by ' + y);
     });
   }
 
   function renderEtypes() {
-    var rows = D.cpv.filter(function (r) { return inYr(r[0]) && inCt(r[1]); });
+    var rows = D.cpv.filter(function (r) { return inYr(r[0]) && inCt(r[1]) && inCpv(r[3]); });
     var by = sumBy(rows, function (r) { return r[2]; }, [4, 5]), tot = 0;
     Object.keys(by).forEach(function (k) { tot += by[k][1]; });
     var list = Object.keys(by).map(function (k) { var o = by[k]; return { i: +k, name: D.meta.entity_types[k], v: o[1], n: o[0] }; }).sort(function (a, b) { return b.v - a.v; });
     hbars(document.getElementById('etypes'), list.map(function (r) {
       return { name: r.name.replace(' (Azores and Madeira)', ' (Azores, Madeira)'), v: r.v, label: eur(r.v) + ' · ' + share(r.v / tot), color: state.et >= 0 && r.i !== state.et ? css('--grid') : css('--s1'),
-        tip: r.name + '<br>' + eur(r.v) + ' (' + share(r.v / tot) + ')<br>' + n0(r.n) + ' contracts' };
-    }), { left: 200, aria: 'Contract value by contracting-entity type' });
+        i: r.i, tip: r.name + '<br>' + eur(r.v) + ' (' + share(r.v / tot) + ')<br>' + n0(r.n) + ' contracts<br><i>Click to filter</i>' };
+    }), { left: 200, aria: 'Contract value by contracting-entity type', onClick: function (r) { pickEntity(r.i); } });
   }
 
   function renderCpv() {
     var by = sumBy(D.cpv.filter(keep), function (r) { return r[3]; }, [4, 5]), tot = 0;
     Object.keys(by).forEach(function (k) { tot += by[k][1]; });
-    var list = Object.keys(by).map(function (k) { var c = D.meta.cpv[k]; return { code: c[0], name: c[1], full: c[2], v: by[k][1], n: by[k][0] }; })
+    var list = Object.keys(by).map(function (k) { var c = D.meta.cpv[k]; return { i: +k, code: c[0], name: c[1], full: c[2], v: by[k][1], n: by[k][0] }; })
       .sort(function (a, b) { return b.v - a.v; }).slice(0, 12);
     hbars(document.getElementById('cpvs'), list.map(function (r) {
-      return { name: r.code + ' ' + r.name, v: r.v, label: eur(r.v) + ' · ' + share(r.v / tot), tip: r.code + ' ' + r.full + '<br>' + eur(r.v) + ' (' + share(r.v / tot) + ')<br>' + n0(r.n) + ' contracts' };
-    }), { left: 220, aria: 'Contract value by CPV division' });
+      return { i: r.i, name: r.code + ' ' + r.name, v: r.v, label: eur(r.v) + ' · ' + share(r.v / tot), color: state.cpv >= 0 && r.i !== state.cpv ? css('--grid') : css('--s1'),
+        tip: r.code + ' ' + r.full + '<br>' + eur(r.v) + ' (' + share(r.v / tot) + ')<br>' + n0(r.n) + ' contracts<br><i>Click to filter</i>' };
+    }), { left: 220, aria: 'Contract value by CPV division', onClick: function (r) { pickCpv(r.i); } });
   }
 
   // ---------- procedure mix (paired bars) ----------
@@ -373,7 +391,7 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
     var host = document.getElementById('procmix'); host.innerHTML = '';
     var by = sumBy(D.competition.filter(keep), function (r) { return r[3]; }, [4, 5]), tn = 0, tv = 0;
     Object.keys(by).forEach(function (k) { tn += by[k][0]; tv += by[k][1]; });
-    var groups = D.meta.procedure_groups.map(function (g, i) { var o = by[i] || [0, 0]; return { name: g, n: o[0], v: o[1] }; }).filter(function (g) { return g.n > 0 && g.name !== 'Other'; });
+    var groups = D.meta.procedure_groups.map(function (g, i) { var o = by[i] || [0, 0]; return { i: i, name: g, n: o[0], v: o[1] }; }).filter(function (g) { return g.n > 0 && g.name !== 'Other'; });
     var W = cw(host), rowH = 40, m = { t: 4, r: 56, b: 4, l: Math.min(170, Math.round(W * 0.4)) }, H = m.t + m.b + groups.length * rowH;
     var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Share of contracts and value by procedure group' }, host);
     var tip = tipFor(host);
@@ -384,12 +402,13 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
       txt(svg, m.l - 8, y + rowH / 2 + 4, fit(g.name, m.l - 12), { 'text-anchor': 'end' });
       [[g.n / tn, '--s1', 4], [g.v / tv, '--s2', 20]].forEach(function (b) {
         var w = Math.max(1.5, X(b[0]) - m.l);
-        el('rect', { x: m.l, y: y + b[2], width: w, height: 14, rx: 2, fill: css(b[1]) }, svg);
+        el('rect', { x: m.l, y: y + b[2], width: w, height: 14, rx: 2, fill: state.pg >= 0 && g.i !== state.pg ? css('--grid') : css(b[1]) }, svg);
         txt(svg, m.l + w + 5, y + b[2] + 11, share(b[0]), { class: 'lbl' });
       });
       var hit = el('rect', { x: 0, y: y, width: W, height: rowH, fill: 'transparent' }, svg);
-      hit.addEventListener('pointerenter', function () { showTip(tip, svg, W, H, m.l + (X(Math.max(g.n / tn, g.v / tv)) - m.l) / 2, y + 4, g.name + '<br>' + n0(g.n) + ' contracts (' + share(g.n / tn) + ')<br>' + eur(g.v) + ' (' + share(g.v / tv) + ')'); });
+      hit.addEventListener('pointerenter', function () { showTip(tip, svg, W, H, m.l + (X(Math.max(g.n / tn, g.v / tv)) - m.l) / 2, y + 4, g.name + '<br>' + n0(g.n) + ' contracts (' + share(g.n / tn) + ')<br>' + eur(g.v) + ' (' + share(g.v / tv) + ')<br><i>Click to highlight</i>'); });
       hit.addEventListener('pointerleave', function () { tip.hidden = true; });
+      clickable(hit, function () { tip.hidden = true; pickProc(g.i); }, 'Highlight ' + g.name);
     });
   }
 
@@ -415,7 +434,8 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
     series.slice().reverse().forEach(function (s) {
       var d = '', pen = false;
       s.values.forEach(function (v, i) { if (v == null) { pen = false; return; } d += (pen ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1); pen = true; });
-      var p = el('path', { d: d, fill: 'none', stroke: css(s.color), 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
+      var faded = state.pg >= 0 && pg.indexOf(s.name) !== state.pg && series.some(function (x) { return pg.indexOf(x.name) === state.pg; });
+      var p = el('path', { d: d, fill: 'none', stroke: css(s.color), 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', opacity: faded ? 0.2 : 1 }, svg);
       if (s.dash) p.setAttribute('stroke-dasharray', s.dash);
     });
     var cross = el('line', { y1: m.t, y2: H - m.b, stroke: css('--muted'), visibility: 'hidden' }, svg);
@@ -491,8 +511,9 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
       .filter(function (g) { return g && g.bn >= 30; });
     hbars(document.getElementById('price'), groups.map(function (g) {
       var d = g.bv / g.bt - 1;
-      return { name: g.name, v: Math.max(0, -d), label: sgn(d), tip: g.name + '<br>Contract value ' + sgn(d) + ' vs base price<br>' + n0(g.bn) + ' contracts' };
-    }), { left: 170, aria: 'Contract price against base price by procedure group' });
+      var gi = D.meta.procedure_groups.indexOf(g.name);
+      return { gi: gi, name: g.name, v: Math.max(0, -d), label: sgn(d), color: state.pg >= 0 && gi !== state.pg ? css('--grid') : css('--s1'), tip: g.name + '<br>Contract value ' + sgn(d) + ' vs base price<br>' + n0(g.bn) + ' contracts<br><i>Click to highlight</i>' };
+    }), { left: 170, aria: 'Contract price against base price by procedure group', onClick: function (r) { pickProc(r.gi); } });
     document.getElementById('pricet').innerHTML = '<thead><tr><th>Procedure</th><th>At base</th><th>Below base</th><th>Closed</th><th>Final vs signed</th><th>Ended higher</th></tr></thead><tbody>' +
       groups.map(function (g) { return '<tr><td>' + g.name + '</td><td>' + share(g.at / g.bn) + '</td><td>' + share(g.below / g.bn) + '</td><td>' + n0(g.cn) + '</td><td>' + (g.cv ? sgn(g.ce / g.cv - 1) : '–') + '</td><td>' + (g.cn ? share(g.cab / g.cn) : '–') + '</td></tr>'; }).join('') + '</tbody>';
   }
@@ -533,7 +554,28 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
     }), { left: 200, rowH: 24, aria: 'Contract value by district' });
   }
 
-  function render() { renderKpis(); renderYears(); renderEtypes(); renderCpv(); renderProcMix(); renderSingle(); renderBunching(); renderConcentration(); renderSuppliers(); renderPrice(); renderMonths(); renderRegions(); }
+  function syncControls() {
+    document.getElementById('y-from').value = String(state.y0); document.getElementById('y-to').value = String(state.y1);
+    document.getElementById('et-sel').value = String(state.et);
+    var ss = document.getElementById('sup-sel'); if (ss.querySelector('option[value="' + state.sup + '"]')) ss.value = String(state.sup);
+  }
+  function pickYear(y) { var same = state.y0 === y && state.y1 === y; state.y0 = same ? 2019 : y; state.y1 = same ? 2026 : y; syncControls(); render(); }
+  function pickEntity(i) { state.et = state.et === i ? -1 : i; syncControls(); render(); }
+  function pickCpv(i) { state.cpv = state.cpv === i ? -1 : i; var ss = document.getElementById('sup-sel'); state.sup = ss.querySelector('option[value="' + state.cpv + '"]') ? state.cpv : -1; syncControls(); render(); }
+  function pickProc(i) { state.pg = state.pg === i ? -1 : i; render(); }
+  function renderSelection() {
+    var chips = [];
+    if (state.y0 === state.y1) chips.push(['year', String(state.y0)]);
+    if (state.et >= 0) chips.push(['et', D.meta.entity_types[state.et]]);
+    if (state.cpv >= 0) chips.push(['cpv', 'CPV ' + D.meta.cpv[state.cpv][0] + ' ' + D.meta.cpv[state.cpv][1]]);
+    if (state.pg >= 0) chips.push(['pg', D.meta.procedure_groups[state.pg]]);
+    var box = document.getElementById('xf');
+    if (!chips.length) { box.innerHTML = '<span>Click a bar (a year, an entity type, a CPV division or a procedure) to filter the other charts.</span>'; return; }
+    box.innerHTML = '<span>Selected:</span>' + chips.map(function (c) { return '<button data-x="' + c[0] + '" aria-label="Remove ' + c[1] + '">' + c[1] + ' ×</button>'; }).join('') +
+      (chips.length > 1 ? '<button data-x="all">Clear all</button>' : '') +
+      (state.cpv >= 0 ? '<span>The CPV division filters the value by year, the entity types and the supplier ranking; the other tables have no category detail.</span>' : '');
+  }
+  function render() { renderSelection(); renderKpis(); renderYears(); renderEtypes(); renderCpv(); renderProcMix(); renderSingle(); renderBunching(); renderConcentration(); renderSuppliers(); renderPrice(); renderMonths(); renderRegions(); }
 
   function seg(id, key, num) {
     document.getElementById(id).addEventListener('click', function (e) {
@@ -566,6 +608,15 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
       ss.innerHTML = '<option value="-1">All divisions</option>' + byVal.map(function (i) { var c = D.meta.cpv[i]; return '<option value="' + i + '">' + c[0] + ' ' + c[1] + '</option>'; }).join('');
       ss.addEventListener('change', function () { state.sup = +ss.value; renderSuppliers(); });
       seg('ct-seg', 'ct'); seg('fam-seg', 'fam', true);
+      ss.addEventListener('change', function () { state.cpv = state.sup; render(); });
+      document.getElementById('xf').addEventListener('click', function (e) {
+        var b = e.target.closest('button'); if (!b) return; var x = b.dataset.x;
+        if (x === 'year' || x === 'all') { state.y0 = 2019; state.y1 = 2026; }
+        if (x === 'et' || x === 'all') state.et = -1;
+        if (x === 'cpv' || x === 'all') { state.cpv = -1; state.sup = -1; }
+        if (x === 'pg' || x === 'all') state.pg = -1;
+        syncControls(); render();
+      });
       render();
       var t; window.addEventListener('resize', function () { clearTimeout(t); t = setTimeout(render, 150); });
       if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
