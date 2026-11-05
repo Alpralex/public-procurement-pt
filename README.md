@@ -10,8 +10,8 @@ contract values sit around the legal limits, how concentrated each category is, 
 base price. The data are modelled in SQL with dbt on DuckDB and tested. The same marts feed a web dashboard, a
 Qlik Sense app and a Power BI model.
 
-**Live dashboard:** https://guilhermerigonato.com/public-procurement-pt/ · [`web/`](web/) · **Qlik Sense:** [`qlik/`](qlik/) · **Power BI:** [`powerbi/`](powerbi/)
-**Stack:** Python, SQL, dbt, DuckDB, Qlik Sense (load script, set analysis, associative model), Power BI (PBIP/TMDL, DAX)
+**Live dashboard:** https://guilhermerigonato.com/public-procurement-pt/ · [`web/`](web/) · **Qlik Sense:** [`qlik/`](qlik/) · **Power BI:** [`powerbi/`](powerbi/) · **Python notebook:** [`notebooks/`](notebooks/competition_and_price.ipynb) ([interactive version](https://guilhermerigonato.com/public-procurement-pt/notebook/))
+**Stack:** Python (pandas, statsmodels, pyfixest, Altair), SQL, dbt, DuckDB, Qlik Sense (load script, set analysis, associative model), Power BI (PBIP/TMDL, DAX)
 
 This is descriptive spend analysis of published records. The figures show patterns in the data; they say nothing
 about whether any entity or supplier acted wrongly.
@@ -39,6 +39,25 @@ about whether any entity or supplier acted wrongly.
    below the base price, prior consultations 6.1% and direct awards 1.6%; 84.6% of direct awards are signed at exactly
    the base price. Closed open tenders end 2.6% above the signed value, and 14.1% of them end above it. December holds
    10.2% of the value of 2019–2025 against 8.3% for an even month; central government is the highest at 17.7%.
+
+## Python notebook: does one more bidder lower the price?
+
+[`notebooks/competition_and_price.ipynb`](notebooks/competition_and_price.ipynb) rebuilds the contract table from the
+raw Parquet files in pandas, independently of the SQL models, and checks that both give the same totals (1,550,674
+contracts, €120.54bn). It then asks how the signed price, as a share of the base price, changes with the number of
+bidders in open tenders and prior consultations (272,342 single-contract procedures with a plausible base price).
+
+* With one bid, open tenders sign at a median 99.3% of the base price; with ten or more bids, at 79.4%.
+* In an OLS regression with CPV division, year, procedure, contract type and contract size held constant, each
+  doubling of the number of bidders goes with a price 5.7% lower (95% CI 5.6% to 5.8%). Two bids instead of one:
+  −5.4%; six or more: −17.5%.
+* The share of open tenders with a single bid went from 9.0% in 2019 to 12.6% in 2025.
+
+* The effect holds within the same buyer and the same CPV class and size band (contracting-authority fixed effects,
+  5- and 8-digit CPV × base-price decile cells, SEs clustered by buyer): −5.5% to −5.8% per doubling. By category it
+  ranges from −9.9% in architecture and engineering and −7.9% in IT services to −3.2% in energy and fuel.
+
+These are associations, not causal effects; the notebook lists what it does not show.
 
 ## Model
 
@@ -182,6 +201,7 @@ seeds/                     CPV divisions, procedure types, contract types, distr
 models/                    dbt staging and marts
 tests/                     generic tests (unique combination, non-negative) and singular reconciliation and privacy tests
 scripts/export.py          Parquet for Power BI and Qlik, JSON for the web page, privacy check
+notebooks/                 Python analysis in pandas and statsmodels (competition and price)
 web/                       static dashboard
 qlik/                      load script, master items, sheets and bookmarks
 powerbi/                   PBIP project: TMDL model and DAX measures
