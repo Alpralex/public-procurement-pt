@@ -3,9 +3,9 @@
   "name": "bdfed01e1510c0251582",
   "position": {
     "x": 16,
-    "y": 58,
+    "y": 94,
     "z": 9000,
-    "height": 40,
+    "height": 24,
     "width": 520,
     "tabOrder": 9000
   },
@@ -22,8 +22,8 @@
                     "value": "Procedures, direct awards and single-bid contracts",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
-                      "fontSize": "13px",
-                      "color": "#5D6876"
+                      "fontSize": "12px",
+                      "color": "#3B434B"
                     }
                   }
                 ],

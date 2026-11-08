@@ -1,0 +1,193 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "name": "4c365b4f0e9846c99beb",
+  "position": {
+    "x": 16,
+    "y": 144,
+    "z": 2000,
+    "height": 560,
+    "width": 1248,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "decompositionTreeVisual",
+    "query": {
+      "queryState": {
+        "Analyze": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Contract Value"
+                }
+              },
+              "queryRef": "_Measures.Contract Value",
+              "nativeQueryRef": "Contract Value",
+              "displayName": "Contract value"
+            }
+          ]
+        },
+        "ExplainBy": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_procedure"
+                    }
+                  },
+                  "Property": "procedure_group"
+                }
+              },
+              "queryRef": "dim_procedure.procedure_group",
+              "nativeQueryRef": "procedure_group",
+              "active": true,
+              "displayName": "Procedure"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_entity"
+                    }
+                  },
+                  "Property": "entity_type"
+                }
+              },
+              "queryRef": "dim_entity.entity_type",
+              "nativeQueryRef": "entity_type",
+              "active": true,
+              "displayName": "Type of buyer"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_cpv"
+                    }
+                  },
+                  "Property": "cpv_label"
+                }
+              },
+              "queryRef": "dim_cpv.cpv_label",
+              "nativeQueryRef": "cpv_label",
+              "active": true,
+              "displayName": "CPV division"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_region"
+                    }
+                  },
+                  "Property": "region"
+                }
+              },
+              "queryRef": "dim_region.region",
+              "nativeQueryRef": "region",
+              "active": true,
+              "displayName": "District or region"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_contract_type"
+                    }
+                  },
+                  "Property": "contract_type"
+                }
+              },
+              "queryRef": "dim_contract_type.contract_type",
+              "nativeQueryRef": "contract_type",
+              "active": true,
+              "displayName": "Contract type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_date"
+                    }
+                  },
+                  "Property": "year_number"
+                }
+              },
+              "queryRef": "dim_date.year_number",
+              "nativeQueryRef": "year_number",
+              "active": true,
+              "displayName": "Year"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Contract value, split step by step'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'€ without VAT. Select + next to a bar to choose the next split; select a bar to change the path'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Decomposition tree of contract value. Split it by procedure, type of buyer, CPV division, region, contract type or year.'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

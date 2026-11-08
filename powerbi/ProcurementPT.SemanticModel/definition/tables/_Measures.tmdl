@@ -272,3 +272,136 @@ table _Measures
 				in
 					Source
 
+	/// One-sentence answer for the spend page: total value and the two largest types of buyer.
+	measure 'Headline Spend' =
+			VAR V = [Contract Value]
+			VAR ByType =
+				FILTER (
+					ADDCOLUMNS ( VALUES ( dim_entity[entity_type] ), "@s", [Value Share of Selection] ),
+					NOT ISBLANK ( [@s] )
+				)
+			VAR T2 = TOPN ( 2, ByType, [@s], DESC )
+			VAR First = TOPN ( 1, T2, [@s], DESC )
+			VAR Second = EXCEPT ( T2, First )
+			RETURN
+				IF (
+					ISBLANK ( V ),
+					"No contracts in this selection.",
+					IF ( V >= 1E9, "€" & FORMAT ( V / 1E9, "0.0" ) & "bn", IF ( V >= 1E6, "€" & FORMAT ( V / 1E6, "0.0" ) & "m", "€" & FORMAT ( V, "#,0" ) ) ) & " in " & FORMAT ( [Contract Count], "#,0" ) & " contracts"
+						& IF (
+							COUNTROWS ( ByType ) > 1,
+							". Largest buyers: " & MAXX ( First, dim_entity[entity_type] ) & " " & FORMAT ( MAXX ( First, [@s] ), "0.0%" )
+								& " of the value, " & MAXX ( Second, dim_entity[entity_type] ) & " " & FORMAT ( MAXX ( Second, [@s] ), "0.0%" ) & ".",
+							"."
+						)
+				)
+		isHidden
+		displayFolder: Story
+		lineageTag: d61b99b0-ca6b-580d-9b0f-4b713a3ddc81
+
+	/// One-sentence answer for the procedures page: direct awards by count and value, and single-bid shares.
+	measure 'Headline Buying' =
+			VAR SbOpen = CALCULATE ( [Single Bid %], KEEPFILTERS ( dim_procedure[procedure_group] = "Open tender" ) )
+			VAR SbPrior = CALCULATE ( [Single Bid %], KEEPFILTERS ( dim_procedure[procedure_group] = "Prior consultation" ) )
+			RETURN
+				IF (
+					ISBLANK ( [Contract Count] ),
+					"No contracts in this selection.",
+					"Direct awards are " & FORMAT ( [Direct Award Contracts %], "0.0%" ) & " of contracts but "
+						& FORMAT ( [Direct Award Value %], "0.0%" ) & " of the value"
+						& IF (
+							NOT ISBLANK ( SbOpen ) || NOT ISBLANK ( SbPrior ),
+							". Single bids: " & FORMAT ( SbOpen, "0.0%" ) & " of open tenders, " & FORMAT ( SbPrior, "0.0%" ) & " of prior consultations.",
+							"."
+						)
+				)
+		isHidden
+		displayFolder: Story
+		lineageTag: 99dac564-bb11-5159-9afe-713f564ec13c
+
+	/// One-sentence answer for the value limits page: how many more contracts sit just below a limit than just above.
+	measure 'Headline Limits' =
+			VAR B = [GS Direct Award Limit 20k Below]
+			VAR A = [GS Direct Award Limit 20k Above]
+			VAR WB = [Works Prior Consultation Limit 150k Below]
+			VAR WA = [Works Prior Consultation Limit 150k Above]
+			RETURN
+				IF (
+					ISBLANK ( B ),
+					"No goods and services contracts near the limits in this selection.",
+					FORMAT ( B, "#,0" ) & " goods and services contracts sit in the €1,000 just below the €20,000 limit, "
+						& FORMAT ( DIVIDE ( B, A ), "0.0" ) & " times the " & FORMAT ( A, "#,0" ) & " just above"
+						& IF ( NOT ISBLANK ( WA ), ". For works at €150,000 the ratio is " & FORMAT ( DIVIDE ( WB, WA ), "0.0" ) & ".", "." )
+				)
+		isHidden
+		displayFolder: Story
+		lineageTag: a8895461-3a7c-5773-beb8-ce408a7ee8e7
+
+	/// One-sentence answer for the suppliers page: concentration, withheld share and the largest named supplier.
+	measure 'Headline Suppliers' =
+			VAR Named = CALCULATETABLE ( VALUES ( dim_supplier[supplier_name] ), dim_supplier[is_withheld] = FALSE () )
+			VAR Top1 = TOPN ( 1, Named, [Supplier Value], DESC )
+			VAR TopName = MAXX ( Top1, dim_supplier[supplier_name] )
+			VAR TopV = CALCULATE ( [Supplier Value], dim_supplier[supplier_name] = TopName )
+			RETURN
+				IF (
+					ISBLANK ( [Supplier Value] ),
+					"No suppliers in this selection.",
+					"The 10 largest named suppliers take " & FORMAT ( [Top 10 Named Supplier Share], "0.0%" )
+						& " of the value; awardees with withheld names " & FORMAT ( [Withheld Supplier Value %], "0.0%" )
+						& ". Largest: " & TopName & ", " & IF ( TopV >= 1E9, "€" & FORMAT ( TopV / 1E9, "0.0" ) & "bn", IF ( TopV >= 1E6, "€" & FORMAT ( TopV / 1E6, "0.0" ) & "m", "€" & FORMAT ( TopV, "#,0" ) ) ) & "."
+				)
+		isHidden
+		displayFolder: Story
+		lineageTag: 1a2ccd98-27f1-539b-ba0a-b13ca79ac0cd
+
+	/// One-sentence answer for the prices and timing page: direct awards signed at the base price and the December peak.
+	measure 'Headline Prices' =
+			VAR AtBase = CALCULATE ( [At Base Price %], KEEPFILTERS ( dim_procedure[procedure_group] = "Direct award" ) )
+			VAR Dec = CALCULATE ( [December Value %], KEEPFILTERS ( dim_date[year_number] <= 2025 ) )
+			RETURN
+				IF (
+					ISBLANK ( AtBase ) && ISBLANK ( Dec ),
+					"No contracts in this selection.",
+					FORMAT ( AtBase, "0.0%" ) & " of direct awards with a comparable base price were signed exactly at it. December carries "
+						& FORMAT ( Dec, "0.0%" ) & " of a year's value (8.3% if spread evenly, 2019 to 2025)."
+				)
+		isHidden
+		displayFolder: Story
+		lineageTag: da4443bc-76bb-5ea5-82ea-5c4c2bbf4bf1
+
+	/// Instruction sentence for the decomposition tree page.
+	measure 'Headline Explore' =
+			VAR V = [Contract Value]
+			RETURN
+				IF (
+					ISBLANK ( V ),
+					"No contracts in this selection.",
+					"Select + on any bar to split " & IF ( V >= 1E9, "€" & FORMAT ( V / 1E9, "0.0" ) & "bn", IF ( V >= 1E6, "€" & FORMAT ( V / 1E6, "0.0" ) & "m", "€" & FORMAT ( V, "#,0" ) ) )
+						& " by procedure, type of buyer, CPV division, region, contract type or year. Power BI can also pick the biggest split for you (the light bulb)."
+				)
+		isHidden
+		displayFolder: Story
+		lineageTag: 128adecb-8051-5262-b79f-d74fe6f15856
+
+	/// Sentence at the top of the Supplier detail drill-through page.
+	measure 'Supplier Headline' =
+			VAR Name = SELECTEDVALUE ( dim_supplier[supplier_name] )
+			VAR V = [Supplier Value]
+			VAR ByCpv =
+				FILTER ( ADDCOLUMNS ( VALUES ( dim_cpv[cpv_label] ), "@v", [Supplier Value] ), NOT ISBLANK ( [@v] ) )
+			VAR TopCpv = TOPN ( 1, ByCpv, [@v], DESC )
+			VAR ByType =
+				FILTER ( ADDCOLUMNS ( VALUES ( dim_entity[entity_type] ), "@v", [Supplier Value] ), NOT ISBLANK ( [@v] ) )
+			VAR TopType = TOPN ( 1, ByType, [@v], DESC )
+			RETURN
+				IF (
+					ISBLANK ( Name ),
+					"Right-click a supplier in the Suppliers page table and choose Drill through > Supplier detail.",
+					Name & ": " & IF ( V >= 1E9, "€" & FORMAT ( V / 1E9, "0.0" ) & "bn", IF ( V >= 1E6, "€" & FORMAT ( V / 1E6, "0.0" ) & "m", "€" & FORMAT ( V, "#,0" ) ) ) & " allocated across " & FORMAT ( [Contract Count by Supplier], "#,0" ) & " contracts. Main CPV division: "
+						& MAXX ( TopCpv, dim_cpv[cpv_label] ) & " (" & FORMAT ( DIVIDE ( MAXX ( TopCpv, [@v] ), V ), "0%" ) & "). Main buyer: "
+						& MAXX ( TopType, dim_entity[entity_type] ) & " (" & FORMAT ( DIVIDE ( MAXX ( TopType, [@v] ), V ), "0%" ) & ")."
+				)
+		isHidden
+		displayFolder: Story
+		lineageTag: b78d5e82-40e7-5256-80db-2fe81e6681d0

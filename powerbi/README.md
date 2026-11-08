@@ -81,6 +81,25 @@ Key definitions:
 | Final vs Signed % | Σ effective_price_closed ÷ Σ contract value of the same contracts − 1 |
 | December Value % | Value dated in December over the value in context; read it for complete years (2019–2025) |
 
+## Report pages and what to try
+
+The report opens on **Start here**: the question each page answers, with the live answer next to it (a DAX measure
+that rewrites itself when you filter). Select an answer to open its page; the tabs at the top move between pages.
+
+| Page | What to try | Headline with no filters |
+| --- | --- | --- |
+| Where the money goes | Pick one year, or Health as the buyer type | €120.5bn in 1,550,674 contracts. Largest buyers: Health 26.0% of the value, Municipality 25.0%. |
+| How it is bought | Pick Public works as the contract type | Direct awards are 49.8% of contracts but 16.6% of the value. Single bids: 10.2% of open tenders, 43.4% of prior consultations. |
+| Values near the limits | Pick Municipality | 50,519 goods and services contracts sit in the €1,000 just below the €20,000 limit, 4.1 times the 12,290 just above. For works at €150,000 the ratio is 17.9. |
+| Suppliers | Right-click a company in the top-25 table, then *Drill through > Supplier detail* | The 10 largest named suppliers take 9.7% of the value; awardees with withheld names 6.3%. Largest: AVAN Norte – Gestão da Ferrovia de Alta Velocidade, S.A., €1.7bn. |
+| Prices and timing | Pick Direct award in the procedure chart | 84.6% of direct awards with a comparable base price were signed exactly at it. December carries 10.2% of a year's value (8.3% if spread evenly, 2019 to 2025). |
+| Explore | Select + in the decomposition tree and split by procedure, buyer type, CPV, region, contract type or year | |
+
+**Supplier detail** is a drill-through page (hidden from the tabs): value and contracts of one company, by year, CPV
+division and type of buyer, and its largest public buyers. The top-25 table excludes withheld awardees, so it only
+drills into named companies. The headlines are hidden measures in the display folder *Story* of `_Measures`.
+Numbers checked with DuckDB against the Parquet files.
+
 ## Report to build (five pages, 1280 × 720)
 
 The report scaffold has the five pages, empty. Common header on every page: slicers for `dim_date[year_number]`,
