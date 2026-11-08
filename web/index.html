@@ -4,54 +4,54 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Mono:wght@400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: a spend-analytics pack for a procurement lead. Findings first, one filter row, then where the money goes, how it was bought, values near the legal limits, supplier concentration and prices. */
 :root {
-  --paper: #f7f8f9;
-  --sheet: #ffffff;
-  --ink: #1b2430;
-  --muted: #5d6876;
-  --rule: #dce0e5;
-  --grid: #eceff2;
-  --signal: #1f5a85;
-  --signal-soft: #e6eef5;
-  --s1: #2a78d6;
-  --s2: #eb6834;
-  --total: #5d6876;
-  --good: #1f7a35;
-  --good-soft: #e3f1e6;
-  --warn: #b25b00;
-  --warn-soft: #fbeedd;
-  --display: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
-  --serif: "IBM Plex Serif", Georgia, serif;
-  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
-}
+  --paper: #c4cbd2;
+      --sheet: #eef1f4;
+      --ink: #182027;
+      --muted: #3b434b;
+      --rule: #a1a9af;
+      --grid: #d9dee3;
+      --signal: #970d63;
+      --signal-soft: #f1dce6;
+      --s1: #3d5a73;
+      --s2: #970d63;
+      --total: #6e767d;
+      --good: #1f6b3a;
+      --good-soft: #d3e6d9;
+      --warn: #b42318;
+      --warn-soft: #f2d9d5;
+      --display: "Hanken Grotesk", system-ui, "Helvetica Neue", Arial, sans-serif;
+      --serif: "Newsreader", Georgia, serif;
+      --body: "Newsreader", Georgia, serif;
+      --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+    }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #121519; --sheet: #181c21; --ink: #e3e7eb; --muted: #97a2ad; --rule: #2a3038; --grid: #20252c;
-    --signal: #86b6da; --signal-soft: #1a2633;
-    --s1: #3987e5; --s2: #d95926; --total: #8a95a1;
-    --good: #5cb873; --good-soft: #17301e; --warn: #e09a4a; --warn-soft: #3a2812;
+    --paper: #13171b; --sheet: #1b2026; --ink: #e3e7eb; --muted: #9aa4ae; --rule: #333b44; --grid: #242a31;
+        --signal: #e07ab0; --signal-soft: #3a1f2e;
+        --s1: #8fb0cc; --s2: #e07ab0; --total: #8a939b;
+        --good: #6cc08a; --good-soft: #1a3324; --warn: #f08a7e; --warn-soft: #3d1f1c;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --paper: #121519; --sheet: #181c21; --ink: #e3e7eb; --muted: #97a2ad; --rule: #2a3038; --grid: #20252c;
-  --signal: #86b6da; --signal-soft: #1a2633;
-  --s1: #3987e5; --s2: #d95926; --total: #8a95a1;
-  --good: #5cb873; --good-soft: #17301e; --warn: #e09a4a; --warn-soft: #3a2812;
+  --paper: #13171b; --sheet: #1b2026; --ink: #e3e7eb; --muted: #9aa4ae; --rule: #333b44; --grid: #242a31;
+        --signal: #e07ab0; --signal-soft: #3a1f2e;
+        --s1: #8fb0cc; --s2: #e07ab0; --total: #8a939b;
+        --good: #6cc08a; --good-soft: #1a3324; --warn: #f08a7e; --warn-soft: #3d1f1c;
   color-scheme: dark;
 }
 body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 1rem; line-height: 1.55; margin: 0; }
 .wrap { max-width: 72rem; margin: 0 auto; padding-block: 2.5rem 4rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 2rem; }
 .wrap > * { min-width: 0; }
 h1, h2, h3 { font-family: var(--display); margin: 0; line-height: 1.15; text-wrap: balance; }
-h1 { font-family: var(--serif); font-size: clamp(1.8rem, 4.2vw, 2.5rem); font-weight: 600; }
+h1 { font-family: var(--display); font-size: clamp(1.8rem, 4.2vw, 2.6rem); font-weight: 600; letter-spacing: -0.02em; padding-bottom: .5rem; border-bottom: 2px solid var(--ink); }
 h2 { font-size: 1.05rem; font-weight: 600; }
 p { margin: 0; max-width: 68ch; }
-.label { font-size: 0.88rem; color: var(--muted); }
+.label { font-size: 0.88rem; color: var(--muted); font-family: var(--display); }
 .crumb { font-size: 0.9rem; }
 a { color: var(--signal); text-underline-offset: 3px; }
 header { display: grid; gap: 0.75rem; }
@@ -59,30 +59,30 @@ header { display: grid; gap: 0.75rem; }
 
 .findings { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: 1rem; }
 .finding { border-top: 1px solid var(--ink); padding-top: 0.75rem; display: grid; gap: 0.35rem; align-content: start; min-width: 0; }
-.finding b { font-weight: 600; font-size: 1rem; }
+.finding b { font-family: var(--display); font-weight: 600; font-size: 1rem; }
 
 .filters { display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; align-items: center; padding: 0.75rem 0; border-block: 1px solid var(--rule); position: sticky; top: env(safe-area-inset-top, 0px); background: var(--paper); z-index: 5; }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--paper); }
 .filters .grp { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; min-width: 0; }
 .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--rule); border-radius: 2px; overflow: hidden; }
-.seg button { font-family: var(--body); font-size: 0.88rem; padding: 0.35rem 0.7rem; background: var(--sheet); color: var(--ink); border: 0; border-right: 1px solid var(--rule); cursor: pointer; }
+.seg button { font-family: var(--display); font-size: 0.88rem; padding: 0.35rem 0.7rem; background: var(--sheet); color: var(--ink); border: 0; border-right: 1px solid var(--rule); cursor: pointer; }
 .seg button:last-child { border-right: 0; }
 .seg button[aria-pressed="true"] { background: var(--signal-soft); color: var(--ink); box-shadow: inset 0 -2px 0 var(--signal); }
 select { font-family: var(--body); font-size: 0.88rem; padding: 0.3rem 0.45rem; background: var(--sheet); color: var(--ink); border: 1px solid var(--rule); border-radius: 2px; max-width: 100%; }
 button:focus-visible, a:focus-visible, select:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
 
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 1rem; }
-.kpi { background: var(--sheet); border: 1px solid var(--rule); border-radius: 2px; padding: 1rem; display: grid; gap: 0.25rem; min-width: 0; }
-.kpi .v { font-family: var(--serif); font-size: 1.7rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+.kpi { background: var(--sheet); border: 1px solid var(--rule); border-top: 2px solid var(--ink); border-radius: 2px; padding: 1rem; display: grid; gap: 0.25rem; min-width: 0; }
+.kpi .v { font-family: var(--mono); font-size: 1.55rem; font-weight: 500; font-variant-numeric: tabular-nums; }
 .kpi .d { font-size: 0.85rem; color: var(--muted); }
 
 .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 30rem), 1fr)); gap: 1.25rem; }
-.panel { background: var(--sheet); border: 1px solid var(--rule); border-radius: 2px; padding: 1.1rem; display: grid; gap: 0.75rem; align-content: start; min-width: 0; }
+.panel { background: var(--sheet); border: 1px solid var(--rule); border-top: 2px solid var(--ink); border-radius: 2px; padding: 1.1rem; display: grid; gap: 0.75rem; align-content: start; min-width: 0; }
 .panel .sub { font-size: 0.9rem; color: var(--muted); }
 .panel-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.5rem 1rem; }
 .chart { position: relative; width: 100%; }
 .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
-.chart text { font-family: var(--body); font-size: 11px; fill: var(--muted); }
+.chart text { font-family: var(--display); font-size: 11px; fill: var(--muted); }
 .chart .lbl { fill: var(--ink); font-weight: 600; }
 .legend { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; font-size: 0.85rem; color: var(--ink); }
 .legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 0.35rem; }
@@ -94,7 +94,7 @@ button:focus-visible, a:focus-visible, select:focus-visible { outline: 2px solid
 
 .tbl-wrap { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
-th, td { padding: 0.4rem 0.55rem; text-align: right; border-bottom: 1px solid var(--rule); font-variant-numeric: tabular-nums; white-space: nowrap; }
+th, td { font-family: var(--display); padding: 0.4rem 0.55rem; text-align: right; border-bottom: 1px solid var(--rule); font-variant-numeric: tabular-nums; white-space: nowrap; }
 th { font-size: 0.8rem; font-weight: 600; color: var(--muted); }
 th:first-child, td:first-child { text-align: left; }
 td.name, th.name { white-space: normal; min-width: 10rem; text-align: left; }
@@ -111,6 +111,33 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
 .chart svg rect.hit-x:focus { outline: none; }
 .chart svg rect.hit-x:focus-visible { stroke: var(--signal); stroke-width: 2; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+    .links { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; }
+    .btn { font-family: var(--display); font-weight: 500; font-size: .9rem; border: 1px solid var(--ink); border-radius: 2px; padding: .45rem .9rem; color: var(--ink); text-decoration: none; background: transparent; cursor: pointer; }
+    .btn.primary { background: var(--signal); border-color: var(--signal); color: #fff; }
+    .btn:hover { background: var(--signal-soft); }
+    .btn.primary:hover { filter: brightness(.9); background: var(--signal); }
+    .jump { display: flex; flex-wrap: wrap; gap: .25rem .9rem; font-family: var(--display); font-size: .85rem; width: 100%; padding-bottom: .5rem; border-bottom: 1px solid var(--rule); }
+    .jump a { color: var(--ink); text-decoration: none; border-bottom: 2px solid transparent; }
+    .jump a:hover { border-bottom-color: var(--signal); }
+    .headline { font-family: var(--display); font-weight: 600; font-size: clamp(1.05rem, 2.2vw, 1.3rem); line-height: 1.35; color: var(--signal); max-width: 60ch; margin: 0; text-wrap: balance; }
+    .headline-note { font-size: .85rem; color: var(--muted); margin-top: .35rem; }
+    .panel, .grid2, .findings { scroll-margin-top: 8rem; }
+    #pnl tbody tr[data-line] { cursor: pointer; }
+    #pnl tbody tr[data-line]:hover td, #pnl tbody tr[data-line]:focus td { background: var(--signal-soft); }
+    #pnl tbody tr[data-line]:focus { outline: none; }
+    #pnl tbody tr[data-line]:focus-visible td:first-child { box-shadow: inset 3px 0 0 var(--signal); }
+    dialog.line { border: 1px solid var(--rule); border-top: 3px solid var(--signal); border-radius: 2px; padding: 0; background: var(--sheet); color: var(--ink); width: min(38rem, calc(100vw - 32px)); }
+    dialog.line::backdrop { background: rgb(19 23 27 / .45); }
+    .line .in { padding: 1.25rem; display: grid; gap: .9rem; }
+    .line h2 { font-size: 1.3rem; }
+    .line .why { font-family: var(--display); font-weight: 600; color: var(--signal); }
+    .line .close { justify-self: end; }
+    .line .bar { display: inline-block; height: 10px; border-radius: 1px; vertical-align: middle; }
+    #sups tbody tr[data-sup] { cursor: pointer; }
+#sups tbody tr[data-sup]:hover td, #sups tbody tr[data-sup]:focus td { background: var(--signal-soft); }
+#sups tbody tr[data-sup]:focus { outline: none; }
+#sups tbody tr[data-sup]:focus-visible td:first-child { box-shadow: inset 3px 0 0 var(--signal); }
 </style>
 
 <main class="wrap">
@@ -124,9 +151,18 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
       <span>dbt + DuckDB · 20 models · 100 tests</span>
       <span>Also in Qlik Sense and Power BI</span>
     </div>
+    <div class="links">
+      <a class="btn primary" href="https://app.powerbi.com/view?r=eyJrIjoiZDliMmM5ZDAtOTRjYS00M2ZmLWJjNmMtNmJkZjAwNjU1NjEzIiwidCI6IjY2MDMwOWU1LWI1YWEtNDQzNS1iMDU2LTJhYmViOGZmNDZjNyJ9" target="_blank" rel="noopener">Open the Power BI report ↗</a>
+      <a class="btn" href="notebook/">Python notebook</a>
+      <a class="btn" href="https://github.com/Alpralex/public-procurement-pt">Code on GitHub</a>
+    </div>
+    <div>
+      <p class="headline" id="headline" aria-live="polite"></p>
+      <p class="headline-note">This sentence is computed from the data and rewrites itself when you change the years, the contract type or the buyer. Click a supplier in the ranking to open its card.</p>
+    </div>
   </header>
 
-  <section class="findings" aria-label="Key findings">
+  <section class="findings" id="findings" aria-label="Key findings">
     <div class="finding"><span class="label">Finding 1</span><b>Health and municipalities account for half of the value.</b><p>Of €120.5 billion, health bodies signed €31.3 billion (26.0%) and municipalities €30.1 billion (25.0%). Construction work is the largest category at €35.8 billion (29.7%), then medical and pharmaceutical products at €22.8 billion (18.9%).</p></div>
     <div class="finding"><span class="label">Finding 2</span><b>Half the contracts are direct awards, but only a sixth of the value.</b><p>Direct awards are 49.8% of contracts and 16.6% of value. Open tenders are 13.7% of contracts and 50.7% of value. Where bidders are listed, 43.4% of prior consultations and 10.2% of open tenders received a single bid.</p></div>
     <div class="finding"><span class="label">Finding 3</span><b>Contract values cluster just below the legal limits.</b><p>50,519 goods and services contracts sit between €19,000 and €19,999, against 12,290 between €20,000 and €20,999. Just below the €75,000 limit there are 11,401, against 1,782 just above.</p></div>
@@ -135,6 +171,7 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
   </section>
 
   <section class="filters" aria-label="Filters">
+    <nav class="jump" aria-label="Sections"><a href="#findings">Findings</a><a href="#spend">Spend</a><a href="#buying">Procedures</a><a href="#limits">Value limits</a><a href="#suppliers">Suppliers</a><a href="#prices">Prices</a><a href="#method">How it is built</a></nav>
     <div class="grp"><span class="label">Years</span>
       <select id="y-from" aria-label="From year"></select><span class="label">to</span><select id="y-to" aria-label="To year"></select>
     </div>
@@ -153,7 +190,7 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
   <p class="xf" id="xf" aria-live="polite"></p>
   <section class="kpis" id="kpis" aria-label="Headline figures"></section>
 
-  <section class="panel" aria-labelledby="yr-h">
+  <section class="panel" id="spend" aria-labelledby="yr-h">
     <h2 id="yr-h">Contract value by year</h2>
     <p class="sub" id="yr-sub"></p>
     <div class="chart" id="years"></div>
@@ -173,7 +210,7 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
     </section>
   </div>
 
-  <div class="grid2">
+  <div class="grid2" id="buying">
     <section class="panel" aria-labelledby="pm-h">
       <h2 id="pm-h">How it is bought: procedure mix</h2>
       <p class="sub">Share of contracts and share of value by procedure group.</p>
@@ -188,7 +225,7 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
     </section>
   </div>
 
-  <section class="panel" aria-labelledby="bn-h">
+  <section class="panel" id="limits" aria-labelledby="bn-h">
     <div class="panel-head">
       <h2 id="bn-h">Contract values near the legal limits</h2>
       <div class="seg" id="fam-seg">
@@ -202,7 +239,7 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
     <p class="note">Limits of the Public Contracts Code in force from 2018 to 30 September 2026: direct award below €20,000 for goods and services and below €30,000 for works; prior consultation below €75,000 and €150,000. Contracts dated after 30 September 2026 are left out because new limits apply from 1 October 2026. The histogram describes where values sit; it does not say why.</p>
   </section>
 
-  <div class="grid2">
+  <div class="grid2" id="suppliers">
     <section class="panel" aria-labelledby="cc-h">
       <h2 id="cc-h">Supplier concentration by CPV division</h2>
       <p class="sub">2019 – Oct 2026, all entities. Largest divisions by value; HHI from 0 (fragmented) to 10,000 (one supplier).</p>
@@ -219,7 +256,7 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
     </section>
   </div>
 
-  <div class="grid2">
+  <div class="grid2" id="prices">
     <section class="panel" aria-labelledby="pr-h">
       <h2 id="pr-h">Contract price against base price</h2>
       <p class="sub">Value-weighted difference, procedures with a single contract. Shorter bars mean prices closer to the base price.</p>
@@ -240,7 +277,7 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
     <div class="chart" id="regions"></div>
   </section>
 
-  <section class="method" aria-label="Method">
+  <section class="method" id="method" aria-label="Method">
     <h2>How it is built</h2>
     <ul>
       <li>Source: <i>Contratos Públicos – Portal BASE – IMPIC</i>, yearly files 2019–2026 from dados.gov.pt (open data, dataset 66d72d488ca4b7cb2de28712), downloaded 25 October 2026. 1,555,252 rows; 4,566 contract ids appear twice or more inside the same file and are kept once, leaving 1,550,674 contracts.</li>
@@ -250,9 +287,19 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
       <li>Privacy: awardees without a NIF, or with an individual, sole-trader or estate NIF, are reported only as <i>Individual (name withheld)</i>. Awardees without a Portuguese NIF whose name looks like a company's (mostly foreign firms) are reported as <i>No Portuguese NIF (name withheld)</i>.</li>
       <li>Caveats: bidder lists are missing for most direct awards; the SME flag is filled only from 2024 and inconsistently; base prices of multi-lot procedures cover all lots, so only single-contract procedures are compared, and ratios outside 0.2–5 are treated as entry errors.</li>
     </ul>
-    <p class="note">Code: <a href="https://github.com/Alpralex/public-procurement-pt-">github.com/Alpralex/public-procurement-pt-</a></p>
+    <p class="note">Code: <a href="https://github.com/Alpralex/public-procurement-pt">github.com/Alpralex/public-procurement-pt</a></p>
   </section>
 </main>
+
+<dialog class="line" id="sup" aria-labelledby="sup-name">
+  <div class="in">
+    <div><span class="label" id="sup-kicker">Supplier</span><h2 id="sup-name"></h2></div>
+    <p class="why" id="sup-why"></p>
+    <div class="tbl-wrap"><table id="sup-tbl"></table></div>
+    <p class="note">Value is allocated: a contract with several winners gives each an equal share. The Power BI version has a drill-through page for every named supplier, by year, category and buyer.</p>
+    <button type="button" class="btn close" id="sup-close">Close</button>
+  </div>
+</dialog>
 
 <script>
 (function () {
@@ -317,6 +364,43 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
   }
 
   // ---------- KPIs ----------
+  // Supplier card: the web version of the Power BI drill-through page
+  function openSupplier(name) {
+    var all = D.suppliers.filter(function (r) { return r[2] === name && r[0] < 0; })[0];
+    var cats = D.suppliers.filter(function (r) { return r[2] === name && r[0] >= 0; }).sort(function (a, b) { return b[3] - a[3]; });
+    document.getElementById('sup-kicker').textContent = all ? 'Supplier · #' + all[1] + ' by value, 2019 to Oct 2026' : 'Supplier';
+    document.getElementById('sup-name').textContent = name;
+    var lead = all ? eur(all[3]) + ' allocated across ' + n0(all[4]) + ' contracts, ' + share(all[5], 2) + ' of all supplier value.' : '';
+    document.getElementById('sup-why').textContent = lead + (cats.length ? ' Among the five largest in ' + cats.length + ' CPV division' + (cats.length > 1 ? 's' : '') + '.' : ' Not among the five largest in any single CPV division.');
+    document.getElementById('sup-tbl').innerHTML = cats.length ? '<thead><tr><th class="name">CPV division</th><th>Rank</th><th>Value</th><th>Contracts</th><th>Share</th></tr></thead><tbody>' +
+      cats.map(function (r) { var c = D.meta.cpv[r[0]]; return '<tr><td class="name">' + c[0] + ' ' + c[1] + '</td><td>#' + r[1] + '</td><td>' + eur(r[3]) + '</td><td>' + n0(r[4]) + '</td><td>' + share(r[5], 1) + '</td></tr>'; }).join('') + '</tbody>' : '';
+    var dlg = document.getElementById('sup');
+    if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
+  }
+  function supPick(e) {
+    var tr = e.target.closest('tr[data-sup]'); if (!tr) return;
+    if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return; if (e.type === 'keydown') e.preventDefault();
+    openSupplier(tr.dataset.sup);
+  }
+  document.getElementById('sups').addEventListener('click', supPick);
+  document.getElementById('sups').addEventListener('keydown', supPick);
+  document.getElementById('sup-close').addEventListener('click', function () { document.getElementById('sup').close(); });
+  document.getElementById('sup').addEventListener('click', function (e) { if (e.target === this) this.close(); });
+
+  // Live headline: one sentence for the current years, contract type and buyer
+  function renderHeadline() {
+    var comp = D.competition.filter(keep), n = 0, v = 0, byPg = {};
+    comp.forEach(function (r) { n += r[4]; v += r[5]; var o = byPg[r[3]] = byPg[r[3]] || [0, 0, 0, 0]; o[0] += r[4]; o[1] += r[5]; o[2] += r[6]; o[3] += r[8]; });
+    var pg = D.meta.procedure_groups, iOpen = pg.indexOf('Open tender'), iDA = pg.indexOf('Direct award'), iSDA = pg.indexOf('Simplified direct award');
+    function g(i, j) { return byPg[i] ? byPg[i][j] : 0; }
+    var daN = g(iDA, 0) + g(iSDA, 0), daV = g(iDA, 1) + g(iSDA, 1), sb = g(iOpen, 2) ? g(iOpen, 3) / g(iOpen, 2) : null;
+    var who = (state.et < 0 ? '' : D.meta.entity_types[state.et] + ', ') + (state.ct === 'ALL' ? '' : ctLabel().charAt(0).toUpperCase() + ctLabel().slice(1) + ', ');
+    var out = !n ? 'No contracts in this selection.' :
+      who + yearsLabel() + ': ' + eur(v) + ' in ' + n0(n) + ' contracts. Direct awards are ' + share(daN / n) + ' of them but ' + share(daV / v) + ' of the value' +
+      (sb != null ? ', and ' + share(sb) + ' of open tenders drew a single bid.' : '.');
+    document.getElementById('headline').textContent = out;
+  }
+
   function renderKpis() {
     var comp = D.competition.filter(keep);
     var n = 0, v = 0, byPg = {};
@@ -501,7 +585,7 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
   function renderSuppliers() {
     var rows = D.suppliers.filter(function (r) { return r[0] === state.sup; }).slice(0, state.sup < 0 ? 15 : 5);
     document.getElementById('sups').innerHTML = '<thead><tr><th>#</th><th class="name">Supplier</th><th>Value</th><th>Contracts</th><th>Share</th></tr></thead><tbody>' +
-      rows.map(function (r) { return '<tr><td>' + r[1] + '</td><td class="name">' + r[2] + '</td><td>' + eur(r[3]) + '</td><td>' + n0(r[4]) + '</td><td>' + share(r[5], 2) + '</td></tr>'; }).join('') + '</tbody>';
+      rows.map(function (r) { return '<tr data-sup="' + r[2].replace(/"/g, '&quot;') + '" tabindex="0"><td>' + r[1] + '</td><td class="name">' + r[2] + '</td><td>' + eur(r[3]) + '</td><td>' + n0(r[4]) + '</td><td>' + share(r[5], 2) + '</td></tr>'; }).join('') + '</tbody>';
   }
 
   // ---------- price vs base ----------
@@ -575,7 +659,7 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
       (chips.length > 1 ? '<button data-x="all">Clear all</button>' : '') +
       (state.cpv >= 0 ? '<span>The CPV division filters the value by year, the entity types and the supplier ranking; the other tables have no category detail.</span>' : '');
   }
-  function render() { renderSelection(); renderKpis(); renderYears(); renderEtypes(); renderCpv(); renderProcMix(); renderSingle(); renderBunching(); renderConcentration(); renderSuppliers(); renderPrice(); renderMonths(); renderRegions(); }
+  function render() { renderHeadline(); renderSelection(); renderKpis(); renderYears(); renderEtypes(); renderCpv(); renderProcMix(); renderSingle(); renderBunching(); renderConcentration(); renderSuppliers(); renderPrice(); renderMonths(); renderRegions(); }
 
   function seg(id, key, num) {
     document.getElementById(id).addEventListener('click', function (e) {
