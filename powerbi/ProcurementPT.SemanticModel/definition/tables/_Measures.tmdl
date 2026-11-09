@@ -386,7 +386,7 @@ table _Measures
 
 	/// Sentence at the top of the Supplier detail drill-through page.
 	measure 'Supplier Headline' =
-			VAR Name = SELECTEDVALUE ( dim_supplier[supplier_name] )
+			VAR SupName = SELECTEDVALUE ( dim_supplier[supplier_name] )
 			VAR V = [Supplier Value]
 			VAR ByCpv =
 				FILTER ( ADDCOLUMNS ( VALUES ( dim_cpv[cpv_label] ), "@v", [Supplier Value] ), NOT ISBLANK ( [@v] ) )
@@ -396,9 +396,9 @@ table _Measures
 			VAR TopType = TOPN ( 1, ByType, [@v], DESC )
 			RETURN
 				IF (
-					ISBLANK ( Name ),
+					ISBLANK ( SupName ),
 					"Right-click a supplier in the Suppliers page table and choose Drill through > Supplier detail.",
-					Name & ": " & IF ( V >= 1E9, "€" & FORMAT ( V / 1E9, "0.0" ) & "bn", IF ( V >= 1E6, "€" & FORMAT ( V / 1E6, "0.0" ) & "m", "€" & FORMAT ( V, "#,0" ) ) ) & " allocated across " & FORMAT ( [Contract Count by Supplier], "#,0" ) & " contracts. Main CPV division: "
+					SupName & ": " & IF ( V >= 1E9, "€" & FORMAT ( V / 1E9, "0.0" ) & "bn", IF ( V >= 1E6, "€" & FORMAT ( V / 1E6, "0.0" ) & "m", "€" & FORMAT ( V, "#,0" ) ) ) & " allocated across " & FORMAT ( [Contract Count by Supplier], "#,0" ) & " contracts. Main CPV division: "
 						& MAXX ( TopCpv, dim_cpv[cpv_label] ) & " (" & FORMAT ( DIVIDE ( MAXX ( TopCpv, [@v] ), V ), "0%" ) & "). Main buyer: "
 						& MAXX ( TopType, dim_entity[entity_type] ) & " (" & FORMAT ( DIVIDE ( MAXX ( TopType, [@v] ), V ), "0%" ) & ")."
 				)
