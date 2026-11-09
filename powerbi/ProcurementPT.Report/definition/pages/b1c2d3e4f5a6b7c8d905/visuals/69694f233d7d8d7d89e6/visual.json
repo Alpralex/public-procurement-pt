@@ -3,9 +3,9 @@
   "name": "69694f233d7d8d7d89e6",
   "position": {
     "x": 16,
-    "y": 58,
+    "y": 124,
     "z": 5000,
-    "height": 40,
+    "height": 18,
     "width": 520,
     "tabOrder": 5000
   },
@@ -22,8 +22,8 @@
                     "value": "Signed prices against base prices, final prices, and the December peak",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
-                      "fontSize": "13px",
-                      "color": "#5D6876"
+                      "fontSize": "10px",
+                      "color": "#3B434B"
                     }
                   }
                 ],

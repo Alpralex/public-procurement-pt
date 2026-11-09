@@ -3,9 +3,9 @@
   "name": "54cdb37439dfc0f02b9c",
   "position": {
     "x": 644,
-    "y": 376,
+    "y": 395,
     "z": 12000,
-    "height": 20,
+    "height": 19,
     "width": 616,
     "tabOrder": 12000
   },
@@ -23,7 +23,7 @@
                     "textStyle": {
                       "fontFamily": "Segoe UI Semibold",
                       "fontSize": "12px",
-                      "color": "#1B2430"
+                      "color": "#182027"
                     }
                   }
                 ],

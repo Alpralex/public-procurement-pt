@@ -3,6 +3,7 @@ table dim_region
 	lineageTag: 4c269dc2-ce28-4247-ab92-cb39b86ee789
 
 	column region_key
+		isHidden
 		dataType: string
 		isKey
 		lineageTag: e2ad9cd5-8b1f-41c1-9a59-1c0860ed85cc

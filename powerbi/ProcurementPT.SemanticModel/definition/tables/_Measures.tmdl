@@ -14,6 +14,7 @@ table _Measures
 		displayFolder: 1 Spend
 		lineageTag: a47a9142-67f0-4d42-97d8-ed5ba1ac3056
 
+	/// Contract value divided by contract count.
 	measure 'Average Contract Value' = DIVIDE ( [Contract Value], [Contract Count] )
 		formatString: \€#,0;-\€#,0;\€0
 		displayFolder: 1 Spend
@@ -31,11 +32,13 @@ table _Measures
 		displayFolder: 1 Spend
 		lineageTag: 80609120-d052-4bab-bd59-91353431a878
 
+	/// Contract value in the same period of the previous year.
 	measure 'Contract Value PY' = CALCULATE ( [Contract Value], SAMEPERIODLASTYEAR ( dim_date[date_day] ) )
 		formatString: \€#,0;-\€#,0;\€0
 		displayFolder: 1 Spend
 		lineageTag: 903bf6b0-b326-47ed-8524-a10f9426d72d
 
+	/// Change in contract value against the same period of the previous year.
 	measure 'Contract Value YoY %' = DIVIDE ( [Contract Value] - [Contract Value PY], [Contract Value PY] )
 		formatString: +0.0%;-0.0%;0.0%
 		displayFolder: 1 Spend
@@ -53,16 +56,19 @@ table _Measures
 		displayFolder: 2 Competition
 		lineageTag: 2f85e3f7-b8dc-49cb-970a-a9d40e39d935
 
+	/// Share of contract value awarded by direct award or simplified direct award.
 	measure 'Direct Award Value %' = DIVIDE ( CALCULATE ( [Contract Value], KEEPFILTERS ( dim_procedure[procedure_group] IN { "Direct award", "Simplified direct award" } ) ), [Contract Value] )
 		formatString: 0.0%
 		displayFolder: 2 Competition
 		lineageTag: 40714f35-4919-4ac0-ae95-a248f57750e7
 
+	/// Share of contracts awarded through an open tender.
 	measure 'Open Tender Contracts %' = DIVIDE ( CALCULATE ( [Contract Count], KEEPFILTERS ( dim_procedure[procedure_group] = "Open tender" ) ), [Contract Count] )
 		formatString: 0.0%
 		displayFolder: 2 Competition
 		lineageTag: b966351a-3978-44dc-b67d-6b7588430c5e
 
+	/// Share of contract value awarded through an open tender.
 	measure 'Open Tender Value %' = DIVIDE ( CALCULATE ( [Contract Value], KEEPFILTERS ( dim_procedure[procedure_group] = "Open tender" ) ), [Contract Value] )
 		formatString: 0.0%
 		displayFolder: 2 Competition
@@ -74,6 +80,7 @@ table _Measures
 		displayFolder: 2 Competition
 		lineageTag: 311e83e3-af41-4308-8564-acb8a35bf57e
 
+	/// Contracts that received exactly one bid.
 	measure 'Single Bid Contracts' = CALCULATE ( [Contract Count], KEEPFILTERS ( fct_contracts[bidders_count] = 1 ) )
 		formatString: #,0
 		displayFolder: 2 Competition
@@ -85,6 +92,7 @@ table _Measures
 		displayFolder: 2 Competition
 		lineageTag: cbd60c45-81ea-4602-af8d-f0de738c2eba
 
+	/// Mean number of bidders on contracts that publish a bidder count.
 	measure 'Average Bidders' = AVERAGE ( fct_contracts[bidders_count] )
 		formatString: 0.00
 		displayFolder: 2 Competition
@@ -153,6 +161,7 @@ table _Measures
 		displayFolder: 4 Suppliers
 		lineageTag: a8816492-999c-495e-95d5-15c0557e5db5
 
+	/// Distinct contracts in the contract-supplier bridge for the suppliers in scope.
 	measure 'Supplier Contract Count' = DISTINCTCOUNT ( bridge_contract_supplier[contract_id] )
 		formatString: #,0
 		displayFolder: 4 Suppliers
@@ -204,11 +213,13 @@ table _Measures
 		displayFolder: 4 Suppliers
 		lineageTag: 31007bd2-1b78-4b69-8897-a7f2dac81239
 
+	/// Share of the selected CPV division's value held by its five largest suppliers.
 	measure 'Division Top 5 Share' = IF ( HASONEVALUE ( dim_cpv[cpv_division] ), CALCULATE ( SUM ( mart_supplier_concentration[top5_share] ), KEEPFILTERS ( mart_supplier_concentration[period] = "2019-2026" ) ) )
 		formatString: 0.0%
 		displayFolder: 4 Suppliers
 		lineageTag: d0997128-7a4c-4f42-8312-12c7bd1b68dd
 
+	/// Contract value of contracts that also publish a comparable base price.
 	measure 'Value With Base Price' = CALCULATE ( [Contract Value], KEEPFILTERS ( NOT ISBLANK ( fct_contracts[base_price_comparable] ) ) )
 		formatString: \€#,0;-\€#,0;\€0
 		displayFolder: 5 Prices
@@ -226,16 +237,19 @@ table _Measures
 		displayFolder: 5 Prices
 		lineageTag: 61c689a0-79fe-4f7a-bba5-48ab43891bdf
 
+	/// Share of contracts signed exactly at the base price.
 	measure 'At Base Price %' = DIVIDE ( COUNTROWS ( FILTER ( fct_contracts, fct_contracts[contract_value] = fct_contracts[base_price_comparable] ) ), COUNT ( fct_contracts[base_price_comparable] ) )
 		formatString: 0.0%
 		displayFolder: 5 Prices
 		lineageTag: 55741e76-ca22-4e1c-8a72-2437f8e27f6a
 
+	/// Share of contracts signed below the base price.
 	measure 'Below Base Price %' = DIVIDE ( COUNTROWS ( FILTER ( fct_contracts, fct_contracts[contract_value] < fct_contracts[base_price_comparable] ) ), COUNT ( fct_contracts[base_price_comparable] ) )
 		formatString: 0.0%
 		displayFolder: 5 Prices
 		lineageTag: 1fe8ee84-1443-4c84-a0ad-902ed23cdcc8
 
+	/// Signed value of contracts that have a published final (effective) price.
 	measure 'Value of Closed Contracts' = CALCULATE ( [Contract Value], KEEPFILTERS ( NOT ISBLANK ( fct_contracts[effective_price_closed] ) ) )
 		formatString: \€#,0;-\€#,0;\€0
 		displayFolder: 5 Prices
@@ -247,11 +261,13 @@ table _Measures
 		displayFolder: 5 Prices
 		lineageTag: 99bfc243-5ea2-420d-8f34-86247c67d891
 
+	/// Final price against signed value for closed contracts (positive = cost overrun).
 	measure 'Final vs Signed %' = IF ( NOT ISBLANK ( [Effective Price Total] ), DIVIDE ( [Effective Price Total], [Value of Closed Contracts] ) - 1 )
 		formatString: +0.0%;-0.0%;0.0%
 		displayFolder: 5 Prices
 		lineageTag: b30a1546-a7b8-47b6-8dac-50948468b7f4
 
+	/// Share of closed contracts whose final price exceeded the signed value.
 	measure 'Ended Above Contract %' = DIVIDE ( COUNTROWS ( FILTER ( fct_contracts, fct_contracts[effective_price_closed] > fct_contracts[contract_value] * 1.0001 ) ), COUNT ( fct_contracts[effective_price_closed] ) )
 		formatString: 0.0%
 		displayFolder: 5 Prices
@@ -272,3 +288,136 @@ table _Measures
 				in
 					Source
 
+	/// One-sentence answer for the spend page: total value and the two largest types of buyer.
+	measure 'Headline Spend' =
+			VAR V = [Contract Value]
+			VAR ByType =
+				FILTER (
+					ADDCOLUMNS ( VALUES ( dim_entity[entity_type] ), "@s", [Value Share of Selection] ),
+					NOT ISBLANK ( [@s] )
+				)
+			VAR T2 = TOPN ( 2, ByType, [@s], DESC )
+			VAR First = TOPN ( 1, T2, [@s], DESC )
+			VAR Second = EXCEPT ( T2, First )
+			RETURN
+				IF (
+					ISBLANK ( V ),
+					"No contracts in this selection.",
+					IF ( V >= 1E9, "€" & FORMAT ( V / 1E9, "0.0" ) & "bn", IF ( V >= 1E6, "€" & FORMAT ( V / 1E6, "0.0" ) & "m", "€" & FORMAT ( V, "#,0" ) ) ) & " in " & FORMAT ( [Contract Count], "#,0" ) & " contracts"
+						& IF (
+							COUNTROWS ( ByType ) > 1,
+							". Largest buyers: " & MAXX ( First, dim_entity[entity_type] ) & " " & FORMAT ( MAXX ( First, [@s] ), "0.0%" )
+								& " of the value, " & MAXX ( Second, dim_entity[entity_type] ) & " " & FORMAT ( MAXX ( Second, [@s] ), "0.0%" ) & ".",
+							"."
+						)
+				)
+		isHidden
+		displayFolder: Story
+		lineageTag: d61b99b0-ca6b-580d-9b0f-4b713a3ddc81
+
+	/// One-sentence answer for the procedures page: direct awards by count and value, and single-bid shares.
+	measure 'Headline Buying' =
+			VAR SbOpen = CALCULATE ( [Single Bid %], KEEPFILTERS ( dim_procedure[procedure_group] = "Open tender" ) )
+			VAR SbPrior = CALCULATE ( [Single Bid %], KEEPFILTERS ( dim_procedure[procedure_group] = "Prior consultation" ) )
+			RETURN
+				IF (
+					ISBLANK ( [Contract Count] ),
+					"No contracts in this selection.",
+					"Direct awards are " & FORMAT ( [Direct Award Contracts %], "0.0%" ) & " of contracts but "
+						& FORMAT ( [Direct Award Value %], "0.0%" ) & " of the value"
+						& IF (
+							NOT ISBLANK ( SbOpen ) || NOT ISBLANK ( SbPrior ),
+							". Single bids: " & FORMAT ( SbOpen, "0.0%" ) & " of open tenders, " & FORMAT ( SbPrior, "0.0%" ) & " of prior consultations.",
+							"."
+						)
+				)
+		isHidden
+		displayFolder: Story
+		lineageTag: 99dac564-bb11-5159-9afe-713f564ec13c
+
+	/// One-sentence answer for the value limits page: how many more contracts sit just below a limit than just above.
+	measure 'Headline Limits' =
+			VAR B = [GS Direct Award Limit 20k Below]
+			VAR A = [GS Direct Award Limit 20k Above]
+			VAR WB = [Works Prior Consultation Limit 150k Below]
+			VAR WA = [Works Prior Consultation Limit 150k Above]
+			RETURN
+				IF (
+					ISBLANK ( B ),
+					"No goods and services contracts near the limits in this selection.",
+					FORMAT ( B, "#,0" ) & " goods and services contracts sit in the €1,000 just below the €20,000 limit, "
+						& FORMAT ( DIVIDE ( B, A ), "0.0" ) & " times the " & FORMAT ( A, "#,0" ) & " just above"
+						& IF ( NOT ISBLANK ( WA ), ". For works at €150,000 the ratio is " & FORMAT ( DIVIDE ( WB, WA ), "0.0" ) & ".", "." )
+				)
+		isHidden
+		displayFolder: Story
+		lineageTag: a8895461-3a7c-5773-beb8-ce408a7ee8e7
+
+	/// One-sentence answer for the suppliers page: concentration, withheld share and the largest named supplier.
+	measure 'Headline Suppliers' =
+			VAR Named = CALCULATETABLE ( VALUES ( dim_supplier[supplier_name] ), dim_supplier[is_withheld] = FALSE () )
+			VAR Top1 = TOPN ( 1, Named, [Supplier Value], DESC )
+			VAR TopName = MAXX ( Top1, dim_supplier[supplier_name] )
+			VAR TopV = CALCULATE ( [Supplier Value], dim_supplier[supplier_name] = TopName )
+			RETURN
+				IF (
+					ISBLANK ( [Supplier Value] ),
+					"No suppliers in this selection.",
+					"The 10 largest named suppliers take " & FORMAT ( [Top 10 Named Supplier Share], "0.0%" )
+						& " of the value; awardees with withheld names " & FORMAT ( [Withheld Supplier Value %], "0.0%" )
+						& ". Largest: " & TopName & ", " & IF ( TopV >= 1E9, "€" & FORMAT ( TopV / 1E9, "0.0" ) & "bn", IF ( TopV >= 1E6, "€" & FORMAT ( TopV / 1E6, "0.0" ) & "m", "€" & FORMAT ( TopV, "#,0" ) ) ) & "."
+				)
+		isHidden
+		displayFolder: Story
+		lineageTag: 1a2ccd98-27f1-539b-ba0a-b13ca79ac0cd
+
+	/// One-sentence answer for the prices and timing page: direct awards signed at the base price and the December peak.
+	measure 'Headline Prices' =
+			VAR AtBase = CALCULATE ( [At Base Price %], KEEPFILTERS ( dim_procedure[procedure_group] = "Direct award" ) )
+			VAR Dec = CALCULATE ( [December Value %], KEEPFILTERS ( dim_date[year_number] <= 2025 ) )
+			RETURN
+				IF (
+					ISBLANK ( AtBase ) && ISBLANK ( Dec ),
+					"No contracts in this selection.",
+					FORMAT ( AtBase, "0.0%" ) & " of direct awards with a comparable base price were signed exactly at it. December carries "
+						& FORMAT ( Dec, "0.0%" ) & " of a year's value (8.3% if spread evenly, 2019 to 2025)."
+				)
+		isHidden
+		displayFolder: Story
+		lineageTag: da4443bc-76bb-5ea5-82ea-5c4c2bbf4bf1
+
+	/// Instruction sentence for the decomposition tree page.
+	measure 'Headline Explore' =
+			VAR V = [Contract Value]
+			RETURN
+				IF (
+					ISBLANK ( V ),
+					"No contracts in this selection.",
+					"Select + on any bar to split " & IF ( V >= 1E9, "€" & FORMAT ( V / 1E9, "0.0" ) & "bn", IF ( V >= 1E6, "€" & FORMAT ( V / 1E6, "0.0" ) & "m", "€" & FORMAT ( V, "#,0" ) ) )
+						& " by procedure, type of buyer, CPV division, region, contract type or year. Power BI can also pick the biggest split for you (the light bulb)."
+				)
+		isHidden
+		displayFolder: Story
+		lineageTag: 128adecb-8051-5262-b79f-d74fe6f15856
+
+	/// Sentence at the top of the Supplier detail drill-through page.
+	measure 'Supplier Headline' =
+			VAR SupName = SELECTEDVALUE ( dim_supplier[supplier_name] )
+			VAR V = [Supplier Value]
+			VAR ByCpv =
+				FILTER ( ADDCOLUMNS ( VALUES ( dim_cpv[cpv_label] ), "@v", [Supplier Value] ), NOT ISBLANK ( [@v] ) )
+			VAR TopCpv = TOPN ( 1, ByCpv, [@v], DESC )
+			VAR ByType =
+				FILTER ( ADDCOLUMNS ( VALUES ( dim_entity[entity_type] ), "@v", [Supplier Value] ), NOT ISBLANK ( [@v] ) )
+			VAR TopType = TOPN ( 1, ByType, [@v], DESC )
+			RETURN
+				IF (
+					ISBLANK ( SupName ),
+					"Right-click a supplier in the Suppliers page table and choose Drill through > Supplier detail.",
+					SupName & ": " & IF ( V >= 1E9, "€" & FORMAT ( V / 1E9, "0.0" ) & "bn", IF ( V >= 1E6, "€" & FORMAT ( V / 1E6, "0.0" ) & "m", "€" & FORMAT ( V, "#,0" ) ) ) & " allocated across " & FORMAT ( [Contract Count by Supplier], "#,0" ) & " contracts. Main CPV division: "
+						& MAXX ( TopCpv, dim_cpv[cpv_label] ) & " (" & FORMAT ( DIVIDE ( MAXX ( TopCpv, [@v] ), V ), "0%" ) & "). Main buyer: "
+						& MAXX ( TopType, dim_entity[entity_type] ) & " (" & FORMAT ( DIVIDE ( MAXX ( TopType, [@v] ), V ), "0%" ) & ")."
+				)
+		isHidden
+		displayFolder: Story
+		lineageTag: b78d5e82-40e7-5256-80db-2fe81e6681d0

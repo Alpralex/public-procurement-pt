@@ -3,9 +3,9 @@
   "name": "a49d903abafeff45d6a7",
   "position": {
     "x": 16,
-    "y": 112,
+    "y": 146,
     "z": 1000,
-    "height": 592,
+    "height": 558,
     "width": 640,
     "tabOrder": 1000
   },
@@ -233,7 +233,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'A contract with several awardees is split equally between them'"
+                  "Value": "'Right-click a supplier, then Drill through > Supplier detail'"
                 }
               }
             }

@@ -12,6 +12,7 @@ table dim_date
 		sourceColumn: date_day
 
 	column year_number
+		isHidden
 		dataType: int64
 		formatString: 0
 		lineageTag: c4587b8c-18f4-4e03-997a-e32c37b109b1

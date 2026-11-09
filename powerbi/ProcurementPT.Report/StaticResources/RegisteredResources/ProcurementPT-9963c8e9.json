@@ -2,46 +2,49 @@
   "$schema": "https://raw.githubusercontent.com/microsoft/powerbi-desktop-samples/main/Report%20Theme%20JSON%20Schema/reportThemeSchema-2.153.json",
   "name": "ProcurementPT-9963c8e9.json",
   "dataColors": [
-    "#2A78D6",
-    "#EB6834",
-    "#1F7A35",
-    "#B25B00",
-    "#5D6876"
+    "#970D63",
+    "#6E767D",
+    "#A6ACB1",
+    "#3B434B",
+    "#DDAEC3",
+    "#5E7C93",
+    "#B98A4B",
+    "#1F6B3A"
   ],
-  "good": "#1F7A35",
-  "neutral": "#5D6876",
+  "good": "#1F6B3A",
+  "neutral": "#6E767D",
   "bad": "#B42318",
-  "maximum": "#256ABF",
-  "center": "#79A6DD",
-  "minimum": "#CDE2FB",
-  "null": "#5D6876",
-  "foreground": "#1B2430",
-  "foregroundNeutralSecondary": "#5D6876",
-  "foregroundNeutralTertiary": "#5D6876",
-  "background": "#FFFFFF",
-  "backgroundLight": "#ECEFF2",
-  "backgroundNeutral": "#DCE0E5",
-  "tableAccent": "#2A78D6",
+  "maximum": "#970D63",
+  "center": "#DDAEC3",
+  "minimum": "#F4E6EC",
+  "null": "#A6ACB1",
+  "foreground": "#182027",
+  "foregroundNeutralSecondary": "#3B434B",
+  "foregroundNeutralTertiary": "#6E767D",
+  "background": "#EEF1F4",
+  "backgroundLight": "#F6F8FA",
+  "backgroundNeutral": "#A1A9AF",
+  "tableAccent": "#970D63",
   "textClasses": {
     "callout": {
-      "fontSize": 20,
+      "fontSize": 22,
       "fontFace": "Segoe UI Semibold",
-      "color": "#1B2430"
+      "color": "#182027"
     },
     "title": {
       "fontSize": 12,
       "fontFace": "Segoe UI Semibold",
-      "color": "#1B2430"
+      "color": "#182027"
     },
     "header": {
       "fontSize": 12,
       "fontFace": "Segoe UI Semibold",
-      "color": "#1B2430"
+      "color": "#182027"
     },
     "label": {
       "fontSize": 10,
       "fontFace": "Segoe UI",
-      "color": "#1B2430"
+      "color": "#182027"
     }
   },
   "visualStyles": {
@@ -52,7 +55,7 @@
             "show": true,
             "color": {
               "solid": {
-                "color": "#FFFFFF"
+                "color": "#EEF1F4"
               }
             },
             "transparency": 0
@@ -63,10 +66,10 @@
             "show": true,
             "color": {
               "solid": {
-                "color": "#DCE0E5"
+                "color": "#A1A9AF"
               }
             },
-            "radius": 6,
+            "radius": 2,
             "width": 1
           }
         ],
@@ -90,7 +93,7 @@
             "fontSize": 12,
             "fontColor": {
               "solid": {
-                "color": "#1B2430"
+                "color": "#182027"
               }
             }
           }
@@ -101,7 +104,7 @@
             "fontSize": 10,
             "fontColor": {
               "solid": {
-                "color": "#5D6876"
+                "color": "#3B434B"
               }
             }
           }
@@ -110,12 +113,12 @@
           {
             "gridlineColor": {
               "solid": {
-                "color": "#ECEFF2"
+                "color": "#D9DEE3"
               }
             },
             "labelColor": {
               "solid": {
-                "color": "#5D6876"
+                "color": "#3B434B"
               }
             },
             "gridlineStyle": "solid"
@@ -125,12 +128,12 @@
           {
             "gridlineColor": {
               "solid": {
-                "color": "#ECEFF2"
+                "color": "#D9DEE3"
               }
             },
             "labelColor": {
               "solid": {
-                "color": "#5D6876"
+                "color": "#3B434B"
               }
             },
             "gridlineStyle": "solid"
@@ -140,23 +143,40 @@
           {
             "labelColor": {
               "solid": {
-                "color": "#5D6876"
+                "color": "#3B434B"
               }
-            }
+            },
+            "fontSize": 10
+          }
+        ]
+      }
+    },
+    "page": {
+      "*": {
+        "background": [
+          {
+            "color": {
+              "solid": {
+                "color": "#C4CBD2"
+              }
+            },
+            "transparency": 0
+          }
+        ],
+        "outspace": [
+          {
+            "color": {
+              "solid": {
+                "color": "#C4CBD2"
+              }
+            },
+            "transparency": 0
           }
         ]
       }
     },
     "textbox": {
       "*": {
-        "padding": [
-          {
-            "top": 0,
-            "bottom": 0,
-            "left": 0,
-            "right": 0
-          }
-        ],
         "background": [
           {
             "show": false
@@ -169,21 +189,28 @@
         ]
       }
     },
-    "cardVisual": {
+    "actionButton": {
       "*": {
-        "value": [
+        "background": [
           {
-            "bold": true,
-            "$id": "default"
+            "show": false
           }
         ],
-        "label": [
+        "border": [
           {
-            "show": true,
-            "$id": "default"
+            "show": false
+          }
+        ]
+      }
+    },
+    "pageNavigator": {
+      "*": {
+        "background": [
+          {
+            "show": false
           }
         ],
-        "title": [
+        "border": [
           {
             "show": false
           }
@@ -192,29 +219,14 @@
     },
     "slicer": {
       "*": {
-        "header": [
+        "background": [
           {
-            "fontFamily": "Segoe UI Semibold",
-            "textSize": 10,
-            "fontColor": {
+            "show": true,
+            "color": {
               "solid": {
-                "color": "#1B2430"
+                "color": "#EEF1F4"
               }
-            },
-            "outlineStyle": 0
-          }
-        ],
-        "items": [
-          {
-            "fontFamily": "Segoe UI",
-            "textSize": 10,
-            "fontColor": {
-              "solid": {
-                "color": "#1B2430"
-              }
-            },
-            "outlineStyle": 0,
-            "padding": 2
+            }
           }
         ]
       }
@@ -223,95 +235,23 @@
       "*": {
         "columnHeaders": [
           {
-            "autoSizeColumnWidth": true,
-            "columnAdjustment": "growToFit",
+            "fontColor": {
+              "solid": {
+                "color": "#182027"
+              }
+            },
             "backColor": {
               "solid": {
-                "color": "#F7F8F9"
-              }
-            },
-            "fontColor": {
-              "solid": {
-                "color": "#1B2430"
-              }
-            },
-            "bold": true
-          }
-        ],
-        "values": [
-          {
-            "backColorPrimary": {
-              "solid": {
-                "color": "#FFFFFF"
-              }
-            },
-            "backColorSecondary": {
-              "solid": {
-                "color": "#FAFBFC"
-              }
-            },
-            "fontColorPrimary": {
-              "solid": {
-                "color": "#1B2430"
-              }
-            },
-            "fontColorSecondary": {
-              "solid": {
-                "color": "#1B2430"
-              }
-            }
-          }
-        ]
-      }
-    },
-    "pivotTable": {
-      "*": {
-        "columnHeaders": [
-          {
-            "autoSizeColumnWidth": true,
-            "columnAdjustment": "growToFit",
-            "backColor": {
-              "solid": {
-                "color": "#F7F8F9"
-              }
-            },
-            "fontColor": {
-              "solid": {
-                "color": "#1B2430"
-              }
-            },
-            "bold": true
-          }
-        ],
-        "rowHeaders": [
-          {
-            "fontColor": {
-              "solid": {
-                "color": "#1B2430"
+                "color": "#EEF1F4"
               }
             }
           }
         ],
-        "values": [
+        "grid": [
           {
-            "backColorPrimary": {
+            "gridHorizontalColor": {
               "solid": {
-                "color": "#FFFFFF"
-              }
-            },
-            "backColorSecondary": {
-              "solid": {
-                "color": "#FFFFFF"
-              }
-            },
-            "fontColorPrimary": {
-              "solid": {
-                "color": "#1B2430"
-              }
-            },
-            "fontColorSecondary": {
-              "solid": {
-                "color": "#1B2430"
+                "color": "#D9DEE3"
               }
             }
           }
