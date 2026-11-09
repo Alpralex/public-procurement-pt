@@ -3,9 +3,9 @@
   "name": "4facd974e15701b51815",
   "position": {
     "x": 16,
-    "y": 56,
+    "y": 52,
     "z": 8000,
-    "height": 38,
+    "height": 28,
     "width": 520,
     "tabOrder": 8000
   },
@@ -22,7 +22,7 @@
                     "value": "Where does public money go?",
                     "textStyle": {
                       "fontFamily": "Segoe UI Semibold",
-                      "fontSize": "22px",
+                      "fontSize": "16px",
                       "color": "#182027"
                     }
                   }

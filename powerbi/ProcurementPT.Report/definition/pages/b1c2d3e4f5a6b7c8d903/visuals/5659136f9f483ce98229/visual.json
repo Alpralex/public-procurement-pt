@@ -3,9 +3,9 @@
   "name": "5659136f9f483ce98229",
   "position": {
     "x": 16,
-    "y": 56,
+    "y": 52,
     "z": 14000,
-    "height": 38,
+    "height": 28,
     "width": 520,
     "tabOrder": 14000
   },
@@ -22,7 +22,7 @@
                     "value": "Contract values near the legal limits",
                     "textStyle": {
                       "fontFamily": "Segoe UI Semibold",
-                      "fontSize": "22px",
+                      "fontSize": "16px",
                       "color": "#182027"
                     }
                   }

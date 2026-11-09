@@ -3,9 +3,9 @@
   "name": "1a89bfbd7fe060b6c793",
   "position": {
     "x": 16,
-    "y": 94,
+    "y": 80,
     "z": 15000,
-    "height": 24,
+    "height": 18,
     "width": 520,
     "tabOrder": 15000
   },
@@ -22,7 +22,7 @@
                     "value": "Below each limit a simpler procedure is allowed. This shows where values sit, not why",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
-                      "fontSize": "12px",
+                      "fontSize": "10px",
                       "color": "#3B434B"
                     }
                   }

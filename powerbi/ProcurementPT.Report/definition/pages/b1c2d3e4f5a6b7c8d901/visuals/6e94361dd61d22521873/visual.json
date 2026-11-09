@@ -3,9 +3,9 @@
   "name": "6e94361dd61d22521873",
   "position": {
     "x": 16,
-    "y": 94,
+    "y": 80,
     "z": 9000,
-    "height": 24,
+    "height": 18,
     "width": 520,
     "tabOrder": 9000
   },
@@ -22,7 +22,7 @@
                     "value": "Portuguese public contracts on Portal BASE, 2019 to 24 October 2026",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
-                      "fontSize": "12px",
+                      "fontSize": "10px",
                       "color": "#3B434B"
                     }
                   }
