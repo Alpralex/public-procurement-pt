@@ -67,7 +67,7 @@
       "name": "ds_layers",
       "displayName": "layers",
       "queryLines": [
-        "SELECT '1 Bronze' AS layer, 'bronze_contracts: raw rows, Auto Loader' AS table_name, count(*) AS row_count FROM workspace.silver.bronze_contracts\nUNION ALL\nSELECT '2 Silver' AS layer, 'silver_contracts: typed and deduplicated' AS table_name, count(*) AS row_count FROM workspace.silver.silver_contracts\nUNION ALL\nSELECT '2 Silver' AS layer, 'silver_contracts_rejected: failed a drop rule' AS table_name, count(*) AS row_count FROM workspace.silver.silver_contracts_rejected\nUNION ALL\nSELECT '2 Silver' AS layer, 'silver_contract_awardees: one row per awardee' AS table_name, count(*) AS row_count FROM workspace.silver.silver_contract_awardees\nUNION ALL\nSELECT '3 Gold' AS layer, 'fct_contracts: fact table (dbt)' AS table_name, count(*) AS row_count FROM workspace.gold.fct_contracts\nUNION ALL\nSELECT '3 Gold' AS layer, 'bridge_contract_supplier: value split per supplier' AS table_name, count(*) AS row_count FROM workspace.gold.bridge_contract_supplier"
+        "SELECT '1 Bronze' AS layer, '1 Bronze: raw rows (Auto Loader)' AS table_name, count(*) AS row_count FROM workspace.silver.bronze_contracts\nUNION ALL\nSELECT '2 Silver' AS layer, '2 Silver: typed, deduplicated contracts' AS table_name, count(*) AS row_count FROM workspace.silver.silver_contracts\nUNION ALL\nSELECT '2 Silver' AS layer, '2 Silver: rows rejected by a rule' AS table_name, count(*) AS row_count FROM workspace.silver.silver_contracts_rejected\nUNION ALL\nSELECT '2 Silver' AS layer, '2 Silver: one row per awardee' AS table_name, count(*) AS row_count FROM workspace.silver.silver_contract_awardees\nUNION ALL\nSELECT '3 Gold' AS layer, '3 Gold: fct_contracts (dbt)' AS table_name, count(*) AS row_count FROM workspace.gold.fct_contracts\nUNION ALL\nSELECT '3 Gold' AS layer, '3 Gold: contract-supplier bridge (dbt)' AS table_name, count(*) AS row_count FROM workspace.gold.bridge_contract_supplier"
       ]
     },
     {
@@ -1023,44 +1023,54 @@
                   "datasetName": "ds_layers",
                   "fields": [
                     {
-                      "name": "layer",
-                      "expression": "`layer`"
-                    },
-                    {
                       "name": "table_name",
                       "expression": "`table_name`"
                     },
                     {
-                      "name": "row_count",
-                      "expression": "`row_count`"
+                      "name": "sum(row_count)",
+                      "expression": "SUM(`row_count`)"
+                    },
+                    {
+                      "name": "layer",
+                      "expression": "`layer`"
                     }
                   ],
-                  "disaggregated": true
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "version": 1,
-              "widgetType": "table",
+              "version": 3,
+              "widgetType": "bar",
               "encodings": {
-                "columns": [
-                  {
-                    "fieldName": "layer",
-                    "displayName": "Layer"
+                "x": {
+                  "fieldName": "sum(row_count)",
+                  "scale": {
+                    "type": "quantitative"
                   },
-                  {
-                    "fieldName": "table_name",
-                    "displayName": "Table"
+                  "displayName": "Rows"
+                },
+                "y": {
+                  "fieldName": "table_name",
+                  "scale": {
+                    "type": "categorical"
                   },
-                  {
-                    "fieldName": "row_count",
-                    "displayName": "Rows"
-                  }
-                ]
+                  "displayName": " "
+                },
+                "color": {
+                  "fieldName": "layer",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Layer"
+                },
+                "label": {
+                  "show": true
+                }
               },
               "frame": {
                 "showTitle": true,
-                "title": "Rows per layer (medallion architecture)"
+                "title": "Rows per table, bronze to gold (medallion architecture)"
               }
             }
           },
