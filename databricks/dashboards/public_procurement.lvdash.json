@@ -32,7 +32,7 @@
       "name": "ds_single_bid",
       "displayName": "single bid",
       "queryLines": [
-        "SELECT contract_year, procedure_group,\n       round(sum(single_bid_contracts) / sum(contracts_with_bidders) * 100, 1) AS single_bid_pct\nFROM workspace.gold.mart_competition\nWHERE procedure_group IN ('Open tender', 'Prior consultation') AND contract_year <= 2025\nGROUP BY ALL"
+        "SELECT contract_year, procedure_group,\n       round(try_divide(sum(single_bid_contracts), sum(contracts_with_bidders)) * 100, 1) AS single_bid_pct\nFROM workspace.gold.mart_competition\nWHERE procedure_group IN ('Open tender', 'Prior consultation') AND contract_year <= 2025\nGROUP BY ALL"
       ]
     },
     {
@@ -46,7 +46,7 @@
       "name": "ds_thresholds",
       "displayName": "thresholds",
       "queryLines": [
-        "SELECT procedure_limit || ' (' || threshold_family || ', EUR ' || format_number(threshold_eur, 0) || ')' AS legal_limit,\n       contracts_just_below, contracts_just_above,\n       round(contracts_just_below / neighbour_bin_avg, 1) AS times_neighbours\nFROM workspace.gold.mart_threshold_summary"
+        "SELECT procedure_limit || ' (' || threshold_family || ', EUR ' || format_number(threshold_eur, 0) || ')' AS legal_limit,\n       contracts_just_below, contracts_just_above,\n       round(try_divide(contracts_just_below, neighbour_bin_avg), 1) AS times_neighbours\nFROM workspace.gold.mart_threshold_summary"
       ]
     },
     {

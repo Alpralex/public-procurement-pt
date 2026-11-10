@@ -42,7 +42,7 @@ FROM {g}.contracts_enriched
 WHERE region_group NOT IN ('Multiple or national', 'Abroad', 'Not reported')
 GROUP BY ALL""",
         "ds_single_bid": f"""SELECT contract_year, procedure_group,
-       round(sum(single_bid_contracts) / sum(contracts_with_bidders) * 100, 1) AS single_bid_pct
+       round(try_divide(sum(single_bid_contracts), sum(contracts_with_bidders)) * 100, 1) AS single_bid_pct
 FROM {g}.mart_competition
 WHERE procedure_group IN ('Open tender', 'Prior consultation') AND contract_year <= 2025
 GROUP BY ALL""",
@@ -54,7 +54,7 @@ WHERE threshold_family = 'Goods and services' AND bin_start BETWEEN 5000 AND 990
 GROUP BY ALL""",
         "ds_thresholds": f"""SELECT procedure_limit || ' (' || threshold_family || ', EUR ' || format_number(threshold_eur, 0) || ')' AS legal_limit,
        contracts_just_below, contracts_just_above,
-       round(contracts_just_below / neighbour_bin_avg, 1) AS times_neighbours
+       round(try_divide(contracts_just_below, neighbour_bin_avg), 1) AS times_neighbours
 FROM {g}.mart_threshold_summary""",
         "ds_concentration": f"""SELECT c.cpv_short_name AS category, round(m.hhi) AS hhi, round(m.top5_share * 100, 1) AS top5_pct,
        m.supplier_value / 1e9 AS value_bn
