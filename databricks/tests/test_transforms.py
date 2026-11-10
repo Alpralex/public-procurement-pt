@@ -50,6 +50,19 @@ def test_cpv_key_value_format_of_the_2026_republication(spark):
     assert out.cpv_code == "71330000" and out.cpv_division == "71"
 
 
+def test_buyer_key_value_format_of_the_2026_republication(spark):
+    buyer = ("nifEntContrato=506833232|descEntContrato=Município de Arganil|codPaisEntContrato=PRT|NUTsCod=PT16E"
+             "|NUTsDesc=Região de Coimbra")
+    out = T.parse_contracts(bronze(spark, row(adjudicante=buyer))).collect()[0]
+    assert out.entity_name == "Município de Arganil" and out.entity_key == "506833232"
+
+
+def test_awardee_key_value_format(spark):
+    c = T.parse_contracts(bronze(spark, row(adjudicatarios="nifAdjudicatario=500000001|descAdjudicatario=Alfa, Lda|codPais=PRT")))
+    out = T.parse_awardees(c).collect()[0]
+    assert out.awardee_name == "Alfa, Lda" and out.nif == "500000001"
+
+
 def test_empty_and_placeholder_become_null_and_negative_prices_drop(spark):
     out = T.parse_contracts(bronze(spark, row(precoContratual="-5", CPV="∅", concorrentes="  "))).collect()[0]
     assert out.contract_value is None and out.contract_price == Decimal("-5.00")
