@@ -7,3 +7,4 @@ dbt/logs/
 dbt/dbt_packages/
 .databricks/
 __pycache__/
+.genie_space_id
