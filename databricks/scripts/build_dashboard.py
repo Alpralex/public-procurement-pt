@@ -60,7 +60,8 @@ FROM {g}.mart_threshold_summary""",
        m.supplier_value / 1e9 AS value_bn
 FROM {g}.mart_supplier_concentration m
 JOIN {g}.dim_cpv c USING (cpv_division)
-WHERE m.period = '2019-2026' AND m.supplier_value > 5e8""",
+WHERE m.period = '2019-2026' AND m.supplier_value > 5e8
+ORDER BY m.hhi DESC LIMIT 10""",
         "ds_price": f"""SELECT procedure_group,
        round((1 - try_divide(sum(base_contract_value), sum(base_price_total))) * 100, 1) AS pct_below_base_price
 FROM {g}.mart_price_vs_base
@@ -198,7 +199,7 @@ def build(cat: str) -> dict:
               "Contracts in the band just below each legal limit, times the neighbouring bands", 0, 14, 3, 6,
               horizontal=True, sort_by_value=True, y_title="x neighbouring bands", labels=True),
         chart("concentration", "bar", "ds_concentration", "category", "hhi",
-              "Supplier concentration (HHI) by category, 2019-2026: over 2,500 is high", 3, 14, 3, 6,
+              "Most concentrated categories (HHI), 2019-2026: under 1,500 is unconcentrated", 3, 14, 3, 6,
               horizontal=True, sort_by_value=True, y_title="HHI", labels=True),
     ]
     pipeline = [

@@ -53,7 +53,7 @@
       "name": "ds_concentration",
       "displayName": "concentration",
       "queryLines": [
-        "SELECT c.cpv_short_name AS category, round(m.hhi) AS hhi, round(m.top5_share * 100, 1) AS top5_pct,\n       m.supplier_value / 1e9 AS value_bn\nFROM workspace.gold.mart_supplier_concentration m\nJOIN workspace.gold.dim_cpv c USING (cpv_division)\nWHERE m.period = '2019-2026' AND m.supplier_value > 5e8"
+        "SELECT c.cpv_short_name AS category, round(m.hhi) AS hhi, round(m.top5_share * 100, 1) AS top5_pct,\n       m.supplier_value / 1e9 AS value_bn\nFROM workspace.gold.mart_supplier_concentration m\nJOIN workspace.gold.dim_cpv c USING (cpv_division)\nWHERE m.period = '2019-2026' AND m.supplier_value > 5e8\nORDER BY m.hhi DESC LIMIT 10"
       ]
     },
     {
@@ -846,7 +846,7 @@
               },
               "frame": {
                 "showTitle": true,
-                "title": "Supplier concentration (HHI) by category, 2019-2026: over 2,500 is high"
+                "title": "Most concentrated categories (HHI), 2019-2026: under 1,500 is unconcentrated"
               }
             }
           },
