@@ -751,48 +751,42 @@
                       "expression": "`legal_limit`"
                     },
                     {
-                      "name": "contracts_just_below",
-                      "expression": "`contracts_just_below`"
-                    },
-                    {
-                      "name": "contracts_just_above",
-                      "expression": "`contracts_just_above`"
-                    },
-                    {
-                      "name": "times_neighbours",
-                      "expression": "`times_neighbours`"
+                      "name": "sum(times_neighbours)",
+                      "expression": "SUM(`times_neighbours`)"
                     }
                   ],
-                  "disaggregated": true
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "version": 1,
-              "widgetType": "table",
+              "version": 3,
+              "widgetType": "bar",
               "encodings": {
-                "columns": [
-                  {
-                    "fieldName": "legal_limit",
-                    "displayName": "Legal limit"
+                "x": {
+                  "fieldName": "sum(times_neighbours)",
+                  "scale": {
+                    "type": "quantitative"
                   },
-                  {
-                    "fieldName": "contracts_just_below",
-                    "displayName": "Just below"
+                  "displayName": "x neighbouring bands"
+                },
+                "y": {
+                  "fieldName": "legal_limit",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "x-reversed"
+                    }
                   },
-                  {
-                    "fieldName": "contracts_just_above",
-                    "displayName": "Just above"
-                  },
-                  {
-                    "fieldName": "times_neighbours",
-                    "displayName": "x neighbouring bands"
-                  }
-                ]
+                  "displayName": " "
+                },
+                "label": {
+                  "show": true
+                }
               },
               "frame": {
                 "showTitle": true,
-                "title": "Contracts just below each legal limit vs the neighbouring bands"
+                "title": "Contracts in the band just below each legal limit, times the neighbouring bands"
               }
             }
           },
@@ -817,48 +811,42 @@
                       "expression": "`category`"
                     },
                     {
-                      "name": "hhi",
-                      "expression": "`hhi`"
-                    },
-                    {
-                      "name": "top5_pct",
-                      "expression": "`top5_pct`"
-                    },
-                    {
-                      "name": "value_bn",
-                      "expression": "`value_bn`"
+                      "name": "sum(hhi)",
+                      "expression": "SUM(`hhi`)"
                     }
                   ],
-                  "disaggregated": true
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "version": 1,
-              "widgetType": "table",
+              "version": 3,
+              "widgetType": "bar",
               "encodings": {
-                "columns": [
-                  {
-                    "fieldName": "category",
-                    "displayName": "CPV category"
+                "x": {
+                  "fieldName": "sum(hhi)",
+                  "scale": {
+                    "type": "quantitative"
                   },
-                  {
-                    "fieldName": "hhi",
-                    "displayName": "HHI"
+                  "displayName": "HHI"
+                },
+                "y": {
+                  "fieldName": "category",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "x-reversed"
+                    }
                   },
-                  {
-                    "fieldName": "top5_pct",
-                    "displayName": "Top 5 share, %"
-                  },
-                  {
-                    "fieldName": "value_bn",
-                    "displayName": "Value, EUR bn"
-                  }
-                ]
+                  "displayName": " "
+                },
+                "label": {
+                  "show": true
+                }
               },
               "frame": {
                 "showTitle": true,
-                "title": "Supplier concentration by category, 2019-2026"
+                "title": "Supplier concentration (HHI) by category, 2019-2026: over 2,500 is high"
               }
             }
           },

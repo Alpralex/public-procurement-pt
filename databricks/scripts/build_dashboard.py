@@ -194,13 +194,12 @@ def build(cat: str) -> dict:
         chart("bunching", "bar", "ds_bunching", "value_k_eur", "contracts",
               "Goods and services contracts per EUR 1,000 band: peaks just below the EUR 20k and 75k limits",
               0, 8, 6, 6, color="band", x_title="Contract value, EUR thousand", y_title="Contracts"),
-        table("thresholds", "ds_thresholds", ["legal_limit", "contracts_just_below", "contracts_just_above", "times_neighbours"],
-              "Contracts just below each legal limit vs the neighbouring bands", 0, 14, 3, 6,
-              names={"legal_limit": "Legal limit", "contracts_just_below": "Just below", "contracts_just_above": "Just above",
-                     "times_neighbours": "x neighbouring bands"}),
-        table("concentration", "ds_concentration", ["category", "hhi", "top5_pct", "value_bn"],
-              "Supplier concentration by category, 2019-2026", 3, 14, 3, 6,
-              names={"category": "CPV category", "hhi": "HHI", "top5_pct": "Top 5 share, %", "value_bn": "Value, EUR bn"}),
+        chart("thresholds", "bar", "ds_thresholds", "legal_limit", "times_neighbours",
+              "Contracts in the band just below each legal limit, times the neighbouring bands", 0, 14, 3, 6,
+              horizontal=True, sort_by_value=True, y_title="x neighbouring bands", labels=True),
+        chart("concentration", "bar", "ds_concentration", "category", "hhi",
+              "Supplier concentration (HHI) by category, 2019-2026: over 2,500 is high", 3, 14, 3, 6,
+              horizontal=True, sort_by_value=True, y_title="HHI", labels=True),
     ]
     pipeline = [
         text("intro3", [
