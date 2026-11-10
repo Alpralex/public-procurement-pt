@@ -4,7 +4,18 @@ Genie answers questions in plain language (Portuguese or English) by writing SQL
 column descriptions it reads come from dbt (`dbt/models/gold/_gold.yml`, written to Unity Catalog by
 `persist_docs`), so no extra documentation is needed in the space itself.
 
-## Create the space (about 5 minutes, in the Databricks UI)
+## Create the space with one command
+
+```bash
+export BUNDLE_VAR_warehouse_id=$(databricks warehouses list --output json | python3 -c "import sys,json; print(json.load(sys.stdin)[0]['id'])")
+python3 scripts/create_genie_space.py
+```
+
+The script sends the tables, `instructions.md`, the sample questions and the trusted SQL in
+`example_queries.sql` to the Genie API, using the CLI login. Run it again after editing those files: it updates
+the same space (its id is kept in `.genie_space_id`).
+
+## Or create it by hand (about 5 minutes, in the Databricks UI)
 
 1. Left menu **Genie** → **New**.
 2. **Tables**: `workspace.gold.contracts_enriched`, `workspace.gold.mart_top_suppliers`,

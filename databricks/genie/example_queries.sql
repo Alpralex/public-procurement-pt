@@ -26,3 +26,17 @@ SELECT procedure_limit, threshold_family, threshold_eur, contracts_just_below, c
        round(contracts_just_below / neighbour_bin_avg, 1) AS times_neighbour_average
 FROM workspace.gold.mart_threshold_summary
 ORDER BY threshold_family, threshold_eur;
+
+-- Quanto gastaram os hospitais e outras entidades de saúde em 2025? (health spending in 2025)
+SELECT round(sum(contract_value_eur) / 1e6, 1) AS value_m_eur, count(*) AS contracts
+FROM workspace.gold.contracts_enriched
+WHERE entity_type = 'Health' AND contract_year = 2025;
+
+-- Que distritos tiveram mais valor em obras públicas em 2024? (districts with the most public-works value in 2024)
+SELECT region, round(sum(contract_value_eur) / 1e6, 1) AS value_m_eur, count(*) AS contracts
+FROM workspace.gold.contracts_enriched
+WHERE contract_type = 'Public works' AND contract_year = 2024
+  AND region_group NOT IN ('Multiple or national', 'Abroad', 'Not reported')
+GROUP BY region
+ORDER BY value_m_eur DESC
+LIMIT 10;
