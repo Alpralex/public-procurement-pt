@@ -62,7 +62,7 @@ FROM {g}.mart_supplier_concentration m
 JOIN {g}.dim_cpv c USING (cpv_division)
 WHERE m.period = '2019-2026' AND m.supplier_value > 5e8""",
         "ds_price": f"""SELECT procedure_group,
-       round((1 - sum(base_contract_value) / sum(base_price_total)) * 100, 1) AS pct_below_base_price
+       round((1 - try_divide(sum(base_contract_value), sum(base_price_total))) * 100, 1) AS pct_below_base_price
 FROM {g}.mart_price_vs_base
 GROUP BY ALL
 HAVING sum(base_contracts) > 1000""",

@@ -60,7 +60,7 @@
       "name": "ds_price",
       "displayName": "price",
       "queryLines": [
-        "SELECT procedure_group,\n       round((1 - sum(base_contract_value) / sum(base_price_total)) * 100, 1) AS pct_below_base_price\nFROM workspace.gold.mart_price_vs_base\nGROUP BY ALL\nHAVING sum(base_contracts) > 1000"
+        "SELECT procedure_group,\n       round((1 - try_divide(sum(base_contract_value), sum(base_price_total))) * 100, 1) AS pct_below_base_price\nFROM workspace.gold.mart_price_vs_base\nGROUP BY ALL\nHAVING sum(base_contracts) > 1000"
       ]
     },
     {
