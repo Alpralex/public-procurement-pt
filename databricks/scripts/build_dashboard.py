@@ -134,8 +134,8 @@ def table(name, ds, cols, title, x, y, w, h):
 def build(cat: str) -> dict:
     overview = [
         text("intro", [
-            "## Where does Portugal's public procurement money go?",
-            "1.55 million contracts published on Portal BASE, January 2019 to October 2026, EUR without VAT. "
+            "## Where does Portugal's public procurement money go?\n",
+            "Every contract published on Portal BASE since January 2019 (1.5 million+, refreshed weekly), EUR without VAT. "
             "Built on Databricks: Auto Loader + Lakeflow pipeline (bronze, silver) and dbt (gold). "
             "Click any bar to filter the page.",
         ], 0, 0, 6, 2),
