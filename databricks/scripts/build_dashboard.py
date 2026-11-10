@@ -35,27 +35,26 @@ GROUP BY ALL""",
   SELECT cpv_category, count(*) AS contracts, sum(contract_value_eur) / 1e9 AS value_bn
   FROM {g}.contracts_enriched GROUP BY ALL),
 r AS (SELECT *, row_number() OVER (ORDER BY value_bn DESC) AS rk FROM c)
-SELECT CASE WHEN rk <= 12 THEN cpv_category ELSE 'All other categories' END AS cpv_category,
-       sum(contracts) AS contracts, sum(value_bn) AS value_bn
-FROM r GROUP BY ALL""",
+SELECT cpv_category, contracts, value_bn
+FROM r WHERE rk <= 12""",
         "ds_region": f"""SELECT region, region_group, count(*) AS contracts, sum(contract_value_eur) / 1e9 AS value_bn
 FROM {g}.contracts_enriched
 WHERE region_group NOT IN ('Multiple or national', 'Abroad', 'Not reported')
 GROUP BY ALL""",
         "ds_single_bid": f"""SELECT contract_year, procedure_group,
-       round(sum(single_bid_contracts) / sum(contracts_with_bidders) * 100, 1) AS single_bid_pct
+       round(try_divide(sum(single_bid_contracts), sum(contracts_with_bidders)) * 100, 1) AS single_bid_pct
 FROM {g}.mart_competition
 WHERE procedure_group IN ('Open tender', 'Prior consultation') AND contract_year <= 2025
 GROUP BY ALL""",
         "ds_bunching": f"""SELECT bin_start / 1000 AS value_k_eur,
-       CASE WHEN bin_start IN (19000, 74000) THEN 'Band just below a legal limit' ELSE 'Other bands' END AS band,
+       CASE WHEN bin_start IN (19000, 74000) THEN 'Just below a legal limit' ELSE 'All other bands' END AS band,
        sum(contracts) AS contracts
 FROM {g}.mart_threshold_bunching
 WHERE threshold_family = 'Goods and services' AND bin_start BETWEEN 5000 AND 99000
 GROUP BY ALL""",
         "ds_thresholds": f"""SELECT procedure_limit || ' (' || threshold_family || ', EUR ' || format_number(threshold_eur, 0) || ')' AS legal_limit,
        contracts_just_below, contracts_just_above,
-       round(contracts_just_below / neighbour_bin_avg, 1) AS times_neighbours
+       round(try_divide(contracts_just_below, neighbour_bin_avg), 1) AS times_neighbours
 FROM {g}.mart_threshold_summary""",
         "ds_concentration": f"""SELECT c.cpv_short_name AS category, round(m.hhi) AS hhi, round(m.top5_share * 100, 1) AS top5_pct,
        m.supplier_value / 1e9 AS value_bn
@@ -63,7 +62,7 @@ FROM {g}.mart_supplier_concentration m
 JOIN {g}.dim_cpv c USING (cpv_division)
 WHERE m.period = '2019-2026' AND m.supplier_value > 5e8""",
         "ds_price": f"""SELECT procedure_group,
-       round((1 - sum(base_contract_value) / sum(base_price_total)) * 100, 1) AS pct_below_base_price
+       round((1 - try_divide(sum(base_contract_value), sum(base_price_total))) * 100, 1) AS pct_below_base_price
 FROM {g}.mart_price_vs_base
 GROUP BY ALL
 HAVING sum(base_contracts) > 1000""",
@@ -119,8 +118,6 @@ def chart(name, kind, ds, x_col, y_col, title, x, y, w, h, color=None, agg="SUM"
     if color:
         fields.append(field(color))
     cat_scale = {"type": "categorical"} if not x_col.endswith("year") and not x_col.startswith("value_k") else {"type": "quantitative"}
-    if kind == "line":
-        cat_scale = {"type": "ordinal"}
     if sort_by_value:
         cat_scale = {**cat_scale, "sort": {"by": "x-reversed" if horizontal else "y-reversed"}}
     cat = {"fieldName": x_col, "scale": cat_scale, "displayName": x_title or " "}
@@ -187,9 +184,9 @@ def build(cat: str) -> dict:
             "price signed against the base price.",
         ], 0, 0, 6, 2),
         chart("single_bid", "line", "ds_single_bid", "contract_year", "single_bid_pct",
-              "Procedures with a single bid, % (2019-2025)", 0, 2, 3, 6, color="procedure_group", agg="AVG", y_title="%"),
+              "Procedures with a single bid, % (2019-2025)", 0, 2, 3, 6, color="procedure_group", y_title="%"),
         chart("price_vs_base", "bar", "ds_price", "procedure_group", "pct_below_base_price",
-              "Signed price below the base price, %", 3, 2, 3, 6, agg="AVG", horizontal=True, sort_by_value=True,
+              "Signed price below the base price, %", 3, 2, 3, 6, horizontal=True, sort_by_value=True,
               y_title="%", labels=True),
         chart("bunching", "bar", "ds_bunching", "value_k_eur", "contracts",
               "Goods and services contracts per EUR 1,000 band: peaks just below the EUR 20k and 75k limits",
