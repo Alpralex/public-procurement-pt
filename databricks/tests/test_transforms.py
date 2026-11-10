@@ -106,3 +106,9 @@ def test_location_lines(spark):
     loc = "Portugal, Lisboa, Lisboa\nPortugal, Porto, Maia\n"
     lines = T.parse_location_lines(T.parse_contracts(bronze(spark, row(LocalExecucao=loc)))).collect()
     assert [(r.line_seq, r.country, r.district) for r in lines] == [(1, "Portugal", "Lisboa"), (2, "Portugal", "Porto")]
+
+
+def test_missing_optional_columns_become_null(spark):
+    df = spark.createDataFrame([row()], ", ".join(f"`{c}` string" for c in COLUMNS)).drop("TipoCriterioAdjudicacao", "NUTs")
+    out = T.parse_contracts(T.with_source_year(df)).collect()[0]
+    assert out.contract_id == 1001 and out.award_criterion is None

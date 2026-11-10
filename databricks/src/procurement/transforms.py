@@ -87,8 +87,31 @@ def _after_dash(col: Column) -> Column:
 
 
 # --------------------------------------------------------------------------------------------- bronze
+# Source columns the transformations read. IMPIC changes the published files from time to time (the November
+# 2026 republication dropped TipoCriterioAdjudicacao, for example); a column that is missing is added as NULL so
+# the pipeline keeps running, and the column list shows exactly which fields the model depends on.
+REQUIRED = ["idcontrato", "Ano"]
+OPTIONAL = [
+    "nAnuncio", "tipoContrato", "idprocedimento", "tipoprocedimento", "objectoContrato", "adjudicante",
+    "adjudicatarios", "dataPublicacao", "dataCelebracaoContrato", "precoContratual", "CPV", "prazoExecucao",
+    "LocalExecucao", "fundamentacao", "ProcedimentoCentralizado", "numAcordoQuadro", "precoBaseProcedimento",
+    "dataDecisaoAdjudicacao", "dataFechoContrato", "PrecoTotalEfetivo", "regime", "tipoFimContrato", "concorrentes",
+    "ContratEcologico", "TipoCriterioAdjudicacao", "adjudicatarioPMEs", "Lotes", "NUTs",
+]
+
+
+def missing_columns(bronze: DataFrame) -> list[str]:
+    have = set(bronze.columns)
+    return [c for c in REQUIRED + OPTIONAL if c not in have]
+
+
 def with_source_year(bronze: DataFrame, file_col: str = "_source_file") -> DataFrame:
-    """Year of the yearly file a row came from (contratos_YYYY.parquet)."""
+    """Year of the yearly file a row came from (contratos_YYYY.parquet); adds missing optional columns as NULL."""
+    absent = missing_columns(bronze)
+    if any(c in REQUIRED for c in absent):
+        raise ValueError(f"source files lack required columns: {[c for c in absent if c in REQUIRED]}")
+    for c in absent:
+        bronze = bronze.withColumn(c, F.lit(None).cast("string"))
     return bronze.withColumn(
         "source_file_year", to_int(F.regexp_extract(F.col(file_col), r"contratos_(\d{4})\.parquet", 1))
     )
