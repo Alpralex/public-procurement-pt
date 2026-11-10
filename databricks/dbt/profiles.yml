@@ -1,0 +1,30 @@
+# Credentials come from environment variables, never from this file.
+#   DATABRICKS_HOST       e.g. dbc-1234abcd-5678.cloud.databricks.com (no https://)
+#   DATABRICKS_HTTP_PATH  SQL warehouse > Connection details > HTTP path
+#   DATABRICKS_TOKEN      personal access token (Settings > Developer > Access tokens)
+# target "local" runs the same models on a local Spark session (scripts/run_local.py, CI).
+procurement_lakehouse:
+  target: databricks
+  outputs:
+    databricks:
+      type: databricks
+      catalog: "{{ env_var('PROC_CATALOG', 'workspace') }}"
+      schema: gold
+      host: "{{ env_var('DATABRICKS_HOST', 'not-set.cloud.databricks.com') }}"
+      http_path: "{{ env_var('DATABRICKS_HTTP_PATH', '/sql/1.0/warehouses/not-set') }}"
+      token: "{{ env_var('DATABRICKS_TOKEN', 'not-set') }}"
+      threads: 4
+    local:
+      type: spark
+      method: session
+      host: localhost
+      schema: gold
+      threads: 1
+      server_side_parameters:
+        "spark.driver.memory": "8g"
+        "spark.sql.shuffle.partitions": "16"
+        "spark.sql.ansi.enabled": "true"
+        "spark.ui.enabled": "false"
+        # dbt-spark writes seed values as SQL literals without escaping backslashes; raw literals keep the
+        # regex patterns of entity_type_rules intact (dbt-databricks escapes them itself)
+        "spark.sql.parser.escapedStringLiterals": "true"

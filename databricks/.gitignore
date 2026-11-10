@@ -1,0 +1,9 @@
+.local_spark/
+spark-warehouse/
+metastore_db/
+derby.log
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+.databricks/
+__pycache__/

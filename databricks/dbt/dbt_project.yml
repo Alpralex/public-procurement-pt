@@ -1,0 +1,43 @@
+# Gold layer on Databricks: the same business rules as the DuckDB project (../../models), in Databricks SQL.
+# Sources are the silver tables the Lakeflow pipeline writes (src/pipeline/procurement_pipeline.py).
+name: procurement_lakehouse
+version: "1.0.0"
+config-version: 2
+profile: procurement_lakehouse
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+vars:
+  first_year: 2019
+  last_year: 2026
+  # Totals of the DuckDB build (README of the repository, data of 2026-10-24). The reconciliation test fails if
+  # the lakehouse gives anything else.
+  expected_contracts: 1550674
+  expected_value_eur: 120540000000
+  expected_value_tolerance_eur: 10000000
+
+seeds:
+  procurement_lakehouse:
+    +schema: ref
+    cpv_divisions:
+      +column_types: {cpv_division: string}
+    entity_type_rules:
+      +column_types: {rule_order: int, pattern: string}
+    procedure_types:
+      +column_types: {procedure_key: int, group_order: int, is_competitive: boolean}
+    districts:
+      +column_types: {sort_order: int}
+    thresholds:
+      +column_types: {threshold_eur: int, valid_from: date, valid_to: date, in_analysis: boolean}
+
+models:
+  procurement_lakehouse:
+    # Delta on Databricks; plain Parquet when the same models run on local Spark (scripts/run_local.py, CI)
+    +file_format: "{{ 'delta' if target.type == 'databricks' else 'parquet' }}"
+    intermediate:
+      +materialized: view
+    gold:
+      +materialized: table

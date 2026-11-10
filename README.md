@@ -10,8 +10,8 @@ contract values sit around the legal limits, how concentrated each category is, 
 base price. The data are modelled in SQL with dbt on DuckDB and tested. The same marts feed a web dashboard, a
 Qlik Sense app and a Power BI model.
 
-**Live dashboard:** https://guilhermerigonato.com/public-procurement-pt/ · [`web/`](web/) · **Qlik Sense:** [`qlik/`](qlik/) · **Power BI:** [`powerbi/`](powerbi/) · **Python notebook:** [`notebooks/`](notebooks/competition_and_price.ipynb) ([interactive version](https://guilhermerigonato.com/public-procurement-pt/notebook/))
-**Stack:** Python (pandas, statsmodels, pyfixest, Altair), SQL, dbt, DuckDB, Qlik Sense (load script, set analysis, associative model), Power BI (PBIP/TMDL, DAX)
+**Live dashboard:** https://guilhermerigonato.com/public-procurement-pt/ · [`web/`](web/) · **Qlik Sense:** [`qlik/`](qlik/) · **Power BI:** [`powerbi/`](powerbi/) · **Python notebook:** [`notebooks/`](notebooks/competition_and_price.ipynb) ([interactive version](https://guilhermerigonato.com/public-procurement-pt/notebook/)) · **Databricks lakehouse:** [`databricks/`](databricks/)
+**Stack:** Python (pandas, statsmodels, pyfixest, Altair), SQL, dbt, DuckDB, Qlik Sense (load script, set analysis, associative model), Power BI (PBIP/TMDL, DAX), Databricks (Lakeflow, Auto Loader, Delta, dbt-databricks, AI/BI, Genie, Asset Bundles), PySpark
 
 This is descriptive spend analysis of published records. The figures show patterns in the data; they say nothing
 about whether any entity or supplier acted wrongly.
@@ -58,6 +58,14 @@ bidders in open tenders and prior consultations (272,342 single-contract procedu
   ranges from −9.9% in architecture and engineering and −7.9% in IT services to −3.2% in energy and fuel.
 
 These are associations, not causal effects; the notebook lists what it does not show.
+
+## Databricks lakehouse
+
+[`databricks/`](databricks/) runs the same project on Databricks: Auto Loader and a Lakeflow pipeline load the
+yearly files into bronze and silver Delta tables with data-quality expectations, dbt-databricks builds the gold
+layer, and an AI/BI dashboard and a Genie space ("ask the contracts" in Portuguese or English) sit on top, all
+deployed by one Asset Bundle. The silver code is PySpark with unit tests, and a dbt test proves the lakehouse
+gives the same totals as this DuckDB build (1,550,674 contracts, EUR 120.54bn).
 
 ## Model
 

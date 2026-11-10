@@ -1,0 +1,37 @@
+# Weekly refresh: new files in the landing volume -> pipeline (bronze, silver) -> dbt (gold + tests).
+resources:
+  jobs:
+    procurement_refresh:
+      name: procurement_weekly_refresh
+      schedule:
+        quartz_cron_expression: "0 0 6 ? * MON"
+        timezone_id: Europe/Lisbon
+        pause_status: PAUSED   # unpause in the UI when the data download is automated
+      email_notifications:
+        on_failure: []
+      tasks:
+        - task_key: bronze_silver
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.procurement_pipeline.id}
+            full_refresh: false
+
+        - task_key: gold_dbt
+          depends_on:
+            - task_key: bronze_silver
+          environment_key: dbt
+          dbt_task:
+            project_directory: ../dbt
+            warehouse_id: ${var.warehouse_id}
+            catalog: ${var.catalog}
+            schema: gold
+            commands:
+              - dbt deps
+              - dbt seed
+              - dbt build --exclude resource_type:seed
+
+      environments:
+        - environment_key: dbt
+          spec:
+            client: "2"
+            dependencies:
+              - dbt-databricks>=1.10,<2.0

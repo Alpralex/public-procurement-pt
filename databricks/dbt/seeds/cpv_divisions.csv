@@ -1,0 +1,47 @@
+cpv_division,cpv_division_name,cpv_short_name
+00,Not reported,Not reported
+03,"Agricultural, farming, fishing, forestry and related products",Agriculture and food raw materials
+09,"Petroleum products, fuel, electricity and other sources of energy",Energy and fuel
+14,"Mining, basic metals and related products",Mining and metals
+15,"Food, beverages, tobacco and related products",Food and beverages
+16,Agricultural machinery,Agricultural machinery
+18,"Clothing, footwear, luggage articles and accessories",Clothing and footwear
+19,"Leather and textile fabrics, plastic and rubber materials","Textiles, plastics and rubber"
+22,Printed matter and related products,Printed matter
+24,Chemical products,Chemicals
+30,"Office and computing machinery, equipment and supplies except furniture and software packages",Office and IT equipment
+31,"Electrical machinery, apparatus, equipment and consumables; lighting",Electrical equipment
+32,"Radio, television, communication, telecommunication and related equipment",Telecom equipment
+33,"Medical equipments, pharmaceuticals and personal care products",Medical and pharmaceutical
+34,Transport equipment and auxiliary products to transportation,Transport equipment
+35,"Security, fire-fighting, police and defence equipment",Security and defence equipment
+37,"Musical instruments, sport goods, games, toys, handicraft, art materials and accessories","Sport, music and leisure goods"
+38,"Laboratory, optical and precision equipments (excl. glasses)",Laboratory and precision equipment
+39,"Furniture (incl. office furniture), furnishings, domestic appliances (excl. lighting) and cleaning products",Furniture and cleaning products
+41,Collected and purified water,Water
+42,Industrial machinery,Industrial machinery
+43,"Machinery for mining, quarrying, construction equipment",Construction machinery
+44,Construction structures and materials; auxiliary products to construction (except electric apparatus),Construction materials
+45,Construction work,Construction work
+48,Software package and information systems,Software
+50,Repair and maintenance services,Repair and maintenance
+51,Installation services (except software),Installation services
+55,"Hotel, restaurant and retail trade services","Hotel, catering and retail services"
+60,Transport services (excl. Waste transport),Transport services
+63,Supporting and auxiliary transport services; travel agencies services,Transport support and travel
+64,Postal and telecommunications services,Postal and telecom services
+65,Public utilities,Public utilities
+66,Financial and insurance services,Financial and insurance
+70,Real estate services,Real estate
+71,"Architectural, construction, engineering and inspection services",Architecture and engineering
+72,"IT services: consulting, software development, Internet and support",IT services
+73,Research and development services and related consultancy services,Research and development
+75,"Administration, defence and social security services",Administration and defence services
+76,Services related to the oil and gas industry,Oil and gas services
+77,"Agricultural, forestry, horticultural, aquacultural and apicultural services","Agricultural, forestry and gardening services"
+79,"Business services: law, marketing, consulting, recruitment, printing and security",Business services
+80,Education and training services,Education and training
+85,Health and social work services,Health and social services
+90,"Sewage, refuse, cleaning and environmental services","Waste, cleaning and environment"
+92,"Recreational, cultural and sporting services","Recreation, culture and sport"
+98,"Other community, social and personal services",Other community services

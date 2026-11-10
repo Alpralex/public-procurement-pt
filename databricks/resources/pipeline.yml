@@ -1,0 +1,15 @@
+resources:
+  pipelines:
+    procurement_pipeline:
+      name: procurement_bronze_silver
+      catalog: ${var.catalog}
+      schema: silver
+      serverless: true
+      channel: CURRENT
+      photon: true
+      libraries:
+        - file:
+            path: ../src/pipeline/procurement_pipeline.py
+      configuration:
+        landing_path: ${var.landing_path}
+        src_path: ${workspace.file_path}/src
