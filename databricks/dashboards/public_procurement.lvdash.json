@@ -18,7 +18,7 @@
       "name": "ds_category",
       "displayName": "category",
       "queryLines": [
-        "WITH c AS (\n  SELECT cpv_category, count(*) AS contracts, sum(contract_value_eur) / 1e9 AS value_bn\n  FROM workspace.gold.contracts_enriched GROUP BY ALL),\nr AS (SELECT *, row_number() OVER (ORDER BY value_bn DESC) AS rk FROM c)\nSELECT CASE WHEN rk <= 12 THEN cpv_category ELSE 'All other categories' END AS cpv_category,\n       sum(contracts) AS contracts, sum(value_bn) AS value_bn\nFROM r GROUP BY ALL"
+        "WITH c AS (\n  SELECT cpv_category, count(*) AS contracts, sum(contract_value_eur) / 1e9 AS value_bn\n  FROM workspace.gold.contracts_enriched GROUP BY ALL),\nr AS (SELECT *, row_number() OVER (ORDER BY value_bn DESC) AS rk FROM c)\nSELECT cpv_category, contracts, value_bn\nFROM r WHERE rk <= 12"
       ]
     },
     {
@@ -39,7 +39,7 @@
       "name": "ds_bunching",
       "displayName": "bunching",
       "queryLines": [
-        "SELECT bin_start / 1000 AS value_k_eur,\n       CASE WHEN bin_start IN (19000, 74000) THEN 'Band just below a legal limit' ELSE 'Other bands' END AS band,\n       sum(contracts) AS contracts\nFROM workspace.gold.mart_threshold_bunching\nWHERE threshold_family = 'Goods and services' AND bin_start BETWEEN 5000 AND 99000\nGROUP BY ALL"
+        "SELECT bin_start / 1000 AS value_k_eur,\n       CASE WHEN bin_start IN (19000, 74000) THEN 'Just below a legal limit' ELSE 'All other bands' END AS band,\n       sum(contracts) AS contracts\nFROM workspace.gold.mart_threshold_bunching\nWHERE threshold_family = 'Goods and services' AND bin_start BETWEEN 5000 AND 99000\nGROUP BY ALL"
       ]
     },
     {
@@ -561,8 +561,8 @@
                       "expression": "`contract_year`"
                     },
                     {
-                      "name": "avg(single_bid_pct)",
-                      "expression": "AVG(`single_bid_pct`)"
+                      "name": "sum(single_bid_pct)",
+                      "expression": "SUM(`single_bid_pct`)"
                     },
                     {
                       "name": "procedure_group",
@@ -580,12 +580,12 @@
                 "x": {
                   "fieldName": "contract_year",
                   "scale": {
-                    "type": "ordinal"
+                    "type": "quantitative"
                   },
                   "displayName": " "
                 },
                 "y": {
-                  "fieldName": "avg(single_bid_pct)",
+                  "fieldName": "sum(single_bid_pct)",
                   "scale": {
                     "type": "quantitative"
                   },
@@ -626,8 +626,8 @@
                       "expression": "`procedure_group`"
                     },
                     {
-                      "name": "avg(pct_below_base_price)",
-                      "expression": "AVG(`pct_below_base_price`)"
+                      "name": "sum(pct_below_base_price)",
+                      "expression": "SUM(`pct_below_base_price`)"
                     }
                   ],
                   "disaggregated": false
@@ -639,7 +639,7 @@
               "widgetType": "bar",
               "encodings": {
                 "x": {
-                  "fieldName": "avg(pct_below_base_price)",
+                  "fieldName": "sum(pct_below_base_price)",
                   "scale": {
                     "type": "quantitative"
                   },
