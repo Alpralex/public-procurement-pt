@@ -140,9 +140,97 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
 #sups tbody tr[data-sup]:focus-visible td:first-child { box-shadow: inset 3px 0 0 var(--signal); }
 </style>
 
+<style id="i18n-style">
+.crumb { max-width: none; display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.4rem; }
+.lang-sw { margin-left: auto; display: inline-flex; border: 1px solid var(--rule); border-radius: 2px; overflow: hidden; }
+.lang-sw button { font-family: var(--display); font-size: 0.8rem; letter-spacing: 0.04em; padding: 0.2rem 0.55rem; background: var(--sheet); color: var(--ink); border: 0; border-right: 1px solid var(--rule); cursor: pointer; }
+.lang-sw button:last-child { border-right: 0; }
+.lang-sw button[aria-pressed="true"] { background: var(--signal-soft); box-shadow: inset 0 -2px 0 var(--signal); font-weight: 600; }
+.lang-sw button:focus-visible { outline: 2px solid var(--signal); outline-offset: -2px; }
+</style>
+<script id="i18n-core">
+// Language layer shared by the portfolio dashboards. English is written in the page; Portuguese (pt-PT) comes from I18N.add({...}).
+// Order of choice: ?lang= in the URL (the home page adds it), then the visitor's last choice (localStorage "lang", the same key the home page uses), then English.
+(function () {
+  var KEY = 'lang';
+  function pick() {
+    var q = null;
+    try { q = new URLSearchParams(location.search).get('lang'); } catch (e) {}
+    if (q === 'pt' || q === 'en') { try { localStorage.setItem(KEY, q); } catch (e) {} return q; }
+    try { var s = localStorage.getItem(KEY); if (s === 'pt' || s === 'en') return s; } catch (e) {}
+    try { if (/^\/pt\/?$/.test(new URL(document.referrer).pathname)) return 'pt'; } catch (e) {}
+    return 'en';
+  }
+  var I = window.I18N = { lang: pick(), dict: {}, fns: [] };
+  function norm(s) { return String(s).replace(/\s+/g, ' ').trim(); }
+  I.add = function (d) { for (var k in d) I.dict[norm(k)] = d[k]; };
+  I.pt = function () { return I.lang === 'pt'; };
+  // Inline pair for sentences whose word order differs: I18N.p('English', 'Português').
+  I.p = function (en, pt) { return I.lang === 'pt' ? pt : en; };
+  // Text: the Portuguese entry for an English string, or the string itself.
+  I.t = function (s) { if (I.lang !== 'pt') return s; var v = I.dict[norm(s)]; return v == null ? s : v; };
+  // Numbers already formatted the English way ("1,234.5") become "1 234,5" in Portuguese.
+  I.n = function (s) {
+    s = String(s); if (I.lang !== 'pt') return s;
+    return s.replace(/(\d),(?=\d{3}(?:\D|$))/g, '$1 ').replace(/(\d)\.(\d)/g, '$1,$2');
+  };
+  I.locale = function () { return I.lang === 'pt' ? 'pt-PT' : 'en-US'; };
+  I.on = function (fn) { I.fns.push(fn); };
+  var ATTRS = ['aria-label', 'title', 'placeholder'];
+  function swapAttrs(el) {
+    ATTRS.forEach(function (a) {
+      if (!el.hasAttribute(a)) return;
+      el._enA = el._enA || {};
+      if (el._enA[a] == null) { if (!(norm(el.getAttribute(a)) in I.dict)) return; el._enA[a] = el.getAttribute(a); }
+      el.setAttribute(a, I.t(el._enA[a]));
+    });
+    if (el.tagName === 'A' && (el.getAttribute('href') === '/' || el._enHref != null)) {
+      if (el._enHref == null) el._enHref = el.getAttribute('href');
+      el.setAttribute('href', I.lang === 'pt' ? '/pt/' : '/?lang=en');
+    }
+  }
+  // Static text in the page: a whole element when its markup has an entry, otherwise each text node.
+  function walk(node) {
+    for (var c = node.firstChild; c; c = c.nextSibling) {
+      if (c.nodeType === 3) {
+        if (c._en == null) { var k = norm(c.nodeValue); if (!k || !(k in I.dict)) continue; c._en = c.nodeValue; }
+        var en = c._en, lead = en.match(/^\s*/)[0], trail = en.match(/\s*$/)[0];
+        c.nodeValue = I.lang === 'pt' ? lead + I.dict[norm(en)] + trail : en;
+      } else if (c.nodeType === 1) {
+        if (/^(SCRIPT|STYLE|SVG|svg)$/.test(c.tagName) || c.hasAttribute('data-i18n-skip')) continue;
+        swapAttrs(c);
+        if (c._enH == null && c.children.length && (norm(c.innerHTML) in I.dict)) c._enH = c.innerHTML;
+        if (c._enH != null) { c.innerHTML = I.lang === 'pt' ? I.dict[norm(c._enH)] : c._enH; continue; }
+        walk(c);
+      }
+    }
+  }
+  I.apply = function () {
+    document.documentElement.lang = I.lang === 'pt' ? 'pt-PT' : 'en';
+    if (I._title == null) I._title = document.title;
+    document.title = I.t(I._title);
+    walk(document.body);
+    document.querySelectorAll('.lang-sw button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.lang === I.lang)); });
+  };
+  I.set = function (lang) {
+    if (lang === I.lang) return;
+    I.lang = lang;
+    try { localStorage.setItem(KEY, lang); } catch (e) {}
+    try { var u = new URL(location.href); u.searchParams.set('lang', lang); history.replaceState(history.state, '', u); } catch (e) {}
+    I.apply();
+    I.fns.forEach(function (fn) { try { fn(); } catch (e) { if (window.console) console.error(e); } });
+  };
+  // Runs after the page script: translate the static text and wire the EN / PT buttons.
+  I.start = function () {
+    document.querySelectorAll('.lang-sw button').forEach(function (b) { b.addEventListener('click', function () { I.set(b.dataset.lang); }); });
+    I.apply();
+  };
+})();
+</script>
+
 <main class="wrap">
   <header>
-    <p class="crumb"><a href="/">Guilherme Rigonato</a> <span class="label">/ Projects</span></p>
+    <p class="crumb"><a href="/">Guilherme Rigonato</a> <span class="label">/ Projects</span><span class="lang-sw" role="group" aria-label="Language · Idioma" data-i18n-skip><button type="button" data-lang="en" lang="en" title="English">EN</button><button type="button" data-lang="pt" lang="pt-PT" title="Português">PT</button></span></p>
     <span class="label">Portal BASE (IMPIC) · 1,550,674 contracts · Jan 2019 – Oct 2026 · EUR, excluding VAT</span>
     <h1>Where does Portugal's public procurement money go, and how is it bought?</h1>
     <p>A spend-analytics view of every contract published on Portal BASE from 2019 to 24 October 2026: who buys, what they buy, through which procedure, how many bidders took part, how contract values sit around the legal limits for direct award and prior consultation, how concentrated the supplier base is, and how prices compare with the base price.</p>
@@ -301,6 +389,215 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
   </div>
 </dialog>
 
+<script id="i18n-pt">
+I18N.add({
+"Source: <i>Contratos Públicos – Portal BASE – IMPIC</i>, yearly files 2019–2026 from dados.gov.pt (open data, dataset 66d72d488ca4b7cb2de28712), downloaded 25 October 2026. 1,555,252 rows; 4,566 contract ids appear twice or more inside the same file and are kept once, leaving 1,550,674 contracts.": "Fonte: <i>Contratos Públicos – Portal BASE – IMPIC</i>, ficheiros anuais de 2019–2026 de dados.gov.pt (dados abertos, conjunto 66d72d488ca4b7cb2de28712), descarregados a 25 de outubro de 2026. 1 555 252 linhas; 4566 identificadores de contrato aparecem duas ou mais vezes no mesmo ficheiro e ficam só uma vez, o que deixa 1 550 674 contratos.",
+"Values are the contract price (precoContratual), in euros without VAT. 72 negative prices are left out of the sums. Framework agreements themselves usually carry a price of zero; the call-offs under them carry the value.": "Os valores são o preço contratual (precoContratual), em euros sem IVA. Ficam fora das somas 72 preços negativos. Os acordos-quadro em si têm normalmente preço zero; o valor está nos contratos celebrados ao seu abrigo.",
+"dbt models on DuckDB build a star schema: contracting entity, supplier, CPV division, procedure, region and a daily calendar around one contract fact, plus a contract-to-supplier bridge that splits multi-awardee contracts equally. Tests check keys, relationships, accepted values, reconciliation of contract counts to the raw files, and that no individual's name reaches a supplier table.": "Modelos dbt sobre DuckDB constroem um modelo em estrela: entidade adjudicante, fornecedor, divisão CPV, procedimento, região e um calendário diário à volta de um facto de contrato, mais uma tabela-ponte contrato–fornecedor que divide em partes iguais os contratos com vários adjudicatários. Os testes verificam chaves, relações, valores aceites, a reconciliação do número de contratos com os ficheiros em bruto e que nenhum nome de pessoa singular chega a uma tabela de fornecedores.",
+"Entity types come from ordered name rules (for example <i>Município</i> → Municipality, <i>Freguesia</i> → Parish, hospital or <i>saúde</i> → Health, NIF prefix 6 → Central government). The rules are in <span class=\"tag\">seeds/entity_type_rules.csv</span>.": "Os tipos de entidade resultam de regras ordenadas sobre o nome (por exemplo <i>Município</i> → Município, <i>Freguesia</i> → Freguesia, hospital ou <i>saúde</i> → Saúde, NIF começado por 6 → Administração central). As regras estão em <span class=\"tag\">seeds/entity_type_rules.csv</span>.",
+"Privacy: awardees without a NIF, or with an individual, sole-trader or estate NIF, are reported only as <i>Individual (name withheld)</i>. Awardees without a Portuguese NIF whose name looks like a company's (mostly foreign firms) are reported as <i>No Portuguese NIF (name withheld)</i>.": "Privacidade: os adjudicatários sem NIF, ou com NIF de pessoa singular, empresário em nome individual ou herança, aparecem apenas como <i>Pessoa singular (nome omitido)</i>. Os adjudicatários sem NIF português cujo nome parece de empresa (sobretudo empresas estrangeiras) aparecem como <i>Sem NIF português (nome omitido)</i>.",
+"Caveats: bidder lists are missing for most direct awards; the SME flag is filled only from 2024 and inconsistently; base prices of multi-lot procedures cover all lots, so only single-contract procedures are compared, and ratios outside 0.2–5 are treated as entry errors.": "Ressalvas: a lista de concorrentes falta na maioria dos ajustes diretos; o indicador de PME só é preenchido a partir de 2024, e de forma irregular; o preço base dos procedimentos com vários lotes cobre todos os lotes, por isso só se comparam procedimentos com um único contrato, e rácios fora de 0,2–5 são tratados como erros de registo.",
+"Portugal Public Procurement": "Contratação pública em Portugal",
+"/ Projects": "/ Projetos",
+"Portal BASE (IMPIC) · 1,550,674 contracts · Jan 2019 – Oct 2026 · EUR, excluding VAT": "Portal BASE (IMPIC) · 1 550 674 contratos · jan 2019 – out 2026 · EUR, sem IVA",
+"Where does Portugal's public procurement money go, and how is it bought?": "Para onde vai o dinheiro da contratação pública em Portugal, e como se compra?",
+"A spend-analytics view of every contract published on Portal BASE from 2019 to 24 October 2026: who buys, what they buy, through which procedure, how many bidders took part, how contract values sit around the legal limits for direct award and prior consultation, how concentrated the supplier base is, and how prices compare with the base price.": "Uma análise da despesa de todos os contratos publicados no Portal BASE de 2019 a 24 de outubro de 2026: quem compra, o que compra, por que procedimento, quantos concorrentes participaram, como os valores se distribuem em torno dos limites legais do ajuste direto e da consulta prévia, quão concentrada está a base de fornecedores e como os preços se comparam com o preço base.",
+"Open data from dados.gov.pt, downloaded 25 October 2026": "Dados abertos de dados.gov.pt, descarregados a 25 de outubro de 2026",
+"dbt + DuckDB · 20 models · 100 tests": "dbt + DuckDB · 20 modelos · 100 testes",
+"Also in Qlik Sense and Power BI": "Também em Qlik Sense e Power BI",
+"Open the Power BI report ↗": "Abrir o relatório Power BI ↗",
+"Python notebook": "Notebook Python (em inglês)",
+"Code on GitHub": "Código no GitHub",
+"This sentence is computed from the data and rewrites itself when you change the years, the contract type or the buyer. Click a supplier in the ranking to open its card.": "Esta frase é calculada a partir dos dados e reescreve-se quando muda os anos, o tipo de contrato ou a entidade compradora. Clique num fornecedor do ranking para abrir a respetiva ficha.",
+"Key findings": "Principais conclusões",
+"Finding 1": "Conclusão 1",
+"Finding 2": "Conclusão 2",
+"Finding 3": "Conclusão 3",
+"Finding 4": "Conclusão 4",
+"Finding 5": "Conclusão 5",
+"Health and municipalities account for half of the value.": "A saúde e os municípios concentram metade do valor.",
+"Of €120.5 billion, health bodies signed €31.3 billion (26.0%) and municipalities €30.1 billion (25.0%). Construction work is the largest category at €35.8 billion (29.7%), then medical and pharmaceutical products at €22.8 billion (18.9%).": "Dos 120,5 mil milhões de euros, as entidades de saúde assinaram 31,3 mil milhões (26,0%) e os municípios 30,1 mil milhões (25,0%). As obras de construção são a maior categoria, com 35,8 mil milhões (29,7%), seguidas dos produtos médicos e farmacêuticos, com 22,8 mil milhões (18,9%).",
+"Half the contracts are direct awards, but only a sixth of the value.": "Metade dos contratos são ajustes diretos, mas valem só um sexto do total.",
+"Direct awards are 49.8% of contracts and 16.6% of value. Open tenders are 13.7% of contracts and 50.7% of value. Where bidders are listed, 43.4% of prior consultations and 10.2% of open tenders received a single bid.": "Os ajustes diretos são 49,8% dos contratos e 16,6% do valor. Os concursos públicos são 13,7% dos contratos e 50,7% do valor. Quando os concorrentes estão listados, 43,4% das consultas prévias e 10,2% dos concursos públicos receberam uma única proposta.",
+"Contract values cluster just below the legal limits.": "Os valores dos contratos acumulam-se logo abaixo dos limites legais.",
+"50,519 goods and services contracts sit between €19,000 and €19,999, against 12,290 between €20,000 and €20,999. Just below the €75,000 limit there are 11,401, against 1,782 just above.": "Há 50 519 contratos de bens e serviços entre 19 000 € e 19 999 €, contra 12 290 entre 20 000 € e 20 999 €. Logo abaixo do limite de 75 000 € há 11 401, contra 1782 logo acima.",
+"Concentration depends on the category.": "A concentração depende da categoria.",
+"The ten largest named suppliers hold 9.7% of the value. Construction work is fragmented (HHI 59), while energy and fuel (top five 64.6%, HHI 1,072) and postal and telecom services (HHI 1,634) are concentrated.": "Os dez maiores fornecedores identificados detêm 9,7% do valor. As obras de construção estão fragmentadas (HHI 59), enquanto a energia e os combustíveis (cinco maiores com 64,6%, HHI 1072) e os serviços postais e de telecomunicações (HHI 1634) estão concentrados.",
+"Open tenders come in about 11% under the base price.": "Os concursos públicos fecham cerca de 11% abaixo do preço base.",
+"In single-contract open tenders, contract value is 10.9% below the base price. 84.6% of direct awards are signed at exactly the base price. December carries 10.2% of the year's value, against 8.3% for an average month.": "Nos concursos públicos com um só contrato, o valor contratual fica 10,9% abaixo do preço base. 84,6% dos ajustes diretos são assinados exatamente ao preço base. Dezembro concentra 10,2% do valor do ano, contra 8,3% num mês médio.",
+"Filters": "Filtros",
+"Sections": "Secções",
+"Findings": "Conclusões",
+"Spend": "Despesa",
+"Procedures": "Procedimentos",
+"Value limits": "Limites de valor",
+"Suppliers": "Fornecedores",
+"Prices": "Preços",
+"How it is built": "Como foi feito",
+"Years": "Anos",
+"From year": "Ano inicial",
+"to": "a",
+"To year": "Ano final",
+"Contract type": "Tipo de contrato",
+"All": "Todos",
+"Goods": "Bens",
+"Services": "Serviços",
+"Works": "Empreitadas",
+"Other": "Outros",
+"Contracting entity": "Entidade adjudicante",
+"Contracting entity type": "Tipo de entidade adjudicante",
+"Headline figures": "Números principais",
+"Contract value by year": "Valor contratado por ano",
+"The year is the contract signature date, or the closing date for simplified direct awards, which have no written contract. 2026 runs to 24 October.": "O ano é a data de assinatura do contrato ou, nos ajustes diretos simplificados, que não têm contrato escrito, a data de fecho. 2026 vai até 24 de outubro.",
+"Who buys: value by contracting-entity type": "Quem compra: valor por tipo de entidade adjudicante",
+"Types are assigned from entity names with documented rules (see the method).": "Os tipos são atribuídos a partir dos nomes das entidades, com regras documentadas (ver o método).",
+"What is bought: value by CPV division": "O que se compra: valor por divisão CPV",
+"The twelve largest divisions of the Common Procurement Vocabulary.": "As doze maiores divisões do Vocabulário Comum para os Contratos Públicos.",
+"How it is bought: procedure mix": "Como se compra: peso de cada procedimento",
+"Share of contracts and share of value by procedure group.": "Peso no número de contratos e no valor, por grupo de procedimento.",
+"Share of contracts": "% dos contratos",
+"Share of value": "% do valor",
+"Single-bid share by year": "Peso das propostas únicas por ano",
+"Contracts whose procedure lists exactly one bidder, among those with a bidder list.": "Contratos cujo procedimento regista exatamente um concorrente, entre os que têm lista de concorrentes.",
+"Contract values near the legal limits": "Valores dos contratos junto aos limites legais",
+"Goods and services": "Bens e serviços",
+"Limits of the Public Contracts Code in force from 2018 to 30 September 2026: direct award below €20,000 for goods and services and below €30,000 for works; prior consultation below €75,000 and €150,000. Contracts dated after 30 September 2026 are left out because new limits apply from 1 October 2026. The histogram describes where values sit; it does not say why.": "Limites do Código dos Contratos Públicos em vigor de 2018 a 30 de setembro de 2026: ajuste direto abaixo de 20 000 € para bens e serviços e abaixo de 30 000 € para empreitadas; consulta prévia abaixo de 75 000 € e de 150 000 €. Os contratos posteriores a 30 de setembro de 2026 ficam de fora, porque a partir de 1 de outubro de 2026 se aplicam novos limites. O histograma mostra onde os valores se situam; não diz porquê.",
+"Supplier concentration by CPV division": "Concentração de fornecedores por divisão CPV",
+"2019 – Oct 2026, all entities. Largest divisions by value; HHI from 0 (fragmented) to 10,000 (one supplier).": "2019 – out 2026, todas as entidades. Maiores divisões por valor; HHI de 0 (fragmentado) a 10 000 (um só fornecedor).",
+"Multi-awardee contracts are split equally among the awardees. Each withheld individual counts as a separate supplier in the shares and the HHI.": "Os contratos com vários adjudicatários são divididos em partes iguais entre eles. Cada pessoa singular anonimizada conta como um fornecedor distinto nas quotas e no HHI.",
+"Largest suppliers": "Maiores fornecedores",
+"CPV division for the supplier ranking": "Divisão CPV do ranking de fornecedores",
+"2019 – Oct 2026, all entities. Companies and public bodies only; individuals are never named.": "2019 – out 2026, todas as entidades. Só empresas e organismos públicos; as pessoas singulares nunca são identificadas.",
+"Contract price against base price": "Preço contratual face ao preço base",
+"Value-weighted difference, procedures with a single contract. Shorter bars mean prices closer to the base price.": "Diferença ponderada pelo valor, em procedimentos com um só contrato. Barras mais curtas significam preços mais próximos do preço base.",
+"Value by month of the year": "Valor por mês do ano",
+"An even spread would put 8.3% of the value in each month.": "Uma distribuição uniforme poria 8,3% do valor em cada mês.",
+"Where the work is done": "Onde o contrato é executado",
+"Value by district or autonomous region of execution. Contracts naming several districts, or Portugal only, are shown apart.": "Valor por distrito ou região autónoma de execução. Os contratos que indicam vários distritos, ou apenas Portugal, aparecem à parte.",
+"Method": "Método",
+"Code:": "Código:",
+"Supplier": "Fornecedor",
+"Value is allocated: a contract with several winners gives each an equal share. The Power BI version has a drill-through page for every named supplier, by year, category and buyer.": "O valor é repartido: um contrato com vários adjudicatários dá a cada um uma parte igual. No Power BI há uma página de drill-through para cada fornecedor identificado, por ano, categoria e comprador.",
+"Close": "Fechar",
+"Company formation": "Constituição de sociedade",
+"Lease of goods": "Locação de bens",
+"Mixed (several types)": "Misto (vários tipos)",
+"Not reported": "Não indicado",
+"Public service concession": "Concessão de serviços públicos",
+"Public works": "Empreitadas",
+"Public works concession": "Concessão de obras públicas",
+"Health": "Saúde",
+"Municipality": "Município",
+"Central government": "Administração central",
+"Education and research": "Ensino e investigação",
+"Other public-law body": "Outro organismo de direito público",
+"Municipal company or service": "Empresa ou serviço municipal",
+"State-owned company": "Empresa pública",
+"Parish": "Freguesia",
+"Regional government (Azores and Madeira)": "Governo regional (Açores e Madeira)",
+"Intermunicipal body": "Entidade intermunicipal",
+"Open tender": "Concurso público",
+"Restricted or negotiated": "Concurso limitado ou negociação",
+"Framework call-off": "Ao abrigo de acordo-quadro",
+"Prior consultation": "Consulta prévia",
+"Direct award": "Ajuste direto",
+"Simplified direct award": "Ajuste direto simplificado",
+"Excluded or exempt": "Excluído ou isento",
+"Agriculture and food raw materials": "Matérias-primas agrícolas e alimentares",
+"Energy and fuel": "Energia e combustíveis",
+"Mining and metals": "Minérios e metais",
+"Food and beverages": "Alimentos e bebidas",
+"Agricultural machinery": "Máquinas agrícolas",
+"Clothing and footwear": "Vestuário e calçado",
+"Textiles, plastics and rubber": "Têxteis, plásticos e borracha",
+"Printed matter": "Impressos",
+"Chemicals": "Produtos químicos",
+"Office and IT equipment": "Equipamento de escritório e informático",
+"Electrical equipment": "Equipamento elétrico",
+"Telecom equipment": "Equipamento de telecomunicações",
+"Medical and pharmaceutical": "Produtos médicos e farmacêuticos",
+"Transport equipment": "Equipamento de transporte",
+"Security and defence equipment": "Equipamento de segurança e defesa",
+"Sport, music and leisure goods": "Artigos de desporto, música e lazer",
+"Laboratory and precision equipment": "Equipamento de laboratório e precisão",
+"Furniture and cleaning products": "Mobiliário e produtos de limpeza",
+"Water": "Água",
+"Industrial machinery": "Máquinas industriais",
+"Construction machinery": "Máquinas de construção",
+"Construction materials": "Materiais de construção",
+"Construction work": "Obras de construção",
+"Software": "Software",
+"Repair and maintenance": "Reparação e manutenção",
+"Installation services": "Serviços de instalação",
+"Hotel, catering and retail services": "Hotelaria, restauração e comércio",
+"Transport services": "Serviços de transporte",
+"Transport support and travel": "Apoio aos transportes e viagens",
+"Postal and telecom services": "Serviços postais e de telecomunicações",
+"Public utilities": "Serviços de utilidade pública",
+"Financial and insurance": "Serviços financeiros e seguros",
+"Real estate": "Imobiliário",
+"Architecture and engineering": "Arquitetura e engenharia",
+"IT services": "Serviços de TI",
+"Research and development": "Investigação e desenvolvimento",
+"Administration and defence services": "Serviços de administração e defesa",
+"Oil and gas services": "Serviços de petróleo e gás",
+"Agricultural, forestry and gardening services": "Serviços agrícolas, florestais e de jardinagem",
+"Business services": "Serviços às empresas",
+"Education and training": "Educação e formação",
+"Health and social services": "Saúde e ação social",
+"Waste, cleaning and environment": "Resíduos, limpeza e ambiente",
+"Recreation, culture and sport": "Lazer, cultura e desporto",
+"Other community services": "Outros serviços comunitários",
+"Azores": "Açores",
+"Multiple districts": "Vários distritos",
+"Portugal, district not given": "Portugal, sem distrito indicado",
+"Abroad": "Estrangeiro",
+"Centre (mainland)": "Centro (continente)",
+"North (mainland)": "Norte (continente)",
+"Lisbon and Tagus Valley": "Lisboa e Vale do Tejo",
+"Multiple or national": "Vários ou nacional",
+"Individual (name withheld)": "Pessoa singular (nome omitido)",
+"No Portuguese NIF (name withheld)": "Sem NIF português (nome omitido)",
+"Contract value": "Valor contratado",
+"Direct awards": "Ajustes diretos",
+"Open tenders": "Concursos públicos",
+"Single bid, prior consultation": "Proposta única, consulta prévia",
+"Open tenders vs base price": "Concursos públicos face ao preço base",
+"Click to filter": "Clique para filtrar",
+"Click to highlight": "Clique para destacar",
+"Contract value by contracting-entity type": "Valor contratado por tipo de entidade adjudicante",
+"Contract value by CPV division": "Valor contratado por divisão CPV",
+"Share of contracts and value by procedure group": "Peso nos contratos e no valor por grupo de procedimento",
+"Histogram of contract values with legal limits": "Histograma dos valores dos contratos com os limites legais",
+"Contract price against base price by procedure group": "Preço contratual face ao preço base por grupo de procedimento",
+"Share of annual value by month": "Peso de cada mês no valor anual",
+"Contract value by district": "Valor contratado por distrito",
+"CPV division": "Divisão CPV",
+"Value": "Valor",
+"Top 1": "Maior",
+"Top 5": "5 maiores",
+"Contracts": "Contratos",
+"Share": "Quota",
+"Rank": "Posição",
+"Procedure": "Procedimento",
+"At base": "Ao preço base",
+"Below base": "Abaixo do preço base",
+"Closed": "Encerrados",
+"Final vs signed": "Final vs contratado",
+"Ended higher": "Acabaram acima",
+"Limit (2019 – Sep 2026, all entities)": "Limite (2019 – set 2026, todas as entidades)",
+"€1,000 below": "1000 € abaixo",
+"€1,000 above": "1000 € acima",
+"Avg €1,000 band nearby": "Média dos escalões de 1000 € vizinhos",
+"Below vs nearby": "Abaixo vs vizinhos",
+"Within €1 below": "Até 1 € abaixo",
+"Click a bar (a year, an entity type, a CPV division or a procedure) to filter the other charts.": "Clique numa barra (um ano, um tipo de entidade, uma divisão CPV ou um procedimento) para filtrar os outros gráficos.",
+"Selected:": "Seleção:",
+"Clear all": "Limpar tudo",
+"The CPV division filters the value by year, the entity types and the supplier ranking; the other tables have no category detail.": "A divisão CPV filtra o valor por ano, os tipos de entidade e o ranking de fornecedores; as outras tabelas não têm detalhe por categoria.",
+"The data files did not load. Reload the page to try again.": "Os ficheiros de dados não carregaram. Recarregue a página para tentar de novo."
+});
+</script>
 <script>
 (function () {
   var NS = 'http://www.w3.org/2000/svg';
@@ -308,16 +605,21 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
   var state = { y0: 2019, y1: 2026, ct: 'ALL', et: -1, fam: 0, sup: -1, cpv: -1, pg: -1 };
   var CT_MAIN = ['Goods', 'Services', 'Public works'];
   var GS_TYPES = ['Goods', 'Services', 'Lease of goods'];
+  var T = I18N.t, N = I18N.n;
+  function CN() { return I18N.p(" contracts", ' contratos'); }
+  function money(n) { return I18N.pt() ? n + '\u00a0€' : '€' + n; }
 
   function el(tag, attrs, parent) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
   function txt(parent, x, y, s, attrs) { var t = el('text', Object.assign({ x: x, y: y }, attrs || {}), parent); t.textContent = s; return t; }
   function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
   function niceStep(span, n) { var raw = span / (n || 4), p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p; }
   var minus = '−';
-  function eur(v) { var a = Math.abs(v), s = v < 0 ? minus : ''; if (a >= 1e9) return s + '€' + (a / 1e9).toFixed(a >= 1e11 ? 1 : 2) + 'bn'; if (a >= 1e6) return s + '€' + (a / 1e6).toFixed(1) + 'M'; if (a >= 1e3) return s + '€' + Math.round(a / 1e3).toLocaleString('en-US') + 'k'; return s + '€' + Math.round(a); }
-  function n0(v) { return Math.round(v).toLocaleString('en-US'); }
-  function share(v, d) { return v == null || !isFinite(v) ? '–' : (v * 100).toFixed(d == null ? 1 : d) + '%'; }
-  function sgn(v) { return v == null || !isFinite(v) ? '–' : (v > 0 ? '+' : v < 0 ? minus : '') + Math.abs(v * 100).toFixed(1) + '%'; }
+  function eur(v) { var a = Math.abs(v), s = v < 0 ? minus : '';
+    if (I18N.pt()) { var b = '\u00a0'; if (a >= 1e9) return s + N((a / 1e9).toFixed(a >= 1e11 ? 1 : 2)) + b + 'mil' + b + 'M€'; if (a >= 1e6) return s + N((a / 1e6).toFixed(1)) + b + 'M€'; if (a >= 1e3) return s + Math.round(a / 1e3).toLocaleString('pt-PT') + b + 'k€'; return s + Math.round(a) + b + '€'; }
+    if (a >= 1e9) return s + '€' + (a / 1e9).toFixed(a >= 1e11 ? 1 : 2) + 'bn'; if (a >= 1e6) return s + '€' + (a / 1e6).toFixed(1) + 'M'; if (a >= 1e3) return s + '€' + Math.round(a / 1e3).toLocaleString('en-US') + 'k'; return s + '€' + Math.round(a); }
+  function n0(v) { return Math.round(v).toLocaleString(I18N.locale()); }
+  function share(v, d) { return v == null || !isFinite(v) ? '–' : N((v * 100).toFixed(d == null ? 1 : d)) + '%'; }
+  function sgn(v) { return v == null || !isFinite(v) ? '–' : (v > 0 ? '+' : v < 0 ? minus : '') + N(Math.abs(v * 100).toFixed(1)) + '%'; }
 
   function ctName(i) { return D.meta.contract_types[i]; }
   function inCt(i) { var n = ctName(i); if (state.ct === 'ALL') return true; if (state.ct === 'OTHER') return CT_MAIN.indexOf(n) < 0; return n === state.ct; }
@@ -333,8 +635,8 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
   }
   function keep(r) { return inYr(r[0]) && inCt(r[1]) && inEt(r[2]); }
   function yearsLabel() { return state.y0 === state.y1 ? String(state.y0) : state.y0 + '–' + state.y1; }
-  function ctLabel() { return state.ct === 'ALL' ? 'all contract types' : state.ct === 'OTHER' ? 'other contract types' : state.ct.toLowerCase(); }
-  function etLabel() { return state.et < 0 ? 'all contracting entities' : D.meta.entity_types[state.et]; }
+  function ctLabel() { return state.ct === 'ALL' ? I18N.p('all contract types', 'todos os tipos de contrato') : state.ct === 'OTHER' ? I18N.p('other contract types', 'outros tipos de contrato') : T(state.ct).toLowerCase(); }
+  function etLabel() { return state.et < 0 ? I18N.p('all contracting entities', 'todas as entidades adjudicantes') : T(D.meta.entity_types[state.et]); }
   function scopeLabel() { return yearsLabel() + ' · ' + ctLabel() + ' · ' + etLabel(); }
   function cw(host) { return Math.max(300, Math.round(host.getBoundingClientRect().width) || 520); }
   function fit(s, px) { var n = Math.floor(px / 5.9); return s.length <= n ? s : s.slice(0, Math.max(3, n - 1)) + '…'; }
@@ -347,7 +649,7 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
     host.innerHTML = '';
     opt = opt || {};
     var W = cw(host), narrow = W < 560, rowH = opt.rowH || 26, m = { t: 4, r: narrow ? 92 : (opt.right || 110), b: 4, l: Math.min(opt.left || 170, Math.round(W * 0.42)) }, H = m.t + m.b + rows.length * rowH;
-    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': opt.aria || '' }, host);
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': T(opt.aria || '') }, host);
     var tip = tipFor(host);
     var max = Math.max.apply(null, rows.map(function (r) { return r.v; }).concat([1e-9]));
     var X = function (v) { return m.l + v / max * (W - m.l - m.r); };
@@ -359,7 +661,7 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
       var hit = el('rect', { x: 0, y: y, width: W, height: rowH, fill: 'transparent' }, svg);
       hit.addEventListener('pointerenter', function () { showTip(tip, svg, W, H, m.l + w / 2, y + 5, r.tip); });
       hit.addEventListener('pointerleave', function () { tip.hidden = true; });
-      if (opt.onClick) clickable(hit, function () { tip.hidden = true; opt.onClick(r); }, 'Filter by ' + r.name);
+      if (opt.onClick) clickable(hit, function () { tip.hidden = true; opt.onClick(r); }, I18N.p('Filter by ', 'Filtrar por ') + r.name);
     });
   }
 
@@ -368,15 +670,18 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
   function openSupplier(name) {
     var all = D.suppliers.filter(function (r) { return r[2] === name && r[0] < 0; })[0];
     var cats = D.suppliers.filter(function (r) { return r[2] === name && r[0] >= 0; }).sort(function (a, b) { return b[3] - a[3]; });
-    document.getElementById('sup-kicker').textContent = all ? 'Supplier · #' + all[1] + ' by value, 2019 to Oct 2026' : 'Supplier';
-    document.getElementById('sup-name').textContent = name;
-    var lead = all ? eur(all[3]) + ' allocated across ' + n0(all[4]) + ' contracts, ' + share(all[5], 2) + ' of all supplier value.' : '';
-    document.getElementById('sup-why').textContent = lead + (cats.length ? ' Among the five largest in ' + cats.length + ' CPV division' + (cats.length > 1 ? 's' : '') + '.' : ' Not among the five largest in any single CPV division.');
-    document.getElementById('sup-tbl').innerHTML = cats.length ? '<thead><tr><th class="name">CPV division</th><th>Rank</th><th>Value</th><th>Contracts</th><th>Share</th></tr></thead><tbody>' +
-      cats.map(function (r) { var c = D.meta.cpv[r[0]]; return '<tr><td class="name">' + c[0] + ' ' + c[1] + '</td><td>#' + r[1] + '</td><td>' + eur(r[3]) + '</td><td>' + n0(r[4]) + '</td><td>' + share(r[5], 1) + '</td></tr>'; }).join('') + '</tbody>' : '';
+    lastSup = name;
+    document.getElementById('sup-kicker').textContent = all ? I18N.p('Supplier · #' + all[1] + ' by value, 2019 to Oct 2026', 'Fornecedor · n.º ' + all[1] + ' por valor, 2019 a out 2026') : T('Supplier');
+    document.getElementById('sup-name').textContent = T(name);
+    var lead = all ? (I18N.pt() ? eur(all[3]) + ' repartidos por ' + n0(all[4]) + ' contratos, ' + share(all[5], 2) + ' do valor de todos os fornecedores.' : eur(all[3]) + ' allocated across ' + n0(all[4]) + ' contracts, ' + share(all[5], 2) + ' of all supplier value.') : '';
+    document.getElementById('sup-why').textContent = lead + (I18N.pt() ? (cats.length ? ' Entre os cinco maiores em ' + cats.length + (cats.length > 1 ? ' divisões CPV.' : ' divisão CPV.') : ' Não está entre os cinco maiores de nenhuma divisão CPV.') : (cats.length ? ' Among the five largest in ' + cats.length + ' CPV division' + (cats.length > 1 ? 's' : '') + '.' : ' Not among the five largest in any single CPV division.'));
+    document.getElementById('sup-tbl').innerHTML = cats.length ? '<thead><tr><th class="name">' + T('CPV division') + '</th><th>' + T('Rank') + '</th><th>' + T('Value') + '</th><th>' + T('Contracts') + '</th><th>' + T('Share') + '</th></tr></thead><tbody>' +
+      cats.map(function (r) { var c = D.meta.cpv[r[0]]; return '<tr><td class="name">' + c[0] + ' ' + T(c[1]) + '</td><td>#' + r[1] + '</td><td>' + eur(r[3]) + '</td><td>' + n0(r[4]) + '</td><td>' + share(r[5], 1) + '</td></tr>'; }).join('') + '</tbody>' : '';
     var dlg = document.getElementById('sup');
+    if (dlg.open) return;
     if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
   }
+  var lastSup = null;
   function supPick(e) {
     var tr = e.target.closest('tr[data-sup]'); if (!tr) return;
     if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return; if (e.type === 'keydown') e.preventDefault();
@@ -394,8 +699,10 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
     var pg = D.meta.procedure_groups, iOpen = pg.indexOf('Open tender'), iDA = pg.indexOf('Direct award'), iSDA = pg.indexOf('Simplified direct award');
     function g(i, j) { return byPg[i] ? byPg[i][j] : 0; }
     var daN = g(iDA, 0) + g(iSDA, 0), daV = g(iDA, 1) + g(iSDA, 1), sb = g(iOpen, 2) ? g(iOpen, 3) / g(iOpen, 2) : null;
-    var who = (state.et < 0 ? '' : D.meta.entity_types[state.et] + ', ') + (state.ct === 'ALL' ? '' : ctLabel().charAt(0).toUpperCase() + ctLabel().slice(1) + ', ');
-    var out = !n ? 'No contracts in this selection.' :
+    var who = (state.et < 0 ? '' : T(D.meta.entity_types[state.et]) + ', ') + (state.ct === 'ALL' ? '' : ctLabel().charAt(0).toUpperCase() + ctLabel().slice(1) + ', ');
+    var out = !n ? I18N.p('No contracts in this selection.', 'Nenhum contrato nesta seleção.') : I18N.pt() ?
+      who + yearsLabel() + ': ' + eur(v) + ' em ' + n0(n) + ' contratos. Os ajustes diretos são ' + share(daN / n) + ' dos contratos, mas ' + share(daV / v) + ' do valor' +
+      (sb != null ? ', e ' + share(sb) + ' dos concursos públicos tiveram uma única proposta.' : '.') :
       who + yearsLabel() + ': ' + eur(v) + ' in ' + n0(n) + ' contracts. Direct awards are ' + share(daN / n) + ' of them but ' + share(daV / v) + ' of the value' +
       (sb != null ? ', and ' + share(sb) + ' of open tenders drew a single bid.' : '.');
     document.getElementById('headline').textContent = out;
@@ -411,11 +718,11 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
     var pr = D.price.filter(keep), bv = 0, bt = 0, bn = 0;
     pr.forEach(function (r) { if (r[3] === iOpen) { bv += r[5]; bt += r[6]; bn += r[4]; } });
     var tiles = [
-      ['Contract value', eur(v), n0(n) + ' contracts'],
-      ['Direct awards', share(n ? daN / n : null), share(v ? daV / v : null) + ' of the value'],
-      ['Open tenders', share(v ? g(iOpen, 1) / v : null), 'of the value · ' + share(n ? g(iOpen, 0) / n : null) + ' of contracts'],
-      ['Single bid, prior consultation', share(g(iCP, 2) ? g(iCP, 3) / g(iCP, 2) : null), 'open tenders ' + share(g(iOpen, 2) ? g(iOpen, 3) / g(iOpen, 2) : null)],
-      ['Open tenders vs base price', bt ? sgn(bv / bt - 1) : '–', 'value-weighted · ' + n0(bn) + ' contracts']
+      [T('Contract value'), eur(v), n0(n) + CN()],
+      [T('Direct awards'), share(n ? daN / n : null), share(v ? daV / v : null) + I18N.p(' of the value', ' do valor')],
+      [T('Open tenders'), share(v ? g(iOpen, 1) / v : null), I18N.p('of the value · ', 'do valor · ') + share(n ? g(iOpen, 0) / n : null) + I18N.p(' of contracts', ' dos contratos')],
+      [T('Single bid, prior consultation'), share(g(iCP, 2) ? g(iCP, 3) / g(iCP, 2) : null), I18N.p('open tenders ', 'concursos públicos ') + share(g(iOpen, 2) ? g(iOpen, 3) / g(iOpen, 2) : null)],
+      [T('Open tenders vs base price'), bt ? sgn(bv / bt - 1) : '–', I18N.p('value-weighted · ', 'ponderado pelo valor · ') + n0(bn) + CN()]
     ];
     document.getElementById('kpis').innerHTML = tiles.map(function (x) {
       return '<div class="kpi"><span class="label">' + x[0] + '</span><span class="v">' + x[1] + '</span><span class="d">' + x[2] + '</span></div>';
@@ -433,18 +740,18 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
     var st = niceStep(max), top = Math.ceil(max / st) * st;
     var bw = (W - m.l - m.r) / years.length;
     var Y = function (v) { return H - m.b - v / top * (H - m.t - m.b); };
-    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Contract value by year' }, host);
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': T('Contract value by year') }, host);
     var tip = tipFor(host);
-    for (var g = 0; g <= top + 1; g += st) { el('line', { x1: m.l, x2: W - m.r, y1: Y(g), y2: Y(g), stroke: css('--grid') }, svg); txt(svg, m.l - 6, Y(g) + 4, g === 0 ? '€0' : eur(g).replace('.00bn', 'bn'), { 'text-anchor': 'end' }); }
+    for (var g = 0; g <= top + 1; g += st) { el('line', { x1: m.l, x2: W - m.r, y1: Y(g), y2: Y(g), stroke: css('--grid') }, svg); txt(svg, m.l - 6, Y(g) + 4, g === 0 ? I18N.p('€0', '0 €') : eur(g).replace('.00bn', 'bn').replace(',00\u00a0mil', '\u00a0mil'), { 'text-anchor': 'end' }); }
     years.forEach(function (y, i) {
       var o = by[y] || [0, 0], x = m.l + i * bw + bw * 0.2, w = bw * 0.6, on = inYr(y);
       el('rect', { x: x, y: Y(o[1]), width: w, height: Math.max(0, Y(0) - Y(o[1])), rx: 2, fill: on ? css('--s1') : css('--grid') }, svg);
       if (bw >= 64) txt(svg, x + w / 2, Y(o[1]) - 6, eur(o[1]), { 'text-anchor': 'middle', class: on ? 'lbl' : '' });
       txt(svg, x + w / 2, H - 8, bw >= 40 ? (y === 2026 ? '2026*' : String(y)) : "'" + String(y).slice(2), { 'text-anchor': 'middle' });
       var hit = el('rect', { x: m.l + i * bw, y: m.t, width: bw, height: H - m.t - m.b, fill: 'transparent' }, svg);
-      hit.addEventListener('pointerenter', function () { showTip(tip, svg, W, H, x + w / 2, Y(o[1]), y + (y === 2026 ? ' (to 24 Oct)' : '') + '<br>' + eur(o[1]) + '<br>' + n0(o[0]) + ' contracts'); });
+      hit.addEventListener('pointerenter', function () { showTip(tip, svg, W, H, x + w / 2, Y(o[1]), y + (y === 2026 ? I18N.p(' (to 24 Oct)', ' (até 24 out)') : '') + '<br>' + eur(o[1]) + '<br>' + n0(o[0]) + CN()); });
       hit.addEventListener('pointerleave', function () { tip.hidden = true; });
-      clickable(hit, function () { tip.hidden = true; pickYear(y); }, 'Filter by ' + y);
+      clickable(hit, function () { tip.hidden = true; pickYear(y); }, I18N.p('Filter by ', 'Filtrar por ') + y);
     });
   }
 
@@ -454,8 +761,8 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
     Object.keys(by).forEach(function (k) { tot += by[k][1]; });
     var list = Object.keys(by).map(function (k) { var o = by[k]; return { i: +k, name: D.meta.entity_types[k], v: o[1], n: o[0] }; }).sort(function (a, b) { return b.v - a.v; });
     hbars(document.getElementById('etypes'), list.map(function (r) {
-      return { name: r.name.replace(' (Azores and Madeira)', ' (Azores, Madeira)'), v: r.v, label: eur(r.v) + ' · ' + share(r.v / tot), color: state.et >= 0 && r.i !== state.et ? css('--grid') : css('--s1'),
-        i: r.i, tip: r.name + '<br>' + eur(r.v) + ' (' + share(r.v / tot) + ')<br>' + n0(r.n) + ' contracts<br><i>Click to filter</i>' };
+      return { name: T(r.name).replace(' (Azores and Madeira)', ' (Azores, Madeira)').replace(' (Açores e Madeira)', ' (Açores, Madeira)'), v: r.v, label: eur(r.v) + ' · ' + share(r.v / tot), color: state.et >= 0 && r.i !== state.et ? css('--grid') : css('--s1'),
+        i: r.i, tip: T(r.name) + '<br>' + eur(r.v) + ' (' + share(r.v / tot) + ')<br>' + n0(r.n) + CN() + '<br><i>' + T('Click to filter') + '</i>' };
     }), { left: 200, aria: 'Contract value by contracting-entity type', onClick: function (r) { pickEntity(r.i); } });
   }
 
@@ -465,8 +772,8 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
     var list = Object.keys(by).map(function (k) { var c = D.meta.cpv[k]; return { i: +k, code: c[0], name: c[1], full: c[2], v: by[k][1], n: by[k][0] }; })
       .sort(function (a, b) { return b.v - a.v; }).slice(0, 12);
     hbars(document.getElementById('cpvs'), list.map(function (r) {
-      return { i: r.i, name: r.code + ' ' + r.name, v: r.v, label: eur(r.v) + ' · ' + share(r.v / tot), color: state.cpv >= 0 && r.i !== state.cpv ? css('--grid') : css('--s1'),
-        tip: r.code + ' ' + r.full + '<br>' + eur(r.v) + ' (' + share(r.v / tot) + ')<br>' + n0(r.n) + ' contracts<br><i>Click to filter</i>' };
+      return { i: r.i, name: r.code + ' ' + T(r.name), v: r.v, label: eur(r.v) + ' · ' + share(r.v / tot), color: state.cpv >= 0 && r.i !== state.cpv ? css('--grid') : css('--s1'),
+        tip: r.code + ' ' + (I18N.pt() ? T(r.name) : r.full) + '<br>' + eur(r.v) + ' (' + share(r.v / tot) + ')<br>' + n0(r.n) + CN() + '<br><i>' + T('Click to filter') + '</i>' };
     }), { left: 220, aria: 'Contract value by CPV division', onClick: function (r) { pickCpv(r.i); } });
   }
 
@@ -477,22 +784,22 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
     Object.keys(by).forEach(function (k) { tn += by[k][0]; tv += by[k][1]; });
     var groups = D.meta.procedure_groups.map(function (g, i) { var o = by[i] || [0, 0]; return { i: i, name: g, n: o[0], v: o[1] }; }).filter(function (g) { return g.n > 0 && g.name !== 'Other'; });
     var W = cw(host), rowH = 40, m = { t: 4, r: 56, b: 4, l: Math.min(170, Math.round(W * 0.4)) }, H = m.t + m.b + groups.length * rowH;
-    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Share of contracts and value by procedure group' }, host);
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': T('Share of contracts and value by procedure group') }, host);
     var tip = tipFor(host);
     var max = Math.max.apply(null, groups.map(function (g) { return Math.max(g.n / tn, g.v / tv); }).concat([0.01]));
     var X = function (v) { return m.l + v / max * (W - m.l - m.r); };
     groups.forEach(function (g, i) {
       var y = m.t + i * rowH;
-      txt(svg, m.l - 8, y + rowH / 2 + 4, fit(g.name, m.l - 12), { 'text-anchor': 'end' });
+      txt(svg, m.l - 8, y + rowH / 2 + 4, fit(T(g.name), m.l - 12), { 'text-anchor': 'end' });
       [[g.n / tn, '--s1', 4], [g.v / tv, '--s2', 20]].forEach(function (b) {
         var w = Math.max(1.5, X(b[0]) - m.l);
         el('rect', { x: m.l, y: y + b[2], width: w, height: 14, rx: 2, fill: state.pg >= 0 && g.i !== state.pg ? css('--grid') : css(b[1]) }, svg);
         txt(svg, m.l + w + 5, y + b[2] + 11, share(b[0]), { class: 'lbl' });
       });
       var hit = el('rect', { x: 0, y: y, width: W, height: rowH, fill: 'transparent' }, svg);
-      hit.addEventListener('pointerenter', function () { showTip(tip, svg, W, H, m.l + (X(Math.max(g.n / tn, g.v / tv)) - m.l) / 2, y + 4, g.name + '<br>' + n0(g.n) + ' contracts (' + share(g.n / tn) + ')<br>' + eur(g.v) + ' (' + share(g.v / tv) + ')<br><i>Click to highlight</i>'); });
+      hit.addEventListener('pointerenter', function () { showTip(tip, svg, W, H, m.l + (X(Math.max(g.n / tn, g.v / tv)) - m.l) / 2, y + 4, T(g.name) + '<br>' + n0(g.n) + CN() + ' (' + share(g.n / tn) + ')<br>' + eur(g.v) + ' (' + share(g.v / tv) + ')<br><i>' + T('Click to highlight') + '</i>'); });
       hit.addEventListener('pointerleave', function () { tip.hidden = true; });
-      clickable(hit, function () { tip.hidden = true; pickProc(g.i); }, 'Highlight ' + g.name);
+      clickable(hit, function () { tip.hidden = true; pickProc(g.i); }, I18N.p('Highlight ', 'Destacar ') + T(g.name));
     });
   }
 
@@ -511,7 +818,7 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
     var hi = Math.max.apply(null, all.concat([0.1])), st = niceStep(hi), top = Math.ceil(hi / st) * st;
     var X = function (i) { return m.l + i / (years.length - 1) * (W - m.l - m.r); };
     var Y = function (v) { return H - m.b - v / top * (H - m.t - m.b); };
-    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Single-bid share by year' }, host);
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': T('Single-bid share by year') }, host);
     var tip = tipFor(host);
     for (var g = 0; g <= top + 1e-9; g += st) { el('line', { x1: m.l, x2: W - m.r, y1: Y(g), y2: Y(g), stroke: css('--grid') }, svg); txt(svg, m.l - 6, Y(g) + 4, Math.round(g * 100) + '%', { 'text-anchor': 'end' }); }
     years.forEach(function (y, i) { txt(svg, X(i), H - 8, W < 480 ? "'" + String(y).slice(2) : (y === 2026 ? '2026*' : String(y)), { 'text-anchor': 'middle' }); });
@@ -531,7 +838,7 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
       cross.setAttribute('x1', X(i)); cross.setAttribute('x2', X(i)); cross.setAttribute('visibility', 'visible');
       var topY = H;
       dots.forEach(function (d, j) { var v = series[j].values[i]; if (v == null) { d.setAttribute('visibility', 'hidden'); return; } topY = Math.min(topY, Y(v)); d.setAttribute('cx', X(i)); d.setAttribute('cy', Y(v)); d.setAttribute('visibility', 'visible'); });
-      showTip(tip, svg, W, H, X(i), topY, years[i] + series.map(function (s) { return '<br>' + s.name + ': ' + share(s.values[i]) + (s.values[i] == null ? '' : ' of ' + n0(s.n[i])); }).join(''));
+      showTip(tip, svg, W, H, X(i), topY, years[i] + series.map(function (s) { return '<br>' + T(s.name) + ': ' + share(s.values[i]) + (s.values[i] == null ? '' : I18N.p(' of ', ' de ') + n0(s.n[i])); }).join(''));
     });
     hit.addEventListener('pointerleave', function () { cross.setAttribute('visibility', 'hidden'); dots.forEach(function (d) { d.setAttribute('visibility', 'hidden'); }); tip.hidden = true; });
   }
@@ -542,18 +849,18 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
     var fam = state.fam, maxK = fam === 1 ? 200 : 100;
     var counts = new Array(maxK).fill(0);
     D.bunching.forEach(function (r) { if (r[0] === fam && inYr(r[1]) && inEt(r[2]) && r[3] < maxK) counts[r[3]] += r[4]; });
-    var thr = fam === 1 ? [[30, 'Direct award limit €30,000'], [150, 'Prior consultation limit €150,000']] : [[20, 'Direct award limit €20,000'], [75, 'Prior consultation limit €75,000']];
+    var thr = (fam === 1 ? [[30, 'Direct award limit'], [150, 'Prior consultation limit']] : [[20, 'Direct award limit'], [75, 'Prior consultation limit']]).map(function (x) { return [x[0], I18N.pt() ? (x[1] === 'Direct award limit' ? 'Limite do ajuste direto: ' : 'Limite da consulta prévia: ') + money(n0(x[0] * 1000)) : x[1] + ' €' + n0(x[0] * 1000)]; });
     var tot = counts.reduce(function (a, b) { return a + b; }, 0);
-    document.getElementById('bn-sub').textContent = (fam === 1 ? 'Public works' : 'Goods, services and leases') + ' · ' + yearsLabel() + ' (to Sep 2026) · ' + etLabel() + ' · contracts per €1,000 band, €1,000 to €' + maxK + ',000 · ' + n0(tot) + ' contracts';
+    document.getElementById('bn-sub').textContent = I18N.pt() ? (fam === 1 ? 'Empreitadas' : 'Bens, serviços e locações') + ' · ' + yearsLabel() + ' (até set 2026) · ' + etLabel() + ' · contratos por escalão de 1000 €, de 1000 € a ' + maxK + ' 000 € · ' + n0(tot) + CN() : (fam === 1 ? 'Public works' : 'Goods, services and leases') + ' · ' + yearsLabel() + ' (to Sep 2026) · ' + etLabel() + ' · contracts per €1,000 band, €1,000 to €' + maxK + ',000 · ' + n0(tot) + CN();
     var W = cw(host), H = 280, m = { t: 34, r: 16, b: 28, l: 56 };
     var max = Math.max.apply(null, counts.slice(1).concat([1])), st = niceStep(max), top = Math.ceil(max / st) * st;
     var bw = (W - m.l - m.r) / maxK;
     var X = function (k) { return m.l + k * bw; }, Y = function (v) { return H - m.b - Math.min(v, top) / top * (H - m.t - m.b); };
-    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Histogram of contract values with legal limits' }, host);
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': T('Histogram of contract values with legal limits') }, host);
     var tip = tipFor(host);
     for (var g = 0; g <= top + 1; g += st) { el('line', { x1: m.l, x2: W - m.r, y1: Y(g), y2: Y(g), stroke: css('--grid') }, svg); txt(svg, m.l - 6, Y(g) + 4, n0(g), { 'text-anchor': 'end' }); }
     var tickStep = W < 560 ? (fam === 1 ? 50 : 25) : (fam === 1 ? 25 : 10);
-    for (var t = 0; t <= maxK; t += tickStep) txt(svg, X(t), H - 8, '€' + t + 'k', { 'text-anchor': 'middle' });
+    for (var t = 0; t <= maxK; t += tickStep) txt(svg, X(t), H - 8, I18N.p('€' + t + 'k', t + '\u00a0k€'), { 'text-anchor': 'middle' });
     // the first band (under EUR 1,000) holds many small purchases; it is drawn capped so the rest stays readable
     counts.forEach(function (c, k) {
       if (k === 0) return;
@@ -562,30 +869,30 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
     });
     thr.forEach(function (x, j) {
       el('line', { x1: X(x[0]), x2: X(x[0]), y1: m.t - 4, y2: H - m.b, stroke: css('--ink'), 'stroke-dasharray': '4 3' }, svg);
-      txt(svg, X(x[0]) + 4, m.t - 18 + (W < 700 ? j * 0 : 0), W < 700 ? '€' + n0(x[0] * 1000) : x[1], { class: 'lbl', 'text-anchor': x[0] > maxK * 0.6 ? 'end' : 'start', dx: x[0] > maxK * 0.6 ? -8 : 0 });
+      txt(svg, X(x[0]) + 4, m.t - 18 + (W < 700 ? j * 0 : 0), W < 700 ? money(n0(x[0] * 1000)) : x[1], { class: 'lbl', 'text-anchor': x[0] > maxK * 0.6 ? 'end' : 'start', dx: x[0] > maxK * 0.6 ? -8 : 0 });
     });
     var hit = el('rect', { x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b, fill: 'transparent' }, svg);
     hit.addEventListener('pointermove', function (evt) {
       var b = svg.getBoundingClientRect(), px = (evt.clientX - b.left) / b.width * W, k = Math.max(1, Math.min(maxK - 1, Math.floor((px - m.l) / bw)));
-      showTip(tip, svg, W, H, X(k) + bw / 2, Y(counts[k]), '€' + n0(k * 1000) + ' – €' + n0(k * 1000 + 999) + '<br>' + n0(counts[k]) + ' contracts');
+      showTip(tip, svg, W, H, X(k) + bw / 2, Y(counts[k]), money(n0(k * 1000)) + ' – ' + money(n0(k * 1000 + 999)) + '<br>' + n0(counts[k]) + CN());
     });
     hit.addEventListener('pointerleave', function () { tip.hidden = true; });
     // limits table (whole period, all entities)
     var rows = D.meta.thresholds.filter(function (r) { return r[4] === 'below' && (fam === 1 ? r[1] === 'Public works' : r[1] === 'Goods and services'); });
-    document.getElementById('thr').innerHTML = '<thead><tr><th>Limit (2019 – Sep 2026, all entities)</th><th>€1,000 below</th><th>€1,000 above</th><th>Avg €1,000 band nearby</th><th>Below vs nearby</th><th>Within €1 below</th></tr></thead><tbody>' +
-      rows.map(function (r) { return '<tr><td>' + r[2] + ' · below €' + n0(r[3]) + '</td><td>' + n0(r[5]) + '</td><td>' + n0(r[6]) + '</td><td>' + n0(r[7]) + '</td><td>' + (r[5] / r[7]).toFixed(1) + '×</td><td>' + n0(r[8]) + '</td></tr>'; }).join('') + '</tbody>';
+    document.getElementById('thr').innerHTML = '<thead><tr>' + ['Limit (2019 – Sep 2026, all entities)', '€1,000 below', '€1,000 above', 'Avg €1,000 band nearby', 'Below vs nearby', 'Within €1 below'].map(function (h) { return '<th>' + T(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      rows.map(function (r) { return '<tr><td>' + T(r[2]) + I18N.p(' · below ', ' · abaixo de ') + money(n0(r[3])) + '</td><td>' + n0(r[5]) + '</td><td>' + n0(r[6]) + '</td><td>' + n0(r[7]) + '</td><td>' + N((r[5] / r[7]).toFixed(1)) + '×</td><td>' + n0(r[8]) + '</td></tr>'; }).join('') + '</tbody>';
   }
 
   // ---------- concentration and suppliers (whole period) ----------
   function renderConcentration() {
     var rows = D.concentration.slice().sort(function (a, b) { return b[1] - a[1]; }).slice(0, 15);
-    document.getElementById('conc').innerHTML = '<thead><tr><th>CPV division</th><th>Value</th><th>Suppliers</th><th>Top 1</th><th>Top 5</th><th>HHI</th></tr></thead><tbody>' +
-      rows.map(function (r) { var c = D.meta.cpv[r[0]]; return '<tr><td class="name">' + c[0] + ' ' + c[1] + '</td><td>' + eur(r[1]) + '</td><td>' + n0(r[2]) + '</td><td>' + share(r[3]) + '</td><td>' + share(r[4]) + '</td><td class="' + (r[6] >= 1000 ? 'neg' : '') + '">' + n0(r[6]) + '</td></tr>'; }).join('') + '</tbody>';
+    document.getElementById('conc').innerHTML = '<thead><tr>' + ['CPV division', 'Value', 'Suppliers', 'Top 1', 'Top 5', 'HHI'].map(function (h) { return '<th>' + T(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      rows.map(function (r) { var c = D.meta.cpv[r[0]]; return '<tr><td class="name">' + c[0] + ' ' + T(c[1]) + '</td><td>' + eur(r[1]) + '</td><td>' + n0(r[2]) + '</td><td>' + share(r[3]) + '</td><td>' + share(r[4]) + '</td><td class="' + (r[6] >= 1000 ? 'neg' : '') + '">' + n0(r[6]) + '</td></tr>'; }).join('') + '</tbody>';
   }
   function renderSuppliers() {
     var rows = D.suppliers.filter(function (r) { return r[0] === state.sup; }).slice(0, state.sup < 0 ? 15 : 5);
-    document.getElementById('sups').innerHTML = '<thead><tr><th>#</th><th class="name">Supplier</th><th>Value</th><th>Contracts</th><th>Share</th></tr></thead><tbody>' +
-      rows.map(function (r) { return '<tr data-sup="' + r[2].replace(/"/g, '&quot;') + '" tabindex="0"><td>' + r[1] + '</td><td class="name">' + r[2] + '</td><td>' + eur(r[3]) + '</td><td>' + n0(r[4]) + '</td><td>' + share(r[5], 2) + '</td></tr>'; }).join('') + '</tbody>';
+    document.getElementById('sups').innerHTML = '<thead><tr><th>#</th><th class="name">' + T('Supplier') + '</th><th>' + T('Value') + '</th><th>' + T('Contracts') + '</th><th>' + T('Share') + '</th></tr></thead><tbody>' +
+      rows.map(function (r) { return '<tr data-sup="' + r[2].replace(/"/g, '&quot;') + '" tabindex="0"><td>' + r[1] + '</td><td class="name">' + T(r[2]) + '</td><td>' + eur(r[3]) + '</td><td>' + n0(r[4]) + '</td><td>' + share(r[5], 2) + '</td></tr>'; }).join('') + '</tbody>';
   }
 
   // ---------- price vs base ----------
@@ -596,34 +903,34 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
     hbars(document.getElementById('price'), groups.map(function (g) {
       var d = g.bv / g.bt - 1;
       var gi = D.meta.procedure_groups.indexOf(g.name);
-      return { gi: gi, name: g.name, v: Math.max(0, -d), label: sgn(d), color: state.pg >= 0 && gi !== state.pg ? css('--grid') : css('--s1'), tip: g.name + '<br>Contract value ' + sgn(d) + ' vs base price<br>' + n0(g.bn) + ' contracts<br><i>Click to highlight</i>' };
+      return { gi: gi, name: T(g.name), v: Math.max(0, -d), label: sgn(d), color: state.pg >= 0 && gi !== state.pg ? css('--grid') : css('--s1'), tip: T(g.name) + '<br>' + I18N.p('Contract value ', 'Valor contratual ') + sgn(d) + I18N.p(' vs base price', ' face ao preço base') + '<br>' + n0(g.bn) + CN() + '<br><i>' + T('Click to highlight') + '</i>' };
     }), { left: 170, aria: 'Contract price against base price by procedure group', onClick: function (r) { pickProc(r.gi); } });
-    document.getElementById('pricet').innerHTML = '<thead><tr><th>Procedure</th><th>At base</th><th>Below base</th><th>Closed</th><th>Final vs signed</th><th>Ended higher</th></tr></thead><tbody>' +
-      groups.map(function (g) { return '<tr><td>' + g.name + '</td><td>' + share(g.at / g.bn) + '</td><td>' + share(g.below / g.bn) + '</td><td>' + n0(g.cn) + '</td><td>' + (g.cv ? sgn(g.ce / g.cv - 1) : '–') + '</td><td>' + (g.cn ? share(g.cab / g.cn) : '–') + '</td></tr>'; }).join('') + '</tbody>';
+    document.getElementById('pricet').innerHTML = '<thead><tr>' + ['Procedure', 'At base', 'Below base', 'Closed', 'Final vs signed', 'Ended higher'].map(function (h) { return '<th>' + T(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      groups.map(function (g) { return '<tr><td>' + T(g.name) + '</td><td>' + share(g.at / g.bn) + '</td><td>' + share(g.below / g.bn) + '</td><td>' + n0(g.cn) + '</td><td>' + (g.cv ? sgn(g.ce / g.cv - 1) : '–') + '</td><td>' + (g.cn ? share(g.cab / g.cn) : '–') + '</td></tr>'; }).join('') + '</tbody>';
   }
 
   // ---------- month of year ----------
   function renderMonths() {
     var host = document.getElementById('months'); host.innerHTML = '';
     var y1 = Math.min(state.y1, 2025), y0 = Math.min(state.y0, y1);
-    document.getElementById('mo-sub').textContent = 'Share of each year\'s value by month of the contract date, ' + (y0 === y1 ? y0 : y0 + '–' + y1) + ' (complete years only) · ' + ctLabel() + ' · ' + etLabel() + '.';
+    document.getElementById('mo-sub').textContent = I18N.p('Share of each year\'s value by month of the contract date, ', 'Peso de cada mês no valor anual, pela data do contrato, ') + (y0 === y1 ? y0 : y0 + '–' + y1) + I18N.p(' (complete years only) · ', ' (só anos completos) · ') + ctLabel() + ' · ' + etLabel() + '.';
     var mv = new Array(12).fill(0), mn = new Array(12).fill(0), tot = 0;
     D.monthly.forEach(function (r) { var y = +r[0].slice(0, 4); if (y < y0 || y > y1 || !inCt(r[1]) || !inEt(r[2])) return; var k = +r[0].slice(5) - 1; mv[k] += r[4]; mn[k] += r[3]; tot += r[4]; });
     var W = cw(host), H = 220, m = { t: 20, r: 8, b: 26, l: 40 };
     var sh = mv.map(function (v) { return tot ? v / tot : 0; }), max = Math.max.apply(null, sh.concat([0.1])), st = niceStep(max), top = Math.ceil(max / st) * st;
     var bw = (W - m.l - m.r) / 12, Y = function (v) { return H - m.b - v / top * (H - m.t - m.b); };
-    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Share of annual value by month' }, host);
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': T('Share of annual value by month') }, host);
     var tip = tipFor(host);
     for (var g = 0; g <= top + 1e-9; g += st) { el('line', { x1: m.l, x2: W - m.r, y1: Y(g), y2: Y(g), stroke: css('--grid') }, svg); txt(svg, m.l - 6, Y(g) + 4, Math.round(g * 100) + '%', { 'text-anchor': 'end' }); }
     el('line', { x1: m.l, x2: W - m.r, y1: Y(1 / 12), y2: Y(1 / 12), stroke: css('--muted'), 'stroke-dasharray': '4 3' }, svg);
-    var names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    var names = I18N.pt() ? ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'] : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     sh.forEach(function (s, k) {
       var x = m.l + k * bw + bw * 0.18, w = bw * 0.64;
       el('rect', { x: x, y: Y(s), width: w, height: Math.max(0, Y(0) - Y(s)), rx: 2, fill: k === 11 ? css('--s2') : css('--s1') }, svg);
       if (k === 11 || s === max) txt(svg, x + w / 2, Y(s) - 6, share(s), { 'text-anchor': 'middle', class: 'lbl' });
       txt(svg, x + w / 2, H - 8, bw < 30 ? names[k].charAt(0) : names[k], { 'text-anchor': 'middle' });
       var hit = el('rect', { x: m.l + k * bw, y: m.t, width: bw, height: H - m.t - m.b, fill: 'transparent' }, svg);
-      hit.addEventListener('pointerenter', function () { showTip(tip, svg, W, H, x + w / 2, Y(s), names[k] + '<br>' + share(s) + ' of the value<br>' + eur(mv[k]) + ' · ' + n0(mn[k]) + ' contracts'); });
+      hit.addEventListener('pointerenter', function () { showTip(tip, svg, W, H, x + w / 2, Y(s), names[k] + '<br>' + share(s) + I18N.p(' of the value<br>', ' do valor<br>') + eur(mv[k]) + ' · ' + n0(mn[k]) + CN()); });
       hit.addEventListener('pointerleave', function () { tip.hidden = true; });
     });
   }
@@ -634,7 +941,7 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
     var list = Object.keys(by).map(function (k) { var g = D.meta.regions[k]; return { name: g[1], grp: g[2], v: by[k][1], n: by[k][0] }; }).sort(function (a, b) { return b.v - a.v; });
     hbars(document.getElementById('regions'), list.map(function (r) {
       var apart = ['Multiple districts', 'Portugal, district not given', 'Abroad', 'Not reported'].indexOf(r.name) >= 0;
-      return { name: r.name, v: r.v, label: eur(r.v) + ' · ' + share(r.v / tot), color: apart ? css('--total') : css('--s1'), tip: r.name + (apart ? '' : ' · ' + r.grp) + '<br>' + eur(r.v) + ' (' + share(r.v / tot) + ')<br>' + n0(r.n) + ' contracts' };
+      return { name: T(r.name), v: r.v, label: eur(r.v) + ' · ' + share(r.v / tot), color: apart ? css('--total') : css('--s1'), tip: T(r.name) + (apart ? '' : ' · ' + T(r.grp)) + '<br>' + eur(r.v) + ' (' + share(r.v / tot) + ')<br>' + n0(r.n) + CN() };
     }), { left: 200, rowH: 24, aria: 'Contract value by district' });
   }
 
@@ -650,14 +957,14 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
   function renderSelection() {
     var chips = [];
     if (state.y0 === state.y1) chips.push(['year', String(state.y0)]);
-    if (state.et >= 0) chips.push(['et', D.meta.entity_types[state.et]]);
-    if (state.cpv >= 0) chips.push(['cpv', 'CPV ' + D.meta.cpv[state.cpv][0] + ' ' + D.meta.cpv[state.cpv][1]]);
-    if (state.pg >= 0) chips.push(['pg', D.meta.procedure_groups[state.pg]]);
+    if (state.et >= 0) chips.push(['et', T(D.meta.entity_types[state.et])]);
+    if (state.cpv >= 0) chips.push(['cpv', 'CPV ' + D.meta.cpv[state.cpv][0] + ' ' + T(D.meta.cpv[state.cpv][1])]);
+    if (state.pg >= 0) chips.push(['pg', T(D.meta.procedure_groups[state.pg])]);
     var box = document.getElementById('xf');
-    if (!chips.length) { box.innerHTML = '<span>Click a bar (a year, an entity type, a CPV division or a procedure) to filter the other charts.</span>'; return; }
-    box.innerHTML = '<span>Selected:</span>' + chips.map(function (c) { return '<button data-x="' + c[0] + '" aria-label="Remove ' + c[1] + '">' + c[1] + ' ×</button>'; }).join('') +
-      (chips.length > 1 ? '<button data-x="all">Clear all</button>' : '') +
-      (state.cpv >= 0 ? '<span>The CPV division filters the value by year, the entity types and the supplier ranking; the other tables have no category detail.</span>' : '');
+    if (!chips.length) { box.innerHTML = '<span>' + T('Click a bar (a year, an entity type, a CPV division or a procedure) to filter the other charts.') + '</span>'; return; }
+    box.innerHTML = '<span>' + T('Selected:') + '</span>' + chips.map(function (c) { return '<button data-x="' + c[0] + '" aria-label="' + I18N.p('Remove ', 'Remover ') + c[1] + '">' + c[1] + ' ×</button>'; }).join('') +
+      (chips.length > 1 ? '<button data-x="all">' + T('Clear all') + '</button>' : '') +
+      (state.cpv >= 0 ? '<span>' + T('The CPV division filters the value by year, the entity types and the supplier ranking; the other tables have no category detail.') + '</span>' : '');
   }
   function render() { renderHeadline(); renderSelection(); renderKpis(); renderYears(); renderEtypes(); renderCpv(); renderProcMix(); renderSingle(); renderBunching(); renderConcentration(); renderSuppliers(); renderPrice(); renderMonths(); renderRegions(); }
 
@@ -679,17 +986,17 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
     .then(function (res) {
       names.forEach(function (n, i) { D[n] = res[i]; });
       var yf = document.getElementById('y-from'), yt = document.getElementById('y-to'), opts = '';
-      for (var y = 2019; y <= 2026; y++) opts += '<option value="' + y + '">' + y + (y === 2026 ? ' (to Oct)' : '') + '</option>';
+      for (var y = 2019; y <= 2026; y++) opts += '<option value="' + y + '">' + y + (y === 2026 ? I18N.p(' (to Oct)', ' (até out)') : '') + '</option>';
       yf.innerHTML = opts; yt.innerHTML = opts; yf.value = '2019'; yt.value = '2026';
       function years() { var a = +yf.value, b = +yt.value; if (a > b) { if (this === yf) yt.value = a; else yf.value = b; } state.y0 = +yf.value; state.y1 = +yt.value; render(); }
       yf.addEventListener('change', years); yt.addEventListener('change', years);
       var es = document.getElementById('et-sel');
-      es.innerHTML = '<option value="-1">All</option>' + D.meta.entity_types.map(function (e, i) { return '<option value="' + i + '">' + e + '</option>'; }).join('');
+      es.innerHTML = '<option value="-1">' + I18N.p('All', 'Todas') + '</option>' + D.meta.entity_types.map(function (e, i) { return '<option value="' + i + '">' + T(e) + '</option>'; }).join('');
       es.addEventListener('change', function () { state.et = +es.value; render(); });
       var ss = document.getElementById('sup-sel'), divs = {};
       D.suppliers.forEach(function (r) { if (r[0] >= 0) divs[r[0]] = 1; });
       var byVal = D.concentration.slice().sort(function (a, b) { return b[1] - a[1]; }).map(function (r) { return r[0]; }).filter(function (i) { return divs[i]; });
-      ss.innerHTML = '<option value="-1">All divisions</option>' + byVal.map(function (i) { var c = D.meta.cpv[i]; return '<option value="' + i + '">' + c[0] + ' ' + c[1] + '</option>'; }).join('');
+      ss.innerHTML = '<option value="-1">' + I18N.p('All divisions', 'Todas as divisões') + '</option>' + byVal.map(function (i) { var c = D.meta.cpv[i]; return '<option value="' + i + '">' + c[0] + ' ' + T(c[1]) + '</option>'; }).join('');
       ss.addEventListener('change', function () { state.sup = +ss.value; renderSuppliers(); });
       seg('ct-seg', 'ct'); seg('fam-seg', 'fam', true);
       ss.addEventListener('change', function () { state.cpv = state.sup; render(); });
@@ -705,6 +1012,15 @@ td.pos { background: var(--good-soft); } td.neg { background: var(--warn-soft); 
       var t; window.addEventListener('resize', function () { clearTimeout(t); t = setTimeout(render, 150); });
       if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
     })
-    .catch(function (err) { console.error(err); document.getElementById('kpis').innerHTML = '<p>The data files did not load. Reload the page to try again.</p>'; });
+    .catch(function (err) { console.error(err); document.getElementById('kpis').innerHTML = '<p>' + T('The data files did not load. Reload the page to try again.') + '</p>'; });
+  I18N.on(function () {
+    if (!D.meta) return;
+    document.querySelectorAll('#y-from option, #y-to option').forEach(function (o) { o.textContent = o.value + (o.value === '2026' ? I18N.p(' (to Oct)', ' (até out)') : ''); });
+    document.querySelectorAll('#et-sel option').forEach(function (o) { o.textContent = o.value === '-1' ? I18N.p('All', 'Todas') : T(D.meta.entity_types[+o.value]); });
+    document.querySelectorAll('#sup-sel option').forEach(function (o) { var c = D.meta.cpv[+o.value]; o.textContent = o.value === '-1' ? I18N.p('All divisions', 'Todas as divisões') : c[0] + ' ' + T(c[1]); });
+    render();
+    if (lastSup && document.getElementById('sup').open) openSupplier(lastSup);
+  });
+  I18N.start();
 })();
 </script>
