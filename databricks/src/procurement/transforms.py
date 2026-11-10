@@ -18,6 +18,7 @@ from pyspark.sql import Column, DataFrame, Window
 from pyspark.sql import functions as F
 
 NL = "\n"
+CPV_CODE = r"^(?:cpvID=)?(\d{8})"
 
 # Accented letters found in Portuguese and other European names -> plain letters (DuckDB's strip_accents).
 _ACCENTED = "ÁÀÂÃÄÅÇÉÈÊËÍÌÎÏÑÓÒÔÕÖÚÙÛÜÝáàâãäåçéèêëíìîïñóòôõöúùûüýÿ"
@@ -195,8 +196,12 @@ def parse_contracts(bronze: DataFrame) -> DataFrame:
         .when(F.col("entity_missing"), F.lit("UNKNOWN"))
         .otherwise(F.concat(F.lit("NAME-"), F.left(F.md5(F.lower("entity_name")), F.lit(10))))
         .alias("entity_key"),
-        F.when(F.col("cpv_first").rlike(r"^\d{8}"), F.left("cpv_first", F.lit(8))).alias("cpv_code"),
-        F.when(F.col("cpv_first").rlike(r"^\d{8}"), F.left("cpv_first", F.lit(2))).otherwise("00").alias("cpv_division"),
+        # Two source formats: "79410000-4 - Serviços de ..." (files up to Oct 2026) and
+        # "cpvID=79410000-4|cpvdescricao=...|cpvValor=...|CPVObjeto=Principal" (republication of Nov 2026).
+        F.nullif(F.regexp_extract("cpv_first", CPV_CODE, 1), F.lit("")).alias("cpv_code"),
+        F.coalesce(
+            F.nullif(F.left(F.regexp_extract("cpv_first", CPV_CODE, 1), F.lit(2)), F.lit("")), F.lit("00")
+        ).alias("cpv_division"),
         F.when(F.col("awardees_raw").isNull(), 0).otherwise(F.size(awardee_lines)).alias("n_awardees"),
         F.when(F.col("bidders_raw").isNotNull(), F.size(bidder_lines)).alias("bidders_count"),
         F.when(F.col("contract_price") >= 0, F.col("contract_price")).alias("contract_value"),

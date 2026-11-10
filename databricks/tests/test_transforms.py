@@ -44,6 +44,12 @@ def test_parses_types_dates_and_html(spark):
     assert out.n_awardees == 1 and out.bidders_count is None
 
 
+def test_cpv_key_value_format_of_the_2026_republication(spark):
+    cpv = "cpvID=71330000-0|cpvdescricao=Serviços diversos de engenharia|cpvValor=12800.00|CPVObjeto=Principal"
+    out = T.parse_contracts(bronze(spark, row(CPV=cpv))).collect()[0]
+    assert out.cpv_code == "71330000" and out.cpv_division == "71"
+
+
 def test_empty_and_placeholder_become_null_and_negative_prices_drop(spark):
     out = T.parse_contracts(bronze(spark, row(precoContratual="-5", CPV="∅", concorrentes="  "))).collect()[0]
     assert out.contract_value is None and out.contract_price == Decimal("-5.00")
