@@ -11,14 +11,14 @@
       "name": "ds_year",
       "displayName": "year",
       "queryLines": [
-        "SELECT contract_year, entity_type, procedure_group,\n       count(*) AS contracts, sum(contract_value_eur) / 1e9 AS value_bn\nFROM workspace.gold.contracts_enriched\nGROUP BY ALL"
+        "SELECT contract_year, entity_type, procedure_group,\n       CASE WHEN entity_type IN ('Municipality', 'Parish', 'Municipal company or service', 'Intermunicipal body')\n            THEN 'Local government'\n            WHEN entity_type IN ('Health', 'Central government', 'State-owned company') THEN entity_type\n            ELSE 'Other public bodies' END AS buyer_group,\n       count(*) AS contracts, sum(contract_value_eur) / 1e9 AS value_bn\nFROM workspace.gold.contracts_enriched\nGROUP BY ALL"
       ]
     },
     {
       "name": "ds_category",
       "displayName": "category",
       "queryLines": [
-        "SELECT cpv_category, count(*) AS contracts, sum(contract_value_eur) / 1e9 AS value_bn\nFROM workspace.gold.contracts_enriched\nGROUP BY ALL"
+        "WITH c AS (\n  SELECT cpv_category, count(*) AS contracts, sum(contract_value_eur) / 1e9 AS value_bn\n  FROM workspace.gold.contracts_enriched GROUP BY ALL),\nr AS (SELECT *, row_number() OVER (ORDER BY value_bn DESC) AS rk FROM c)\nSELECT CASE WHEN rk <= 12 THEN cpv_category ELSE 'All other categories' END AS cpv_category,\n       sum(contracts) AS contracts, sum(value_bn) AS value_bn\nFROM r GROUP BY ALL"
       ]
     },
     {
@@ -39,7 +39,7 @@
       "name": "ds_bunching",
       "displayName": "bunching",
       "queryLines": [
-        "SELECT bin_start / 1000 AS value_k_eur, sum(contracts) AS contracts\nFROM workspace.gold.mart_threshold_bunching\nWHERE threshold_family = 'Goods and services' AND bin_start BETWEEN 5000 AND 99000\nGROUP BY ALL"
+        "SELECT bin_start / 1000 AS value_k_eur,\n       CASE WHEN bin_start IN (19000, 74000) THEN 'Band just below a legal limit' ELSE 'Other bands' END AS band,\n       sum(contracts) AS contracts\nFROM workspace.gold.mart_threshold_bunching\nWHERE threshold_family = 'Goods and services' AND bin_start BETWEEN 5000 AND 99000\nGROUP BY ALL"
       ]
     },
     {
@@ -62,6 +62,20 @@
       "queryLines": [
         "SELECT procedure_group,\n       round((1 - sum(base_contract_value) / sum(base_price_total)) * 100, 1) AS pct_below_base_price\nFROM workspace.gold.mart_price_vs_base\nGROUP BY ALL\nHAVING sum(base_contracts) > 1000"
       ]
+    },
+    {
+      "name": "ds_layers",
+      "displayName": "layers",
+      "queryLines": [
+        "SELECT * FROM VALUES\n  ('1 Bronze', 'bronze_contracts: raw rows, Auto Loader', (SELECT count(*) FROM workspace.silver.bronze_contracts)),\n  ('2 Silver', 'silver_contracts: typed and deduplicated', (SELECT count(*) FROM workspace.silver.silver_contracts)),\n  ('2 Silver', 'silver_contracts_rejected: failed a drop rule', (SELECT count(*) FROM workspace.silver.silver_contracts_rejected)),\n  ('2 Silver', 'silver_contract_awardees: one row per awardee', (SELECT count(*) FROM workspace.silver.silver_contract_awardees)),\n  ('3 Gold', 'fct_contracts: fact table (dbt)', (SELECT count(*) FROM workspace.gold.fct_contracts)),\n  ('3 Gold', 'bridge_contract_supplier: value split per supplier', (SELECT count(*) FROM workspace.gold.bridge_contract_supplier))\nAS t(layer, table_name, row_count)"
+      ]
+    },
+    {
+      "name": "ds_freshness",
+      "displayName": "freshness",
+      "queryLines": [
+        "SELECT max(_ingested_at) AS last_ingested,\n       count(DISTINCT _source_file) AS source_files,\n       (SELECT max(contract_date) FROM workspace.gold.fct_contracts) AS latest_contract_date\nFROM workspace.silver.bronze_contracts"
+      ]
     }
   ],
   "pages": [
@@ -76,7 +90,7 @@
             "multilineTextboxSpec": {
               "lines": [
                 "## Where does Portugal's public procurement money go?\n",
-                "Every contract published on Portal BASE since January 2019 (1.5 million+, refreshed weekly), EUR without VAT. Built on Databricks: Auto Loader + Lakeflow pipeline (bronze, silver) and dbt (gold). Click any bar to filter the page."
+                "Every contract published on Portal BASE since January 2019 (refreshed weekly; 2026 is the year to date), EUR without VAT. Click any bar to filter the page."
               ]
             }
           },
@@ -151,12 +165,12 @@
               "encodings": {
                 "value": {
                   "fieldName": "value_bn",
-                  "displayName": "Value, EUR bn"
+                  "displayName": "Contract value, EUR bn"
                 }
               },
               "frame": {
                 "showTitle": true,
-                "title": "Value, EUR bn"
+                "title": "Contract value, EUR bn"
               }
             }
           },
@@ -191,12 +205,12 @@
               "encodings": {
                 "value": {
                   "fieldName": "open_single_bid_pct",
-                  "displayName": "Open tenders with one bid, %"
+                  "displayName": "Open tenders with a single bid, %"
                 }
               },
               "frame": {
                 "showTitle": true,
-                "title": "Open tenders with one bid, %"
+                "title": "Open tenders with a single bid, %"
               }
             }
           },
@@ -225,8 +239,8 @@
                       "expression": "SUM(`value_bn`)"
                     },
                     {
-                      "name": "entity_type",
-                      "expression": "`entity_type`"
+                      "name": "buyer_group",
+                      "expression": "`buyer_group`"
                     }
                   ],
                   "disaggregated": false
@@ -242,26 +256,26 @@
                   "scale": {
                     "type": "quantitative"
                   },
-                  "displayName": "contract year"
+                  "displayName": " "
                 },
                 "y": {
                   "fieldName": "sum(value_bn)",
                   "scale": {
                     "type": "quantitative"
                   },
-                  "displayName": "value bn"
+                  "displayName": "EUR bn"
                 },
                 "color": {
-                  "fieldName": "entity_type",
+                  "fieldName": "buyer_group",
                   "scale": {
                     "type": "categorical"
                   },
-                  "displayName": "entity type"
+                  "displayName": "Buyer group"
                 }
               },
               "frame": {
                 "showTitle": true,
-                "title": "Value by year and buyer type, EUR bn"
+                "title": "Spending by year and buyer, EUR bn"
               }
             }
           },
@@ -303,7 +317,7 @@
                   "scale": {
                     "type": "quantitative"
                   },
-                  "displayName": "value bn"
+                  "displayName": "EUR bn"
                 },
                 "y": {
                   "fieldName": "entity_type",
@@ -313,12 +327,15 @@
                       "by": "x-reversed"
                     }
                   },
-                  "displayName": "entity type"
+                  "displayName": " "
+                },
+                "label": {
+                  "show": true
                 }
               },
               "frame": {
                 "showTitle": true,
-                "title": "Who buys: value by buyer type, EUR bn"
+                "title": "Who buys: value by buyer type"
               }
             }
           },
@@ -360,7 +377,7 @@
                   "scale": {
                     "type": "quantitative"
                   },
-                  "displayName": "value bn"
+                  "displayName": "EUR bn"
                 },
                 "y": {
                   "fieldName": "procedure_group",
@@ -370,12 +387,15 @@
                       "by": "x-reversed"
                     }
                   },
-                  "displayName": "procedure group"
+                  "displayName": " "
+                },
+                "label": {
+                  "show": true
                 }
               },
               "frame": {
                 "showTitle": true,
-                "title": "How it is bought: value by procedure, EUR bn"
+                "title": "How it is bought: value by procedure"
               }
             }
           },
@@ -417,7 +437,7 @@
                   "scale": {
                     "type": "quantitative"
                   },
-                  "displayName": "value bn"
+                  "displayName": "EUR bn"
                 },
                 "y": {
                   "fieldName": "cpv_category",
@@ -427,12 +447,15 @@
                       "by": "x-reversed"
                     }
                   },
-                  "displayName": "cpv category"
+                  "displayName": " "
+                },
+                "label": {
+                  "show": true
                 }
               },
               "frame": {
                 "showTitle": true,
-                "title": "What is bought: value by CPV category, EUR bn"
+                "title": "What is bought: top 12 CPV categories by value"
               }
             }
           },
@@ -477,19 +500,19 @@
                       "by": "y-reversed"
                     }
                   },
-                  "displayName": "region"
+                  "displayName": " "
                 },
                 "y": {
                   "fieldName": "sum(value_bn)",
                   "scale": {
                     "type": "quantitative"
                   },
-                  "displayName": "value bn"
+                  "displayName": "EUR bn"
                 }
               },
               "frame": {
                 "showTitle": true,
-                "title": "Where: value by district, EUR bn"
+                "title": "Where: value by district of execution, EUR bn"
               }
             }
           },
@@ -512,8 +535,8 @@
             "name": "intro2",
             "multilineTextboxSpec": {
               "lines": [
-                "## Competition, legal limits and prices",
-                "Single-bid share where bidders are listed; contract values around the direct-award limits; supplier concentration per category (HHI); price signed against the base price."
+                "## Competition, legal limits and prices\n",
+                "Single-bid share where bidders are listed; how contract values pile up just below the direct-award limits; supplier concentration per category (HHI: under 1,500 unconcentrated, over 2,500 high); price signed against the base price."
               ]
             }
           },
@@ -559,26 +582,26 @@
                   "scale": {
                     "type": "ordinal"
                   },
-                  "displayName": "contract year"
+                  "displayName": " "
                 },
                 "y": {
                   "fieldName": "avg(single_bid_pct)",
                   "scale": {
                     "type": "quantitative"
                   },
-                  "displayName": "single bid pct"
+                  "displayName": "%"
                 },
                 "color": {
                   "fieldName": "procedure_group",
                   "scale": {
                     "type": "categorical"
                   },
-                  "displayName": "procedure group"
+                  "displayName": "Procedure group"
                 }
               },
               "frame": {
                 "showTitle": true,
-                "title": "Share of procedures with a single bid, %"
+                "title": "Procedures with a single bid, % (2019-2025)"
               }
             }
           },
@@ -620,7 +643,7 @@
                   "scale": {
                     "type": "quantitative"
                   },
-                  "displayName": "pct below base price"
+                  "displayName": "%"
                 },
                 "y": {
                   "fieldName": "procedure_group",
@@ -630,7 +653,10 @@
                       "by": "x-reversed"
                     }
                   },
-                  "displayName": "procedure group"
+                  "displayName": " "
+                },
+                "label": {
+                  "show": true
                 }
               },
               "frame": {
@@ -662,6 +688,10 @@
                     {
                       "name": "sum(contracts)",
                       "expression": "SUM(`contracts`)"
+                    },
+                    {
+                      "name": "band",
+                      "expression": "`band`"
                     }
                   ],
                   "disaggregated": false
@@ -677,19 +707,26 @@
                   "scale": {
                     "type": "quantitative"
                   },
-                  "displayName": "value k eur"
+                  "displayName": "Contract value, EUR thousand"
                 },
                 "y": {
                   "fieldName": "sum(contracts)",
                   "scale": {
                     "type": "quantitative"
                   },
-                  "displayName": "contracts"
+                  "displayName": "Contracts"
+                },
+                "color": {
+                  "fieldName": "band",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Band"
                 }
               },
               "frame": {
                 "showTitle": true,
-                "title": "Goods and services contracts per EUR 1,000 band: peaks just below 20k and 75k"
+                "title": "Goods and services contracts per EUR 1,000 band: peaks just below the EUR 20k and 75k limits"
               }
             }
           },
@@ -737,19 +774,19 @@
                 "columns": [
                   {
                     "fieldName": "legal_limit",
-                    "displayName": "legal limit"
+                    "displayName": "Legal limit"
                   },
                   {
                     "fieldName": "contracts_just_below",
-                    "displayName": "contracts just below"
+                    "displayName": "Just below"
                   },
                   {
                     "fieldName": "contracts_just_above",
-                    "displayName": "contracts just above"
+                    "displayName": "Just above"
                   },
                   {
                     "fieldName": "times_neighbours",
-                    "displayName": "times neighbours"
+                    "displayName": "x neighbouring bands"
                   }
                 ]
               },
@@ -803,25 +840,25 @@
                 "columns": [
                   {
                     "fieldName": "category",
-                    "displayName": "category"
+                    "displayName": "CPV category"
                   },
                   {
                     "fieldName": "hhi",
-                    "displayName": "hhi"
+                    "displayName": "HHI"
                   },
                   {
                     "fieldName": "top5_pct",
-                    "displayName": "top5 pct"
+                    "displayName": "Top 5 share, %"
                   },
                   {
                     "fieldName": "value_bn",
-                    "displayName": "value bn"
+                    "displayName": "Value, EUR bn"
                   }
                 ]
               },
               "frame": {
                 "showTitle": true,
-                "title": "Supplier concentration by category (2019-2026)"
+                "title": "Supplier concentration by category, 2019-2026"
               }
             }
           },
@@ -829,6 +866,208 @@
             "x": 3,
             "y": 14,
             "width": 3,
+            "height": 6
+          }
+        }
+      ]
+    },
+    {
+      "name": "pipeline",
+      "displayName": "Data pipeline",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layout": [
+        {
+          "widget": {
+            "name": "intro3",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## How the data gets here\n",
+                "Yearly Portal BASE files land in a Unity Catalog volume. A Lakeflow pipeline ingests only new files with Auto Loader (bronze), then types, deduplicates and checks every row (silver): rows that break a rule go to a rejected table with the rule's name. dbt-databricks builds the gold star schema and runs its tests. One weekly job runs both; the whole project deploys with a Databricks Asset Bundle."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_files",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_freshness",
+                  "fields": [
+                    {
+                      "name": "source_files",
+                      "expression": "`source_files`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "source_files",
+                  "displayName": "Source files ingested"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Source files ingested"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 3,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_last",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_freshness",
+                  "fields": [
+                    {
+                      "name": "last_ingested",
+                      "expression": "`last_ingested`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "last_ingested",
+                  "displayName": "Last ingestion"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Last ingestion"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 3,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_latest",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_freshness",
+                  "fields": [
+                    {
+                      "name": "latest_contract_date",
+                      "expression": "`latest_contract_date`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "latest_contract_date",
+                  "displayName": "Latest contract date"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Latest contract date"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 3,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "layers",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_layers",
+                  "fields": [
+                    {
+                      "name": "layer",
+                      "expression": "`layer`"
+                    },
+                    {
+                      "name": "table_name",
+                      "expression": "`table_name`"
+                    },
+                    {
+                      "name": "row_count",
+                      "expression": "`row_count`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "layer",
+                    "displayName": "Layer"
+                  },
+                  {
+                    "fieldName": "table_name",
+                    "displayName": "Table"
+                  },
+                  {
+                    "fieldName": "row_count",
+                    "displayName": "Rows"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Rows per layer (medallion architecture)"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 6,
+            "width": 6,
             "height": 6
           }
         }

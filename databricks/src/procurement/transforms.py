@@ -87,6 +87,29 @@ def _after_dash(col: Column) -> Column:
     return F.substr(col, pos + F.lit(3))
 
 
+# Party cells (buyer, awardees) come in two formats: "500000000 - Name" (files up to Oct 2026) and
+# "nifEntContrato=500000000|descEntContrato=Name|codPaisEntContrato=PRT|..." (republication of Nov 2026).
+_KV_NIF = r"(?i)^nif[A-Za-z]*=([^|]*)"
+_KV_NAME = r"(?i)\|desc[A-Za-z]*=([^|]*)"
+
+
+def _is_kv(col: Column) -> Column:
+    return F.regexp_like(col, F.lit(r"(?i)^nif[A-Za-z]*="))
+
+
+def party_nif(col: Column) -> Column:
+    """Raw NIF text of a single party line, in either format."""
+    first = F.split_part(col, F.lit(NL), F.lit(1))
+    return F.trim(F.when(_is_kv(first), F.regexp_extract(first, _KV_NIF, 1))
+                  .otherwise(F.split_part(first, F.lit(" - "), F.lit(1))))
+
+
+def party_name(col: Column) -> Column:
+    """Name of a single party line, in either format."""
+    first = F.split_part(col, F.lit(NL), F.lit(1))
+    return F.when(_is_kv(first), F.trim(F.regexp_extract(first, _KV_NAME, 1))).otherwise(_after_dash(first))
+
+
 # --------------------------------------------------------------------------------------------- bronze
 # Source columns the transformations read. IMPIC changes the published files from time to time (the November
 # 2026 republication dropped TipoCriterioAdjudicacao, for example); a column that is missing is added as NULL so
@@ -154,8 +177,8 @@ def parse_contracts(bronze: DataFrame) -> DataFrame:
         .otherwise(F.coalesce(clean("tipoContrato"), F.lit("Not reported")))
         .alias("contract_type_pt"),
         F.coalesce(clean("tipoprocedimento"), F.lit("Not reported")).alias("procedure_name_pt"),
-        F.trim(F.split_part(F.col("adjudicante"), F.lit(" - "), F.lit(1))).alias("entity_nif_raw"),
-        decode_html(_after_dash(F.col("adjudicante"))).alias("entity_name"),
+        party_nif(F.col("adjudicante")).alias("entity_nif_raw"),
+        decode_html(party_name(F.col("adjudicante"))).alias("entity_name"),
         F.col("adjudicante").isNull().alias("entity_missing"),
         clean("adjudicatarios").alias("awardees_raw"),
         clean("concorrentes").alias("bidders_raw"),
@@ -226,8 +249,8 @@ def parse_awardees(contracts: DataFrame) -> DataFrame:
         "contract_id",
         "n_awardees",
         (F.col("pos") + 1).alias("awardee_seq"),
-        F.regexp_replace(F.trim(F.split_part("awardee_raw", F.lit(" - "), F.lit(1))), "[^0-9]", "").alias("nif_digits"),
-        decode_html(_after_dash(F.col("awardee_raw"))).alias("awardee_name"),
+        F.regexp_replace(party_nif(F.col("awardee_raw")), "[^0-9]", "").alias("nif_digits"),
+        decode_html(party_name(F.col("awardee_raw"))).alias("awardee_name"),
     )
     classified = parsed.select(
         "*",
