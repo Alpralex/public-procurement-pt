@@ -53,7 +53,7 @@
       "name": "ds_concentration",
       "displayName": "concentration",
       "queryLines": [
-        "SELECT c.cpv_short_name AS category, round(m.hhi) AS hhi, round(m.top5_share * 100, 1) AS top5_pct,\n       m.supplier_value / 1e9 AS value_bn\nFROM workspace.gold.mart_supplier_concentration m\nJOIN workspace.gold.dim_cpv c USING (cpv_division)\nWHERE m.period = '2019-2026' AND m.supplier_value > 5e8"
+        "SELECT c.cpv_short_name AS category, round(m.hhi) AS hhi, round(m.top5_share * 100, 1) AS top5_pct,\n       m.supplier_value / 1e9 AS value_bn\nFROM workspace.gold.mart_supplier_concentration m\nJOIN workspace.gold.dim_cpv c USING (cpv_division)\nWHERE m.period = '2019-2026' AND m.supplier_value > 5e8\nORDER BY m.hhi DESC LIMIT 10"
       ]
     },
     {
@@ -67,7 +67,7 @@
       "name": "ds_layers",
       "displayName": "layers",
       "queryLines": [
-        "SELECT '1 Bronze' AS layer, '1 Bronze: raw rows (Auto Loader)' AS table_name, count(*) AS row_count FROM workspace.silver.bronze_contracts\nUNION ALL\nSELECT '2 Silver' AS layer, '2 Silver: typed, deduplicated contracts' AS table_name, count(*) AS row_count FROM workspace.silver.silver_contracts\nUNION ALL\nSELECT '2 Silver' AS layer, '2 Silver: rows rejected by a rule' AS table_name, count(*) AS row_count FROM workspace.silver.silver_contracts_rejected\nUNION ALL\nSELECT '2 Silver' AS layer, '2 Silver: one row per awardee' AS table_name, count(*) AS row_count FROM workspace.silver.silver_contract_awardees\nUNION ALL\nSELECT '3 Gold' AS layer, '3 Gold: fct_contracts (dbt)' AS table_name, count(*) AS row_count FROM workspace.gold.fct_contracts\nUNION ALL\nSELECT '3 Gold' AS layer, '3 Gold: contract-supplier bridge (dbt)' AS table_name, count(*) AS row_count FROM workspace.gold.bridge_contract_supplier"
+        "SELECT 'Bronze' AS layer, '1. Bronze: raw rows (Auto Loader)' AS table_name, count(*) AS row_count FROM workspace.silver.bronze_contracts\nUNION ALL\nSELECT 'Silver' AS layer, '2. Silver: typed, deduplicated contracts' AS table_name, count(*) AS row_count FROM workspace.silver.silver_contracts\nUNION ALL\nSELECT 'Silver' AS layer, '3. Silver: rows rejected by a quality rule' AS table_name, count(*) AS row_count FROM workspace.silver.silver_contracts_rejected\nUNION ALL\nSELECT 'Silver' AS layer, '4. Silver: one row per awardee' AS table_name, count(*) AS row_count FROM workspace.silver.silver_contract_awardees\nUNION ALL\nSELECT 'Gold' AS layer, '5. Gold: fct_contracts (dbt)' AS table_name, count(*) AS row_count FROM workspace.gold.fct_contracts\nUNION ALL\nSELECT 'Gold' AS layer, '6. Gold: contract-supplier bridge (dbt)' AS table_name, count(*) AS row_count FROM workspace.gold.bridge_contract_supplier"
       ]
     },
     {
@@ -846,7 +846,7 @@
               },
               "frame": {
                 "showTitle": true,
-                "title": "Supplier concentration (HHI) by category, 2019-2026: over 2,500 is high"
+                "title": "Most concentrated categories (HHI), 2019-2026: under 1,500 is unconcentrated"
               }
             }
           },

@@ -60,23 +60,24 @@ FROM {g}.mart_threshold_summary""",
        m.supplier_value / 1e9 AS value_bn
 FROM {g}.mart_supplier_concentration m
 JOIN {g}.dim_cpv c USING (cpv_division)
-WHERE m.period = '2019-2026' AND m.supplier_value > 5e8""",
+WHERE m.period = '2019-2026' AND m.supplier_value > 5e8
+ORDER BY m.hhi DESC LIMIT 10""",
         "ds_price": f"""SELECT procedure_group,
        round((1 - try_divide(sum(base_contract_value), sum(base_price_total))) * 100, 1) AS pct_below_base_price
 FROM {g}.mart_price_vs_base
 GROUP BY ALL
 HAVING sum(base_contracts) > 1000""",
-        "ds_layers": f"""SELECT '1 Bronze' AS layer, '1 Bronze: raw rows (Auto Loader)' AS table_name, count(*) AS row_count FROM {cat}.silver.bronze_contracts
+        "ds_layers": f"""SELECT 'Bronze' AS layer, '1. Bronze: raw rows (Auto Loader)' AS table_name, count(*) AS row_count FROM {cat}.silver.bronze_contracts
 UNION ALL
-SELECT '2 Silver' AS layer, '2 Silver: typed, deduplicated contracts' AS table_name, count(*) AS row_count FROM {cat}.silver.silver_contracts
+SELECT 'Silver' AS layer, '2. Silver: typed, deduplicated contracts' AS table_name, count(*) AS row_count FROM {cat}.silver.silver_contracts
 UNION ALL
-SELECT '2 Silver' AS layer, '2 Silver: rows rejected by a rule' AS table_name, count(*) AS row_count FROM {cat}.silver.silver_contracts_rejected
+SELECT 'Silver' AS layer, '3. Silver: rows rejected by a quality rule' AS table_name, count(*) AS row_count FROM {cat}.silver.silver_contracts_rejected
 UNION ALL
-SELECT '2 Silver' AS layer, '2 Silver: one row per awardee' AS table_name, count(*) AS row_count FROM {cat}.silver.silver_contract_awardees
+SELECT 'Silver' AS layer, '4. Silver: one row per awardee' AS table_name, count(*) AS row_count FROM {cat}.silver.silver_contract_awardees
 UNION ALL
-SELECT '3 Gold' AS layer, '3 Gold: fct_contracts (dbt)' AS table_name, count(*) AS row_count FROM {g}.fct_contracts
+SELECT 'Gold' AS layer, '5. Gold: fct_contracts (dbt)' AS table_name, count(*) AS row_count FROM {g}.fct_contracts
 UNION ALL
-SELECT '3 Gold' AS layer, '3 Gold: contract-supplier bridge (dbt)' AS table_name, count(*) AS row_count FROM {g}.bridge_contract_supplier""",
+SELECT 'Gold' AS layer, '6. Gold: contract-supplier bridge (dbt)' AS table_name, count(*) AS row_count FROM {g}.bridge_contract_supplier""",
         "ds_freshness": f"""SELECT max(_ingested_at) AS last_ingested,
        count(DISTINCT _source_file) AS source_files,
        (SELECT max(contract_date) FROM {g}.fct_contracts) AS latest_contract_date
@@ -198,7 +199,7 @@ def build(cat: str) -> dict:
               "Contracts in the band just below each legal limit, times the neighbouring bands", 0, 14, 3, 6,
               horizontal=True, sort_by_value=True, y_title="x neighbouring bands", labels=True),
         chart("concentration", "bar", "ds_concentration", "category", "hhi",
-              "Supplier concentration (HHI) by category, 2019-2026: over 2,500 is high", 3, 14, 3, 6,
+              "Most concentrated categories (HHI), 2019-2026: under 1,500 is unconcentrated", 3, 14, 3, 6,
               horizontal=True, sort_by_value=True, y_title="HHI", labels=True),
     ]
     pipeline = [
