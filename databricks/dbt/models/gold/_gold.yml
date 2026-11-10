@@ -1,0 +1,94 @@
+version: 2
+
+# Descriptions are written to Unity Catalog (persist_docs), where Genie and the AI/BI dashboard read them.
+models:
+  - name: contracts_enriched
+    config:
+      persist_docs: {relation: true, columns: true}
+    description: >
+      Portuguese public contracts published on Portal BASE (IMPIC), January 2019 to 24 October 2026, one row per
+      contract with readable labels. Amounts are in euros without VAT. Use this table to answer questions about
+      public spending in Portugal: who buys, what, how and where.
+    columns:
+      - name: contract_id
+        description: Contract id on Portal BASE (idcontrato).
+        data_tests: [unique, not_null]
+      - name: contract_date
+        description: Signature date; for simplified direct awards without a written contract, the closing date, else the publication date.
+      - name: contract_year
+        description: Year of contract_date.
+      - name: contract_month
+        description: Month number (1-12) of contract_date.
+      - name: contracting_entity
+        description: Name of the public body that signed the contract (adjudicante), latest name used.
+      - name: entity_type
+        description: >
+          Type of public body: Health, Municipality, Parish, Central government, Education and research,
+          State-owned company, Municipal company or service, Intermunicipal body, Regional government (Azores and
+          Madeira), Other public-law body.
+      - name: contract_type
+        description: Goods, Services, Lease of goods, Public works, concessions, Other, Mixed.
+      - name: threshold_family
+        description: Goods and services or Public works, the family the legal value limits apply to.
+      - name: procedure_name
+        description: Award procedure in English (open procedure, direct award, prior consultation...).
+      - name: procedure_group
+        description: Procedure grouped for analysis (Open tender, Prior consultation, Direct award, Simplified direct award, Framework call-off...).
+      - name: is_competitive
+        description: True for procedures where several suppliers can bid.
+      - name: cpv_division
+        description: First two digits of the CPV code (Common Procurement Vocabulary).
+      - name: cpv_category
+        description: Short English name of the CPV division, for example Construction work, Medical products, Energy and fuel.
+      - name: region
+        description: District or autonomous region where the contract is executed; Multiple, Unspecified, Abroad or Not reported otherwise.
+      - name: region_group
+        description: Approximate group of districts (not NUTS).
+      - name: contract_value_eur
+        description: Contract price in euros without VAT (precoContratual). NULL for the few negative prices.
+      - name: base_price_eur
+        description: Base price of the procedure in euros. Only comparable to contract_value_eur for single-contract procedures.
+      - name: effective_price_eur
+        description: Final price paid, reported when the contract is closed.
+      - name: bidders_count
+        description: Number of bidders listed for the procedure; NULL when not listed.
+      - name: is_single_bid
+        description: True when exactly one bidder is listed.
+      - name: n_awardees
+        description: Number of suppliers that won the contract.
+      - name: is_centralised
+        description: Procedure run by a central purchasing body.
+      - name: is_ecological
+        description: Contract flagged as green public procurement.
+      - name: execution_days
+        description: Execution period in days.
+
+  - name: fct_contracts
+    description: One row per contract, keys to the dimensions.
+    columns:
+      - name: contract_id
+        data_tests: [unique, not_null]
+  - name: dim_entity
+    description: Contracting authorities keyed by NIF, latest name and rule-based type.
+    columns:
+      - name: entity_key
+        data_tests: [unique, not_null]
+  - name: dim_supplier
+    config:
+      persist_docs: {relation: true, columns: true}
+    description: Awardees keyed by NIF. Natural persons and suppliers without a Portuguese NIF are collapsed into withheld rows with fixed labels; no person is named.
+    columns:
+      - name: supplier_key
+        data_tests: [unique, not_null]
+  - name: mart_top_suppliers
+    config:
+      persist_docs: {relation: true, columns: true}
+    description: Largest named suppliers (companies) by value 2019-2026, top 25 overall and top 10 per CPV division. Join dim_supplier on supplier_key for the name.
+  - name: mart_supplier_concentration
+    config:
+      persist_docs: {relation: true, columns: true}
+    description: Supplier concentration per CPV division and period (2019-2026 or a year). hhi = Herfindahl-Hirschman index (0 fragmented, 10,000 one supplier); top5_share = share of the five largest suppliers.
+  - name: mart_threshold_summary
+    config:
+      persist_docs: {relation: true, columns: true}
+    description: For each legal value limit, contracts just below and just above it and the average of the neighbouring EUR 1,000 bins. ratio below/neighbours above 1 means values cluster under the limit.

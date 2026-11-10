@@ -1,0 +1,29 @@
+# Databricks Asset Bundle: everything the lakehouse needs, deployed with one command.
+#   databricks bundle validate
+#   databricks bundle deploy
+#   databricks bundle run procurement_refresh
+# Works on Databricks Free Edition (serverless only, one SQL warehouse).
+bundle:
+  name: procurement_lakehouse
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: Unity Catalog catalog for the project. Free Edition comes with one called "workspace".
+    default: workspace
+  warehouse_id:
+    description: >
+      ID of the SQL warehouse (Free Edition has one, "Serverless Starter Warehouse").
+      Find it with `databricks warehouses list`.
+  landing_path:
+    description: Volume folder the yearly Parquet files are uploaded to.
+    default: /Volumes/workspace/raw/landing
+
+targets:
+  dev:
+    # No 'mode: development': it would prefix schema names, and the pipeline and dbt expect raw/silver/gold.
+    default: true
+    workspace:
+      root_path: ~/.bundle/${bundle.name}/${bundle.target}

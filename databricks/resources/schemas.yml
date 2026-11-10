@@ -1,0 +1,21 @@
+resources:
+  schemas:
+    raw:
+      catalog_name: ${var.catalog}
+      name: raw
+      comment: Landing volume for the source files.
+    silver:
+      catalog_name: ${var.catalog}
+      name: silver
+      comment: Bronze and silver tables written by the Lakeflow pipeline.
+    gold:
+      catalog_name: ${var.catalog}
+      name: gold
+      comment: Dimensions, fact and marts built by dbt. Read by the AI/BI dashboard, Genie and Power BI.
+  volumes:
+    landing:
+      catalog_name: ${var.catalog}
+      schema_name: ${resources.schemas.raw.name}
+      name: landing
+      volume_type: MANAGED
+      comment: Yearly Portal BASE files (contratos_YYYY.parquet) as downloaded.

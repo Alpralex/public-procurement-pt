@@ -1,0 +1,838 @@
+{
+  "datasets": [
+    {
+      "name": "ds_kpi",
+      "displayName": "kpi",
+      "queryLines": [
+        "SELECT count(*) AS contracts,\n       round(sum(contract_value_eur) / 1e9, 2) AS value_bn,\n       round(avg(CASE WHEN procedure_group = 'Open tender' AND bidders_count IS NOT NULL\n                      THEN CAST(is_single_bid AS INT) END) * 100, 1) AS open_single_bid_pct,\n       count(DISTINCT contracting_entity) AS buyers\nFROM workspace.gold.contracts_enriched"
+      ]
+    },
+    {
+      "name": "ds_year",
+      "displayName": "year",
+      "queryLines": [
+        "SELECT contract_year, entity_type, procedure_group,\n       count(*) AS contracts, sum(contract_value_eur) / 1e9 AS value_bn\nFROM workspace.gold.contracts_enriched\nGROUP BY ALL"
+      ]
+    },
+    {
+      "name": "ds_category",
+      "displayName": "category",
+      "queryLines": [
+        "SELECT cpv_category, count(*) AS contracts, sum(contract_value_eur) / 1e9 AS value_bn\nFROM workspace.gold.contracts_enriched\nGROUP BY ALL"
+      ]
+    },
+    {
+      "name": "ds_region",
+      "displayName": "region",
+      "queryLines": [
+        "SELECT region, region_group, count(*) AS contracts, sum(contract_value_eur) / 1e9 AS value_bn\nFROM workspace.gold.contracts_enriched\nWHERE region_group NOT IN ('Multiple or national', 'Abroad', 'Not reported')\nGROUP BY ALL"
+      ]
+    },
+    {
+      "name": "ds_single_bid",
+      "displayName": "single bid",
+      "queryLines": [
+        "SELECT contract_year, procedure_group,\n       round(sum(single_bid_contracts) / sum(contracts_with_bidders) * 100, 1) AS single_bid_pct\nFROM workspace.gold.mart_competition\nWHERE procedure_group IN ('Open tender', 'Prior consultation') AND contract_year <= 2025\nGROUP BY ALL"
+      ]
+    },
+    {
+      "name": "ds_bunching",
+      "displayName": "bunching",
+      "queryLines": [
+        "SELECT bin_start / 1000 AS value_k_eur, sum(contracts) AS contracts\nFROM workspace.gold.mart_threshold_bunching\nWHERE threshold_family = 'Goods and services' AND bin_start BETWEEN 5000 AND 99000\nGROUP BY ALL"
+      ]
+    },
+    {
+      "name": "ds_thresholds",
+      "displayName": "thresholds",
+      "queryLines": [
+        "SELECT procedure_limit || ' (' || threshold_family || ', EUR ' || format_number(threshold_eur, 0) || ')' AS legal_limit,\n       contracts_just_below, contracts_just_above,\n       round(contracts_just_below / neighbour_bin_avg, 1) AS times_neighbours\nFROM workspace.gold.mart_threshold_summary"
+      ]
+    },
+    {
+      "name": "ds_concentration",
+      "displayName": "concentration",
+      "queryLines": [
+        "SELECT c.cpv_short_name AS category, round(m.hhi) AS hhi, round(m.top5_share * 100, 1) AS top5_pct,\n       m.supplier_value / 1e9 AS value_bn\nFROM workspace.gold.mart_supplier_concentration m\nJOIN workspace.gold.dim_cpv c USING (cpv_division)\nWHERE m.period = '2019-2026' AND m.supplier_value > 5e8"
+      ]
+    },
+    {
+      "name": "ds_price",
+      "displayName": "price",
+      "queryLines": [
+        "SELECT procedure_group,\n       round((1 - sum(base_contract_value) / sum(base_price_total)) * 100, 1) AS pct_below_base_price\nFROM workspace.gold.mart_price_vs_base\nGROUP BY ALL\nHAVING sum(base_contracts) > 1000"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "overview",
+      "displayName": "Overview",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layout": [
+        {
+          "widget": {
+            "name": "intro",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Where does Portugal's public procurement money go?",
+                "1.55 million contracts published on Portal BASE, January 2019 to October 2026, EUR without VAT. Built on Databricks: Auto Loader + Lakeflow pipeline (bronze, silver) and dbt (gold). Click any bar to filter the page."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_contracts",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_kpi",
+                  "fields": [
+                    {
+                      "name": "contracts",
+                      "expression": "`contracts`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "contracts",
+                  "displayName": "Contracts"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Contracts"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_value",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_kpi",
+                  "fields": [
+                    {
+                      "name": "value_bn",
+                      "expression": "`value_bn`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "value_bn",
+                  "displayName": "Value, EUR bn"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Value, EUR bn"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_single",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_kpi",
+                  "fields": [
+                    {
+                      "name": "open_single_bid_pct",
+                      "expression": "`open_single_bid_pct`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "open_single_bid_pct",
+                  "displayName": "Open tenders with one bid, %"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Open tenders with one bid, %"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "value_by_year",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_year",
+                  "fields": [
+                    {
+                      "name": "contract_year",
+                      "expression": "`contract_year`"
+                    },
+                    {
+                      "name": "sum(value_bn)",
+                      "expression": "SUM(`value_bn`)"
+                    },
+                    {
+                      "name": "entity_type",
+                      "expression": "`entity_type`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "contract_year",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "contract year"
+                },
+                "y": {
+                  "fieldName": "sum(value_bn)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "value bn"
+                },
+                "color": {
+                  "fieldName": "entity_type",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "entity type"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Value by year and buyer type, EUR bn"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "value_by_entity",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_year",
+                  "fields": [
+                    {
+                      "name": "entity_type",
+                      "expression": "`entity_type`"
+                    },
+                    {
+                      "name": "sum(value_bn)",
+                      "expression": "SUM(`value_bn`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "sum(value_bn)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "value bn"
+                },
+                "y": {
+                  "fieldName": "entity_type",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "x-reversed"
+                    }
+                  },
+                  "displayName": "entity type"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Who buys: value by buyer type, EUR bn"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 5,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "value_by_procedure",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_year",
+                  "fields": [
+                    {
+                      "name": "procedure_group",
+                      "expression": "`procedure_group`"
+                    },
+                    {
+                      "name": "sum(value_bn)",
+                      "expression": "SUM(`value_bn`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "sum(value_bn)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "value bn"
+                },
+                "y": {
+                  "fieldName": "procedure_group",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "x-reversed"
+                    }
+                  },
+                  "displayName": "procedure group"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "How it is bought: value by procedure, EUR bn"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 11,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "value_by_category",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_category",
+                  "fields": [
+                    {
+                      "name": "cpv_category",
+                      "expression": "`cpv_category`"
+                    },
+                    {
+                      "name": "sum(value_bn)",
+                      "expression": "SUM(`value_bn`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "sum(value_bn)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "value bn"
+                },
+                "y": {
+                  "fieldName": "cpv_category",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "x-reversed"
+                    }
+                  },
+                  "displayName": "cpv category"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "What is bought: value by CPV category, EUR bn"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 11,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "value_by_region",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_region",
+                  "fields": [
+                    {
+                      "name": "region",
+                      "expression": "`region`"
+                    },
+                    {
+                      "name": "sum(value_bn)",
+                      "expression": "SUM(`value_bn`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "region",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  },
+                  "displayName": "region"
+                },
+                "y": {
+                  "fieldName": "sum(value_bn)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "value bn"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Where: value by district, EUR bn"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 17,
+            "width": 6,
+            "height": 6
+          }
+        }
+      ]
+    },
+    {
+      "name": "competition",
+      "displayName": "Competition and prices",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layout": [
+        {
+          "widget": {
+            "name": "intro2",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Competition, legal limits and prices",
+                "Single-bid share where bidders are listed; contract values around the direct-award limits; supplier concentration per category (HHI); price signed against the base price."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "single_bid",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_single_bid",
+                  "fields": [
+                    {
+                      "name": "contract_year",
+                      "expression": "`contract_year`"
+                    },
+                    {
+                      "name": "avg(single_bid_pct)",
+                      "expression": "AVG(`single_bid_pct`)"
+                    },
+                    {
+                      "name": "procedure_group",
+                      "expression": "`procedure_group`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "contract_year",
+                  "scale": {
+                    "type": "ordinal"
+                  },
+                  "displayName": "contract year"
+                },
+                "y": {
+                  "fieldName": "avg(single_bid_pct)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "single bid pct"
+                },
+                "color": {
+                  "fieldName": "procedure_group",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "procedure group"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Share of procedures with a single bid, %"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "price_vs_base",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_price",
+                  "fields": [
+                    {
+                      "name": "procedure_group",
+                      "expression": "`procedure_group`"
+                    },
+                    {
+                      "name": "avg(pct_below_base_price)",
+                      "expression": "AVG(`pct_below_base_price`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "avg(pct_below_base_price)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "pct below base price"
+                },
+                "y": {
+                  "fieldName": "procedure_group",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "x-reversed"
+                    }
+                  },
+                  "displayName": "procedure group"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Signed price below the base price, %"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 2,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "bunching",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_bunching",
+                  "fields": [
+                    {
+                      "name": "value_k_eur",
+                      "expression": "`value_k_eur`"
+                    },
+                    {
+                      "name": "sum(contracts)",
+                      "expression": "SUM(`contracts`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "value_k_eur",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "value k eur"
+                },
+                "y": {
+                  "fieldName": "sum(contracts)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "contracts"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Goods and services contracts per EUR 1,000 band: peaks just below 20k and 75k"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "thresholds",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_thresholds",
+                  "fields": [
+                    {
+                      "name": "legal_limit",
+                      "expression": "`legal_limit`"
+                    },
+                    {
+                      "name": "contracts_just_below",
+                      "expression": "`contracts_just_below`"
+                    },
+                    {
+                      "name": "contracts_just_above",
+                      "expression": "`contracts_just_above`"
+                    },
+                    {
+                      "name": "times_neighbours",
+                      "expression": "`times_neighbours`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "legal_limit",
+                    "displayName": "legal limit"
+                  },
+                  {
+                    "fieldName": "contracts_just_below",
+                    "displayName": "contracts just below"
+                  },
+                  {
+                    "fieldName": "contracts_just_above",
+                    "displayName": "contracts just above"
+                  },
+                  {
+                    "fieldName": "times_neighbours",
+                    "displayName": "times neighbours"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Contracts just below each legal limit vs the neighbouring bands"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 14,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "concentration",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_concentration",
+                  "fields": [
+                    {
+                      "name": "category",
+                      "expression": "`category`"
+                    },
+                    {
+                      "name": "hhi",
+                      "expression": "`hhi`"
+                    },
+                    {
+                      "name": "top5_pct",
+                      "expression": "`top5_pct`"
+                    },
+                    {
+                      "name": "value_bn",
+                      "expression": "`value_bn`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "category",
+                    "displayName": "category"
+                  },
+                  {
+                    "fieldName": "hhi",
+                    "displayName": "hhi"
+                  },
+                  {
+                    "fieldName": "top5_pct",
+                    "displayName": "top5 pct"
+                  },
+                  {
+                    "fieldName": "value_bn",
+                    "displayName": "value bn"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Supplier concentration by category (2019-2026)"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 14,
+            "width": 3,
+            "height": 6
+          }
+        }
+      ]
+    }
+  ]
+}

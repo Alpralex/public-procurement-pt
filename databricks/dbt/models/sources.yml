@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: silver
+    description: Tables written by the Lakeflow pipeline (src/pipeline/procurement_pipeline.py).
+    schema: "{{ env_var('PROC_SILVER_SCHEMA', 'silver') }}"
+    tables:
+      - name: silver_contracts
+        columns:
+          - name: contract_id
+            data_tests: [unique, not_null]
+      - name: silver_contract_awardees
+      - name: silver_location_lines

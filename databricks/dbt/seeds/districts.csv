@@ -1,0 +1,25 @@
+district_pt,region,region_group,sort_order
+Aveiro,Aveiro,Centre (mainland),1
+Beja,Beja,Alentejo,2
+Braga,Braga,North (mainland),3
+Braganca,Bragança,North (mainland),4
+Castelo Branco,Castelo Branco,Centre (mainland),5
+Coimbra,Coimbra,Centre (mainland),6
+Évora,Évora,Alentejo,7
+Faro,Faro,Algarve,8
+Guarda,Guarda,Centre (mainland),9
+Leiria,Leiria,Centre (mainland),10
+Lisboa,Lisboa,Lisbon and Tagus Valley,11
+Portalegre,Portalegre,Alentejo,12
+Porto,Porto,North (mainland),13
+Santarém,Santarém,Lisbon and Tagus Valley,14
+Setúbal,Setúbal,Lisbon and Tagus Valley,15
+Viana do Castelo,Viana do Castelo,North (mainland),16
+Vila Real,Vila Real,North (mainland),17
+Viseu,Viseu,Centre (mainland),18
+Região Autónoma dos Açores,Azores,Azores,19
+Região Autónoma da Madeira,Madeira,Madeira,20
+Multiple,Multiple districts,Multiple or national,21
+Unspecified,"Portugal, district not given",Multiple or national,22
+Abroad,Abroad,Abroad,23
+Not reported,Not reported,Not reported,24

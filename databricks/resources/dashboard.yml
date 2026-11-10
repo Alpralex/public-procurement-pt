@@ -1,0 +1,7 @@
+resources:
+  dashboards:
+    procurement_dashboard:
+      display_name: "Portugal public procurement 2019-2026"
+      file_path: ../dashboards/public_procurement.lvdash.json
+      warehouse_id: ${var.warehouse_id}
+      embed_credentials: true

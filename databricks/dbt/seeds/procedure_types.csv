@@ -1,0 +1,23 @@
+procedure_key,procedure_name_pt,procedure_name_en,procedure_group,group_order,is_competitive
+1,Concurso público,Open procedure,Open tender,1,true
+2,Concurso público simplificado,Open procedure (simplified),Open tender,1,true
+3,Concurso limitado por prévia qualificação,Restricted procedure,Restricted or negotiated,2,true
+4,Concurso limitado por prévia qualificação simplificado,Restricted procedure (simplified),Restricted or negotiated,2,true
+5,Procedimento de negociação,Negotiated procedure,Restricted or negotiated,2,true
+6,Diálogo concorrencial,Competitive dialogue,Restricted or negotiated,2,true
+7,Parceria para a inovação,Innovation partnership,Restricted or negotiated,2,true
+8,Concurso de conceção simplificado,Design contest (simplified),Restricted or negotiated,2,true
+9,Concurso de ideias simplificado,Ideas contest (simplified),Restricted or negotiated,2,true
+10,Ao abrigo de acordo-quadro (art.º 259.º),Call-off under a framework agreement (art. 259),Framework call-off,3,true
+11,Ao abrigo de acordo-quadro (art.º 258.º),Call-off under a framework agreement (art. 258),Framework call-off,3,true
+12,Consulta Prévia,Prior consultation,Prior consultation,4,true
+13,Consulta Prévia Simplificada,Prior consultation (simplified),Prior consultation,4,true
+14,"Consulta prévia ao abrigo do artigo 7º da Lei n.º 30/2021, de 21.05",Prior consultation (Law 30/2021 art. 7),Prior consultation,4,true
+15,Ajuste Direto Regime Geral,Direct award (general regime),Direct award,5,false
+16,"Ajuste Direto Regime Geral ao abrigo do artigo 7º da Lei n.º 30/2021, de 21.05",Direct award (Law 30/2021 art. 7),Direct award,5,false
+17,Ajuste direto simplificado,Simplified direct award,Simplified direct award,6,false
+18,"Ajuste direto simplificado ao abrigo da Lei n.º 30/2021, de 21.05",Simplified direct award (Law 30/2021),Simplified direct award,6,false
+19,Contratação excluída II,Excluded from Part II of the Code,Excluded or exempt,7,false
+20,Setores especiais – isenção parte II,Special sectors exempt from Part II,Excluded or exempt,7,false
+21,Serviços sociais e outros serviços específicos,Social and other specific services,Other,8,false
+22,Not reported,Not reported,Other,8,false
