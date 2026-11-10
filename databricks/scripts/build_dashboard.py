@@ -66,17 +66,17 @@ WHERE m.period = '2019-2026' AND m.supplier_value > 5e8""",
 FROM {g}.mart_price_vs_base
 GROUP BY ALL
 HAVING sum(base_contracts) > 1000""",
-        "ds_layers": f"""SELECT '1 Bronze' AS layer, 'bronze_contracts: raw rows, Auto Loader' AS table_name, count(*) AS row_count FROM {cat}.silver.bronze_contracts
+        "ds_layers": f"""SELECT '1 Bronze' AS layer, '1 Bronze: raw rows (Auto Loader)' AS table_name, count(*) AS row_count FROM {cat}.silver.bronze_contracts
 UNION ALL
-SELECT '2 Silver' AS layer, 'silver_contracts: typed and deduplicated' AS table_name, count(*) AS row_count FROM {cat}.silver.silver_contracts
+SELECT '2 Silver' AS layer, '2 Silver: typed, deduplicated contracts' AS table_name, count(*) AS row_count FROM {cat}.silver.silver_contracts
 UNION ALL
-SELECT '2 Silver' AS layer, 'silver_contracts_rejected: failed a drop rule' AS table_name, count(*) AS row_count FROM {cat}.silver.silver_contracts_rejected
+SELECT '2 Silver' AS layer, '2 Silver: rows rejected by a rule' AS table_name, count(*) AS row_count FROM {cat}.silver.silver_contracts_rejected
 UNION ALL
-SELECT '2 Silver' AS layer, 'silver_contract_awardees: one row per awardee' AS table_name, count(*) AS row_count FROM {cat}.silver.silver_contract_awardees
+SELECT '2 Silver' AS layer, '2 Silver: one row per awardee' AS table_name, count(*) AS row_count FROM {cat}.silver.silver_contract_awardees
 UNION ALL
-SELECT '3 Gold' AS layer, 'fct_contracts: fact table (dbt)' AS table_name, count(*) AS row_count FROM {g}.fct_contracts
+SELECT '3 Gold' AS layer, '3 Gold: fct_contracts (dbt)' AS table_name, count(*) AS row_count FROM {g}.fct_contracts
 UNION ALL
-SELECT '3 Gold' AS layer, 'bridge_contract_supplier: value split per supplier' AS table_name, count(*) AS row_count FROM {g}.bridge_contract_supplier""",
+SELECT '3 Gold' AS layer, '3 Gold: contract-supplier bridge (dbt)' AS table_name, count(*) AS row_count FROM {g}.bridge_contract_supplier""",
         "ds_freshness": f"""SELECT max(_ingested_at) AS last_ingested,
        count(DISTINCT _source_file) AS source_files,
        (SELECT max(contract_date) FROM {g}.fct_contracts) AS latest_contract_date
@@ -213,8 +213,8 @@ def build(cat: str) -> dict:
         counter("kpi_files", "ds_freshness", "source_files", "Source files ingested", 0, 2),
         counter("kpi_last", "ds_freshness", "last_ingested", "Last ingestion", 2, 2),
         counter("kpi_latest", "ds_freshness", "latest_contract_date", "Latest contract date", 4, 2),
-        table("layers", "ds_layers", ["layer", "table_name", "row_count"], "Rows per layer (medallion architecture)",
-              0, 5, 6, 6, names={"layer": "Layer", "table_name": "Table", "row_count": "Rows"}),
+        chart("layers", "bar", "ds_layers", "table_name", "row_count", "Rows per table, bronze to gold (medallion architecture)",
+              0, 5, 6, 6, color="layer", horizontal=True, y_title="Rows", labels=True),
     ]
     return {
         "datasets": datasets(cat),
