@@ -66,14 +66,17 @@ WHERE m.period = '2019-2026' AND m.supplier_value > 5e8""",
 FROM {g}.mart_price_vs_base
 GROUP BY ALL
 HAVING sum(base_contracts) > 1000""",
-        "ds_layers": f"""SELECT * FROM VALUES
-  ('1 Bronze', 'bronze_contracts: raw rows, Auto Loader', (SELECT count(*) FROM {cat}.silver.bronze_contracts)),
-  ('2 Silver', 'silver_contracts: typed and deduplicated', (SELECT count(*) FROM {cat}.silver.silver_contracts)),
-  ('2 Silver', 'silver_contracts_rejected: failed a drop rule', (SELECT count(*) FROM {cat}.silver.silver_contracts_rejected)),
-  ('2 Silver', 'silver_contract_awardees: one row per awardee', (SELECT count(*) FROM {cat}.silver.silver_contract_awardees)),
-  ('3 Gold', 'fct_contracts: fact table (dbt)', (SELECT count(*) FROM {g}.fct_contracts)),
-  ('3 Gold', 'bridge_contract_supplier: value split per supplier', (SELECT count(*) FROM {g}.bridge_contract_supplier))
-AS t(layer, table_name, row_count)""",
+        "ds_layers": f"""SELECT '1 Bronze' AS layer, 'bronze_contracts: raw rows, Auto Loader' AS table_name, count(*) AS row_count FROM {cat}.silver.bronze_contracts
+UNION ALL
+SELECT '2 Silver' AS layer, 'silver_contracts: typed and deduplicated' AS table_name, count(*) AS row_count FROM {cat}.silver.silver_contracts
+UNION ALL
+SELECT '2 Silver' AS layer, 'silver_contracts_rejected: failed a drop rule' AS table_name, count(*) AS row_count FROM {cat}.silver.silver_contracts_rejected
+UNION ALL
+SELECT '2 Silver' AS layer, 'silver_contract_awardees: one row per awardee' AS table_name, count(*) AS row_count FROM {cat}.silver.silver_contract_awardees
+UNION ALL
+SELECT '3 Gold' AS layer, 'fct_contracts: fact table (dbt)' AS table_name, count(*) AS row_count FROM {g}.fct_contracts
+UNION ALL
+SELECT '3 Gold' AS layer, 'bridge_contract_supplier: value split per supplier' AS table_name, count(*) AS row_count FROM {g}.bridge_contract_supplier""",
         "ds_freshness": f"""SELECT max(_ingested_at) AS last_ingested,
        count(DISTINCT _source_file) AS source_files,
        (SELECT max(contract_date) FROM {g}.fct_contracts) AS latest_contract_date
@@ -206,12 +209,12 @@ def build(cat: str) -> dict:
             "Loader (bronze), then types, deduplicates and checks every row (silver): rows that break a rule go to a "
             "rejected table with the rule's name. dbt-databricks builds the gold star schema and runs its tests. "
             "One weekly job runs both; the whole project deploys with a Databricks Asset Bundle.",
-        ], 0, 0, 6, 3),
-        counter("kpi_files", "ds_freshness", "source_files", "Source files ingested", 0, 3),
-        counter("kpi_last", "ds_freshness", "last_ingested", "Last ingestion", 2, 3),
-        counter("kpi_latest", "ds_freshness", "latest_contract_date", "Latest contract date", 4, 3),
+        ], 0, 0, 6, 2),
+        counter("kpi_files", "ds_freshness", "source_files", "Source files ingested", 0, 2),
+        counter("kpi_last", "ds_freshness", "last_ingested", "Last ingestion", 2, 2),
+        counter("kpi_latest", "ds_freshness", "latest_contract_date", "Latest contract date", 4, 2),
         table("layers", "ds_layers", ["layer", "table_name", "row_count"], "Rows per layer (medallion architecture)",
-              0, 6, 6, 6, names={"layer": "Layer", "table_name": "Table", "row_count": "Rows"}),
+              0, 5, 6, 6, names={"layer": "Layer", "table_name": "Table", "row_count": "Rows"}),
     ]
     return {
         "datasets": datasets(cat),

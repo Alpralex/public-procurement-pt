@@ -67,7 +67,7 @@
       "name": "ds_layers",
       "displayName": "layers",
       "queryLines": [
-        "SELECT * FROM VALUES\n  ('1 Bronze', 'bronze_contracts: raw rows, Auto Loader', (SELECT count(*) FROM workspace.silver.bronze_contracts)),\n  ('2 Silver', 'silver_contracts: typed and deduplicated', (SELECT count(*) FROM workspace.silver.silver_contracts)),\n  ('2 Silver', 'silver_contracts_rejected: failed a drop rule', (SELECT count(*) FROM workspace.silver.silver_contracts_rejected)),\n  ('2 Silver', 'silver_contract_awardees: one row per awardee', (SELECT count(*) FROM workspace.silver.silver_contract_awardees)),\n  ('3 Gold', 'fct_contracts: fact table (dbt)', (SELECT count(*) FROM workspace.gold.fct_contracts)),\n  ('3 Gold', 'bridge_contract_supplier: value split per supplier', (SELECT count(*) FROM workspace.gold.bridge_contract_supplier))\nAS t(layer, table_name, row_count)"
+        "SELECT '1 Bronze' AS layer, 'bronze_contracts: raw rows, Auto Loader' AS table_name, count(*) AS row_count FROM workspace.silver.bronze_contracts\nUNION ALL\nSELECT '2 Silver' AS layer, 'silver_contracts: typed and deduplicated' AS table_name, count(*) AS row_count FROM workspace.silver.silver_contracts\nUNION ALL\nSELECT '2 Silver' AS layer, 'silver_contracts_rejected: failed a drop rule' AS table_name, count(*) AS row_count FROM workspace.silver.silver_contracts_rejected\nUNION ALL\nSELECT '2 Silver' AS layer, 'silver_contract_awardees: one row per awardee' AS table_name, count(*) AS row_count FROM workspace.silver.silver_contract_awardees\nUNION ALL\nSELECT '3 Gold' AS layer, 'fct_contracts: fact table (dbt)' AS table_name, count(*) AS row_count FROM workspace.gold.fct_contracts\nUNION ALL\nSELECT '3 Gold' AS layer, 'bridge_contract_supplier: value split per supplier' AS table_name, count(*) AS row_count FROM workspace.gold.bridge_contract_supplier"
       ]
     },
     {
@@ -890,7 +890,7 @@
             "x": 0,
             "y": 0,
             "width": 6,
-            "height": 3
+            "height": 2
           }
         },
         {
@@ -928,7 +928,7 @@
           },
           "position": {
             "x": 0,
-            "y": 3,
+            "y": 2,
             "width": 2,
             "height": 3
           }
@@ -968,7 +968,7 @@
           },
           "position": {
             "x": 2,
-            "y": 3,
+            "y": 2,
             "width": 2,
             "height": 3
           }
@@ -1008,7 +1008,7 @@
           },
           "position": {
             "x": 4,
-            "y": 3,
+            "y": 2,
             "width": 2,
             "height": 3
           }
@@ -1066,7 +1066,7 @@
           },
           "position": {
             "x": 0,
-            "y": 6,
+            "y": 5,
             "width": 6,
             "height": 6
           }
