@@ -5,6 +5,10 @@ Databricks lakehouse the way a data team would run it in production: incremental
 data-quality rules that are measured on every run, dbt for the business logic, tests that prove the migration
 is right, and a dashboard plus a natural-language "ask the data" space on top.
 
+**Watch it run (100 seconds):** [video and screenshots on the project page](https://guilhermerigonato.com/public-procurement-pt/lakehouse/)
+
+[![AI/BI dashboard on the gold layer](docs/dash-overview.jpg)](https://guilhermerigonato.com/public-procurement-pt/lakehouse/)
+
 **Stack:** Databricks (Unity Catalog, Lakeflow declarative pipelines, Auto Loader, Delta Lake, serverless SQL,
 AI/BI dashboards, Genie, Asset Bundles), PySpark, dbt-databricks, pytest, GitHub Actions, Power BI.
 
@@ -35,6 +39,14 @@ AI/BI dashboard (dashboards/) · Genie space (genie/) · Power BI on the SQL war
 One bundle (databricks.yml) deploys schemas, volume, pipeline, weekly job and dashboard.
 ```
 
+## Screens
+
+| Lakeflow pipeline: Auto Loader, bronze, silver with expectations | Genie answering in plain English with its own SQL |
+|---|---|
+| ![Lakeflow pipeline graph](docs/pipeline.jpg) | ![Genie answer](docs/genie.jpg) |
+
+![Competition page: contracts pile up just below the legal limits](docs/dash-competition2.jpg)
+
 ## Results
 
 The lakehouse reproduces the DuckDB build exactly. Run on the files of 24 October 2026 (local Spark 4.0 with the
@@ -52,7 +64,7 @@ same code, `scripts/run_local.py`):
 | Open tenders signed below the base price | 10.9% | 10.9% |
 | Supplier bridge rows | 1,576,333 | 1,576,333 |
 
-`dbt build`: 6 seeds, 18 models, 17 tests, all passing. The PySpark unit tests (9) cover parsing, the date rule,
+`dbt build`: 6 seeds, 18 models, 17 tests, all passing. The PySpark unit tests (13) cover parsing, the date rule,
 deduplication, ANSI-mode safety and the privacy rules for natural persons.
 
 Two things the migration caught, both now guarded by code:
@@ -112,7 +124,7 @@ Adding a new yearly file to the volume and running the job again processes only 
 ```bash
 cd databricks
 pip install -r requirements-dev.txt     # needs Java 17+
-pytest -q tests                         # 9 unit tests
+pytest -q tests                         # 13 unit tests
 python scripts/run_local.py --raw ../data/raw   # silver with PySpark, gold with dbt on local Spark, all tests
 ```
 
