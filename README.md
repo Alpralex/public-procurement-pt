@@ -67,6 +67,10 @@ layer, and an AI/BI dashboard and a Genie space ("ask the contracts" in Portugue
 deployed by one Asset Bundle. The silver code is PySpark with unit tests, and a dbt test proves the lakehouse
 gives the same totals as this DuckDB build (1,550,674 contracts, EUR 120.54bn).
 
+**[Watch the 100-second demo](https://guilhermerigonato.com/public-procurement-pt/lakehouse/)** (pipeline, weekly job, dashboard and Genie).
+
+[![Databricks AI/BI dashboard](databricks/docs/dash-overview.jpg)](https://guilhermerigonato.com/public-procurement-pt/lakehouse/)
+
 ## Model
 
 ```
